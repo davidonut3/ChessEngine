@@ -1,0 +1,32 @@
+// old minimax function before time constraints
+
+if depth == 0 {
+        let eval: u32 = eval(&fen.boards);
+        return eval
+    }
+
+    if fen.white_to_move {
+        let mut value: u32 = 0x0;
+        let possible_moves: Vec<[u64; 3]> = fen.get_all_possible_moves();
+        for move1 in possible_moves {
+            let mut new_fen: Fen = fen.clone();
+            new_fen.move_to_fen(&move1);
+            let new_value: u32 = self.minimax(new_fen, depth - 1);
+            if new_value > value {
+                value = new_value
+            }
+        }
+        return value;
+    } else {
+        let mut value: u32 = INFINITY;
+        let possible_moves: Vec<[u64; 3]> = fen.get_all_possible_moves();
+        for move1 in possible_moves {
+            let mut new_fen: Fen = fen.clone();
+            new_fen.move_to_fen(&move1);
+            let new_value: u32 = self.minimax(new_fen, depth - 1);
+            if new_value < value {
+                value = new_value
+            }
+        }
+        return value;
+    }

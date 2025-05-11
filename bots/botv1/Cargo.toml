@@ -1,0 +1,10 @@
+[package]
+name = "botv1"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "botv1"
+
+[dependencies]
+fenlib = { path = "../../utilities/fenlib" }

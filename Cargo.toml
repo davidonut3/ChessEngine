@@ -1,0 +1,8 @@
+# ChessEngine/Cargo.toml
+[workspace]
+members = [
+    "utilities/fenlib",
+    "utilities/rust",
+    "bots/botv1",
+    "bots/botv2",
+]

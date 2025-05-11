@@ -1,0 +1,13 @@
+[package]
+name = "rust_utils"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "rust_utils"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.24.1", features = ["extension-module"] }
+fenlib = { path = "../../utilities/fenlib" }
+botv1 = { path = "../../bots/botv1" }
