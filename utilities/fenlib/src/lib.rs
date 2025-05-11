@@ -6,6 +6,8 @@ use std::time::Instant;
 
 use crate::utils::*;
 
+pub const MAX_MOVES: usize = 27;
+
 #[derive(Debug, Clone)]
 pub struct Fen {
     pub boards: [u64; 12],
@@ -94,60 +96,133 @@ impl Fen {
     }
 
     pub fn get_possible_moves_tile(&self, tile: &str) -> Vec<String> {
-        let moves: Vec<[u64; 3]> = self.get_possible_moves(&parsing::tile_to_bit(tile));
-        parsing::moves_to_lan_list(&moves)
+        let moves_info: ([[u64; 3]; MAX_MOVES], usize) = self.get_possible_moves(&parsing::tile_to_bit(tile));
+        let moves:[[u64; 3]; MAX_MOVES]  = moves_info.0;
+        let count: usize = moves_info.1;
+
+        let mut vec_moves: Vec<[u64; 3]> = Vec::new();
+
+        for i in 0..count {
+            vec_moves.push(moves[i]);
+        }
+
+        parsing::moves_to_lan_list(&vec_moves)
     }
     
-    pub fn get_possible_moves(&self, start: &u64) -> Vec<[u64; 3]> {
+    pub fn get_possible_moves(&self, start: &u64) -> ([[u64; 3]; MAX_MOVES], usize) {
         // this function takes 500-3000 ns
 
-        let time: Instant = Instant::now();
+        // let time: Instant = Instant::now();
 
-        let mut moves: Vec<[u64; 3]> = Vec::new();
-        
-        let possible_moves: Vec<u64>;
+        let mut moves: [[u64; 3]; MAX_MOVES] = [[0; 3]; MAX_MOVES];
+        let mut count: usize = 0;
     
         // guessing moves takes 0-2000 ns
         if self.boards[0] & start != 0 {
-            possible_moves = moves::white_pawn(&start);
-        } else if self.boards[6] & start != 0 {
-            possible_moves = moves::black_pawn(&start);
-        } else if self.boards[1] & start != 0 || self.boards[7] & start != 0 {
-            possible_moves = moves::knight(&start);
-        } else if self.boards[5] & start != 0 || self.boards[11] & start != 0 {
-            possible_moves = moves::king(&start);
-        } else if self.boards[4] & start != 0 || self.boards[10] & start != 0 {
-            possible_moves = moves::queen(&start);
-        } else if self.boards[3] & start != 0 || self.boards[9] & start != 0 {
-            possible_moves = moves::rook(&start);
-        } else if self.boards[2] & start != 0 || self.boards[8] & start != 0 {
-            possible_moves = moves::bishop(&start);
-        } else {
-            return Vec::new();
-        }
-    
-        // creating list takes 400-2000 ns
-        for end in possible_moves {
-
-            // checking whether a move is legal takes 0-200 ns on average, with jumps to 300-1000 ns
-            let is_legal: bool = self.is_legal_move(&[*start, end, NO_PROM]);
-
-            // adding move to list takes 0-300 ns on average, with jumps to 400-1200 ns
-            if is_legal {
-                if (self.boards[0] & start != 0 && RANK_0 & end != 0) || (self.boards[6] & start != 0 && RANK_7 & end != 0) {
-                    moves.push([*start, end, QUEEN_PROM]);
-                    moves.push([*start, end, ROOK_PROM]);
-                    moves.push([*start, end, BISHOP_PROM]);
-                    moves.push([*start, end, KNIGHT_PROM]);
-                } else {
-                    moves.push([*start, end, NO_PROM]);
+            let possible_moves: [u64; moves::PAWN_GUESS] = moves::white_pawn(&start);
+            for i in 0..moves::PAWN_GUESS {
+                let end: u64 = possible_moves[i];
+                if self.is_legal_move(&[*start, end, NO_PROM]) {
+                    if self.boards[0] & start != 0 && RANK_0 & end != 0 {
+                        moves[count + 0] = [*start, end, QUEEN_PROM];
+                        moves[count + 1] = [*start, end, ROOK_PROM];
+                        moves[count + 2] = [*start, end, BISHOP_PROM];
+                        moves[count + 3] = [*start, end, KNIGHT_PROM];
+                        count += 4;
+                    } else {
+                        moves[count] = [*start, end, NO_PROM];
+                        count += 1;
+                    }
                 }
             }
+        } else if self.boards[6] & start != 0 {
+            let possible_moves: [u64; moves::PAWN_GUESS] = moves::black_pawn(&start);
+            for i in 0..moves::PAWN_GUESS {
+                let end: u64 = possible_moves[i];
+                if self.is_legal_move(&[*start, end, NO_PROM]) {
+                    if self.boards[6] & start != 0 && RANK_7 & end != 0 {
+                        moves[count + 0] = [*start, end, QUEEN_PROM];
+                        moves[count + 1] = [*start, end, ROOK_PROM];
+                        moves[count + 2] = [*start, end, BISHOP_PROM];
+                        moves[count + 3] = [*start, end, KNIGHT_PROM];
+                        count += 4;
+                    } else {
+                        moves[count] = [*start, end, NO_PROM];
+                        count += 1;
+                    }
+                }
+            }
+        } else if self.boards[1] & start != 0 || self.boards[7] & start != 0 {
+            let possible_moves: [u64; moves::KNIGHT_GUESS] = moves::knight(&start);
+            for i in 0..moves::KNIGHT_GUESS {
+                let end: u64 = possible_moves[i];
+                if self.is_legal_move(&[*start, end, NO_PROM]) {
+                    moves[count] = [*start, end, NO_PROM];
+                    count += 1;
+                }
+            }
+        } else if self.boards[5] & start != 0 || self.boards[11] & start != 0 {
+            let possible_moves: [u64; moves::KING_GUESS] = moves::king(&start);
+            for i in 0..moves::KING_GUESS {
+                let end: u64 = possible_moves[i];
+                if self.is_legal_move(&[*start, end, NO_PROM]) {
+                    moves[count] = [*start, end, NO_PROM];
+                    count += 1;
+                }
+            }
+        } else if self.boards[4] & start != 0 || self.boards[10] & start != 0 {
+            let possible_moves: [u64; moves::QUEEN_GUESS] = moves::queen(&start);
+            for i in 0..moves::QUEEN_GUESS {
+                let end: u64 = possible_moves[i];
+                if self.is_legal_move(&[*start, end, NO_PROM]) {
+                    moves[count] = [*start, end, NO_PROM];
+                    count += 1;
+                }
+            }
+        } else if self.boards[3] & start != 0 || self.boards[9] & start != 0 {
+            let possible_moves: [u64; moves::ROOK_GUESS] = moves::rook(&start);
+            for i in 0..moves::ROOK_GUESS {
+                let end: u64 = possible_moves[i];
+                if self.is_legal_move(&[*start, end, NO_PROM]) {
+                    moves[count] = [*start, end, NO_PROM];
+                    count += 1;
+                }
+            }
+        } else if self.boards[2] & start != 0 || self.boards[8] & start != 0 {
+            let possible_moves: [u64; moves::BISHOP_GUESS] = moves::bishop(&start);
+            for i in 0..moves::BISHOP_GUESS {
+                let end: u64 = possible_moves[i];
+                if self.is_legal_move(&[*start, end, NO_PROM]) {
+                    moves[count] = [*start, end, NO_PROM];
+                    count += 1;
+                }
+            }
+        } else {
+            return (moves, 0);
         }
-
-        println!("Generating moves took {:?}", time.elapsed());
     
-        moves
+        // // creating list takes 400-2000 ns
+        // for end in possible_moves {
+
+        //     // checking whether a move is legal takes 0-200 ns on average, with jumps to 300-1000 ns
+        //     let is_legal: bool = self.is_legal_move(&[*start, end, NO_PROM]);
+
+        //     // adding move to list takes 0-300 ns on average, with jumps to 400-1200 ns
+        //     if is_legal {
+        //         if (self.boards[0] & start != 0 && RANK_0 & end != 0) || (self.boards[6] & start != 0 && RANK_7 & end != 0) {
+        //             moves.push([*start, end, QUEEN_PROM]);
+        //             moves.push([*start, end, ROOK_PROM]);
+        //             moves.push([*start, end, BISHOP_PROM]);
+        //             moves.push([*start, end, KNIGHT_PROM]);
+        //         } else {
+        //             moves.push([*start, end, NO_PROM]);
+        //         }
+        //     }
+        // }
+
+        // // println!("Generating moves took {:?}", time.elapsed());
+    
+        (moves, count)
     }
     
     pub fn in_check(&self) -> bool {
@@ -313,26 +388,12 @@ impl Fen {
     }
 
     pub fn get_all_possible_moves_lan(&self) -> Vec<String> {
-        let mut moves: Vec<[u64; 3]> = Vec::new();
-    
-        let pieces = match self.white_to_move {
-            true => self.white,
-            false => self.black
-        };
-    
-        for i in 0..64 {
-            let piece: u64 = FIRST >> i;
-            
-            if piece & pieces != 0 {
-                moves.append(&mut self.get_possible_moves(&piece));
-            }
-        }
-    
+        let moves: Vec<[u64; 3]> = self.get_all_possible_moves();
         parsing::moves_to_lan_list(&moves)
     }
 
     pub fn get_all_possible_moves(&self) -> Vec<[u64; 3]> {
-        let mut moves: Vec<[u64; 3]> = Vec::new();
+        let mut vec_moves: Vec<[u64; 3]> = Vec::new();
     
         let pieces = match self.white_to_move {
             true => self.white,
@@ -343,11 +404,17 @@ impl Fen {
             let piece: u64 = FIRST >> i;
             
             if piece & pieces != 0 {
-                moves.append(&mut self.get_possible_moves(&piece));
+                let moves_info: ([[u64; 3]; MAX_MOVES], usize) = self.get_possible_moves(&piece);
+                let moves:[[u64; 3]; MAX_MOVES]  = moves_info.0;
+                let count: usize = moves_info.1;
+
+                for i in 0..count {
+                    vec_moves.push(moves[i])
+                }
             }
         }
     
-        moves
+        vec_moves
     }
 
     pub fn game_ended(&self) -> String {
