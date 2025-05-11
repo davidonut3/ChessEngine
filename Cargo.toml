@@ -3,6 +3,7 @@
 # The purpose of this file is to let the rust-analyzer know where to look
 
 [workspace]
+resolver = "3"
 members = [
     "utilities/fenlib",
     "utilities/rust",

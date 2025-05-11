@@ -4,6 +4,13 @@
 ///         For example, obstacles or other pieces on the board can restrict movement. This function
 ///         only returns the theoretical moves (unfiltered).
 
+pub const PAWN_GUESS: usize = 4;
+pub const KNIGHT_GUESS: usize = 8;
+pub const KING_GUESS: usize = 10;
+pub const ROOK_GUESS: usize = 28;
+pub const BISHOP_GUESS: usize = 28;
+pub const QUEEN_GUESS: usize = 56;
+
 /// Possible moves for a white pawn. Moves are calculated using bitwise shifts.
 ///
 /// A white pawn moves one square forward (8), captures diagonally (7, 9), and can advance two squares
@@ -11,18 +18,18 @@
 ///
 /// # Arguments
 /// * `start` - The current position of the white pawn (bitboard representation).
-pub fn white_pawn(start: &u64) -> Vec<u64> {
-    let mut moves: Vec<u64> = Vec::new();
+pub fn white_pawn(start: &u64) -> [u64; PAWN_GUESS] {
+    let mut moves: [u64; PAWN_GUESS] = [0; PAWN_GUESS];
 
     // Diagonal captures (moving left or right)
-    moves.push(start << 7);
-    moves.push(start << 9);
+    moves[0] = start << 7;
+    moves[1] = start << 9;
 
     // Forward move (one square)
-    moves.push(start << 8);
+    moves[2] = start << 8;
 
     // Double advance (only on starting square)
-    moves.push(start << 16);
+    moves[3] = start << 16;
 
     moves
 }
@@ -34,18 +41,18 @@ pub fn white_pawn(start: &u64) -> Vec<u64> {
 ///
 /// # Arguments
 /// * `start` - The current position of the black pawn (bitboard representation).
-pub fn black_pawn(start: &u64) -> Vec<u64> {
-    let mut moves: Vec<u64> = Vec::new();
+pub fn black_pawn(start: &u64) -> [u64; PAWN_GUESS] {
+    let mut moves: [u64; PAWN_GUESS] = [0; PAWN_GUESS];
 
     // Diagonal captures (moving left or right)
-    moves.push(start >> 7);
-    moves.push(start >> 9);
+    moves[0] = start >> 7;
+    moves[1] = start >> 9;
 
     // Forward move (one square)
-    moves.push(start >> 8);
+    moves[2] = start >> 8;
 
     // Double advance (only on starting square)
-    moves.push(start >> 16);
+    moves[3] = start >> 16;
 
     moves
 }
@@ -55,19 +62,19 @@ pub fn black_pawn(start: &u64) -> Vec<u64> {
 ///
 /// # Arguments
 /// * `start` - The current position of the knight (bitboard representation).
-pub fn knight(start: &u64) -> Vec<u64> {
-    let mut moves: Vec<u64> = Vec::new();
+pub fn knight(start: &u64) -> [u64; KNIGHT_GUESS] {
+    let mut moves: [u64; KNIGHT_GUESS] = [0; KNIGHT_GUESS];
 
     // Move 2 squares in one direction, 1 square in perpendicular direction
-    moves.push(start << 6);
-    moves.push(start << 10);
-    moves.push(start << 15);
-    moves.push(start << 17);
+    moves[0] = start << 6;
+    moves[1] = start << 10;
+    moves[2] = start << 15;
+    moves[3] = start << 17;
 
-    moves.push(start >> 6);
-    moves.push(start >> 10);
-    moves.push(start >> 15);
-    moves.push(start >> 17);
+    moves[4] = start >> 6;
+    moves[5] = start >> 10;
+    moves[6] = start >> 15;
+    moves[7] = start >> 17;
 
     moves
 }
@@ -77,21 +84,21 @@ pub fn knight(start: &u64) -> Vec<u64> {
 ///
 /// # Arguments
 /// * `start` - The current position of the king (bitboard representation).
-pub fn king(start: &u64) -> Vec<u64> {
-    let mut moves: Vec<u64> = Vec::new();
+pub fn king(start: &u64) -> [u64; KING_GUESS] {
+    let mut moves: [u64; KING_GUESS] = [0; KING_GUESS];
 
     // Move one square in all 8 possible directions (vertically, horizontally, and diagonally)
-    moves.push(start << 1);   // Right
-    moves.push(start << 2);   // Right-Right
-    moves.push(start << 7);   // Up-Left
-    moves.push(start << 8);   // Up
-    moves.push(start << 9);   // Up-Right
+    moves[0] = start << 1;   // Right
+    moves[1] = start << 2;   // Right-Right
+    moves[2] = start << 7;   // Up-Left
+    moves[3] = start << 8;   // Up
+    moves[4] = start << 9;   // Up-Right
 
-    moves.push(start >> 1);   // Left
-    moves.push(start >> 2);   // Left-Left
-    moves.push(start >> 7);   // Down-Left
-    moves.push(start >> 8);   // Down
-    moves.push(start >> 9);   // Down-Right
+    moves[5] = start >> 1;   // Left
+    moves[6] = start >> 2;   // Left-Left
+    moves[7] = start >> 7;   // Down-Left
+    moves[8] = start >> 8;   // Down
+    moves[9] = start >> 9;   // Down-Right
 
     moves
 }
@@ -100,42 +107,42 @@ pub fn king(start: &u64) -> Vec<u64> {
 ///
 /// # Arguments
 /// * `start` - The current position of the rook (bitboard representation).
-pub fn rook(start: &u64) -> Vec<u64> {
-    let mut moves: Vec<u64> = Vec::new();
+pub fn rook(start: &u64) -> [u64; ROOK_GUESS] {
+    let mut moves: [u64; ROOK_GUESS] = [0; ROOK_GUESS];
 
     // Horizontal moves (left and right)
-    moves.push(start << 1);
-    moves.push(start << 2);
-    moves.push(start << 3);
-    moves.push(start << 4);
-    moves.push(start << 5);
-    moves.push(start << 6);
-    moves.push(start << 7);
+    moves[0] = start << 1;
+    moves[1] = start << 2;
+    moves[2] = start << 3;
+    moves[3] = start << 4;
+    moves[4] = start << 5;
+    moves[5] = start << 6;
+    moves[6] = start << 7;
 
-    moves.push(start >> 1);
-    moves.push(start >> 2);
-    moves.push(start >> 3);
-    moves.push(start >> 4);
-    moves.push(start >> 5);
-    moves.push(start >> 6);
-    moves.push(start >> 7);
+    moves[7] = start >> 1;
+    moves[8] = start >> 2;
+    moves[9] = start >> 3;
+    moves[10] = start >> 4;
+    moves[11] = start >> 5;
+    moves[12] = start >> 6;
+    moves[13] = start >> 7;
 
     // Vertical moves (up and down)
-    moves.push(start << 8);
-    moves.push(start << 16);
-    moves.push(start << 24);
-    moves.push(start << 32);
-    moves.push(start << 40);
-    moves.push(start << 48);
-    moves.push(start << 56);
+    moves[14] = start << 8;
+    moves[15] = start << 16;
+    moves[16] = start << 24;
+    moves[17] = start << 32;
+    moves[18] = start << 40;
+    moves[19] = start << 48;
+    moves[20] = start << 56;
 
-    moves.push(start >> 8);
-    moves.push(start >> 16);
-    moves.push(start >> 24);
-    moves.push(start >> 32);
-    moves.push(start >> 40);
-    moves.push(start >> 48);
-    moves.push(start >> 56);
+    moves[21] = start >> 8;
+    moves[22] = start >> 16;
+    moves[23] = start >> 24;
+    moves[24] = start >> 32;
+    moves[25] = start >> 40;
+    moves[26] = start >> 48;
+    moves[27] = start >> 56;
 
     moves
 }
@@ -144,41 +151,41 @@ pub fn rook(start: &u64) -> Vec<u64> {
 ///
 /// # Arguments
 /// * `start` - The current position of the bishop (bitboard representation).
-pub fn bishop(start: &u64) -> Vec<u64> {
-    let mut moves: Vec<u64> = Vec::new();
+pub fn bishop(start: &u64) -> [u64; BISHOP_GUESS] {
+    let mut moves: [u64; BISHOP_GUESS] = [0; BISHOP_GUESS];
 
     // Diagonal moves (top-right, top-left, bottom-right, bottom-left)
-    moves.push(start << 9);
-    moves.push(start << 18);
-    moves.push(start << 27);
-    moves.push(start << 36);
-    moves.push(start << 45);
-    moves.push(start << 54);
-    moves.push(start << 63);
+    moves[0] = start << 9;
+    moves[1] = start << 18;
+    moves[2] = start << 27;
+    moves[3] = start << 36;
+    moves[4] = start << 45;
+    moves[5] = start << 54;
+    moves[6] = start << 63;
 
-    moves.push(start << 7);
-    moves.push(start << 14);
-    moves.push(start << 21);
-    moves.push(start << 28);
-    moves.push(start << 35);
-    moves.push(start << 42);
-    moves.push(start << 49);
+    moves[7] = start << 7;
+    moves[8] = start << 14;
+    moves[9] = start << 21;
+    moves[10] = start << 28;
+    moves[11] = start << 35;
+    moves[12] = start << 42;
+    moves[13] = start << 49;
 
-    moves.push(start >> 9);
-    moves.push(start >> 18);
-    moves.push(start >> 27);
-    moves.push(start >> 36);
-    moves.push(start >> 45);
-    moves.push(start >> 54);
-    moves.push(start >> 63);
+    moves[14] = start >> 9;
+    moves[15] = start >> 18;
+    moves[16] = start >> 27;
+    moves[17] = start >> 36;
+    moves[18] = start >> 45;
+    moves[19] = start >> 54;
+    moves[20] = start >> 63;
 
-    moves.push(start >> 7);
-    moves.push(start >> 14);
-    moves.push(start >> 21);
-    moves.push(start >> 28);
-    moves.push(start >> 35);
-    moves.push(start >> 42);
-    moves.push(start >> 49);
+    moves[21] = start >> 7;
+    moves[22] = start >> 14;
+    moves[23] = start >> 21;
+    moves[24] = start >> 28;
+    moves[25] = start >> 35;
+    moves[26] = start >> 42;
+    moves[27] = start >> 49;
 
     moves
 }
@@ -188,74 +195,74 @@ pub fn bishop(start: &u64) -> Vec<u64> {
 ///
 /// # Arguments
 /// * `start` - The current position of the queen (bitboard representation).
-pub fn queen(start: &u64) -> Vec<u64> {
-    let mut moves: Vec<u64> = Vec::new();
+pub fn queen(start: &u64) -> [u64; QUEEN_GUESS] {
+    let mut moves: [u64; QUEEN_GUESS] = [0; QUEEN_GUESS];
 
     // Rook-like moves (horizontal and vertical)
-    moves.push(start << 1);
-    moves.push(start << 2);
-    moves.push(start << 3);
-    moves.push(start << 4);
-    moves.push(start << 5);
-    moves.push(start << 6);
-    moves.push(start << 7);
+    moves[0] = start << 1;
+    moves[1] = start << 2;
+    moves[2] = start << 3;
+    moves[3] = start << 4;
+    moves[4] = start << 5;
+    moves[5] = start << 6;
+    moves[6] = start << 7;
 
-    moves.push(start >> 1);
-    moves.push(start >> 2);
-    moves.push(start >> 3);
-    moves.push(start >> 4);
-    moves.push(start >> 5);
-    moves.push(start >> 6);
-    moves.push(start >> 7);
+    moves[7] = start >> 1;
+    moves[8] = start >> 2;
+    moves[9] = start >> 3;
+    moves[10] = start >> 4;
+    moves[11] = start >> 5;
+    moves[12] = start >> 6;
+    moves[13] = start >> 7;
 
-    moves.push(start << 8);
-    moves.push(start << 16);
-    moves.push(start << 24);
-    moves.push(start << 32);
-    moves.push(start << 40);
-    moves.push(start << 48);
-    moves.push(start << 56);
+    moves[14] = start << 8;
+    moves[15] = start << 16;
+    moves[16] = start << 24;
+    moves[17] = start << 32;
+    moves[18] = start << 40;
+    moves[19] = start << 48;
+    moves[20] = start << 56;
 
-    moves.push(start >> 8);
-    moves.push(start >> 16);
-    moves.push(start >> 24);
-    moves.push(start >> 32);
-    moves.push(start >> 40);
-    moves.push(start >> 48);
-    moves.push(start >> 56);
+    moves[21] = start >> 8;
+    moves[22] = start >> 16;
+    moves[23] = start >> 24;
+    moves[24] = start >> 32;
+    moves[25] = start >> 40;
+    moves[26] = start >> 48;
+    moves[27] = start >> 56;
 
     // Bishop-like moves (diagonal)
-    moves.push(start << 9);
-    moves.push(start << 18);
-    moves.push(start << 27);
-    moves.push(start << 36);
-    moves.push(start << 45);
-    moves.push(start << 54);
-    moves.push(start << 63);
+    moves[28] = start << 9;
+    moves[29] = start << 18;
+    moves[30] = start << 27;
+    moves[31] = start << 36;
+    moves[32] = start << 45;
+    moves[33] = start << 54;
+    moves[34] = start << 63;
 
-    moves.push(start << 7);
-    moves.push(start << 14);
-    moves.push(start << 21);
-    moves.push(start << 28);
-    moves.push(start << 35);
-    moves.push(start << 42);
-    moves.push(start << 49);
+    moves[35] = start << 7;
+    moves[36] = start << 14;
+    moves[37] = start << 21;
+    moves[38] = start << 28;
+    moves[39] = start << 35;
+    moves[40] = start << 42;
+    moves[41] = start << 49;
 
-    moves.push(start >> 9);
-    moves.push(start >> 18);
-    moves.push(start >> 27);
-    moves.push(start >> 36);
-    moves.push(start >> 45);
-    moves.push(start >> 54);
-    moves.push(start >> 63);
+    moves[42] = start >> 9;
+    moves[43] = start >> 18;
+    moves[44] = start >> 27;
+    moves[45] = start >> 36;
+    moves[46] = start >> 45;
+    moves[47] = start >> 54;
+    moves[48] = start >> 63;
 
-    moves.push(start >> 7);
-    moves.push(start >> 14);
-    moves.push(start >> 21);
-    moves.push(start >> 28);
-    moves.push(start >> 35);
-    moves.push(start >> 42);
-    moves.push(start >> 49);
+    moves[49] = start >> 7;
+    moves[50] = start >> 14;
+    moves[51] = start >> 21;
+    moves[52] = start >> 28;
+    moves[53] = start >> 35;
+    moves[54] = start >> 42;
+    moves[55] = start >> 49;
 
     moves
 }
