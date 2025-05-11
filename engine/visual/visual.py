@@ -18,7 +18,7 @@ class Visual:
         self.board_screen = pygame.surface.Surface((BOARD_SIZE, BOARD_SIZE))
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption('Chess')
-        pygame.display.set_icon(pygame.image.load(getcwd() + '/chess.png'))
+        pygame.display.set_icon(pygame.image.load(MAIN_LOCATION + '/chess.png'))
 
         self.board = {(rank, file): Tile((rank, file), TILE_SIZE, False, NO_PIECE, Color.LIGHT if (file % 2 and rank % 2) or (not file % 2 and not rank % 2) else Color.DARK, self.perspective) for file in range(8) for rank in range(8)}
         self.update_board()

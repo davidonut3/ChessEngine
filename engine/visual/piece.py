@@ -13,7 +13,7 @@ class Piece:
             self.bounds[0], self.bounds[2] = self.bounds[2], self.bounds[0]
             self.bounds[1], self.bounds[3] = self.bounds[3], self.bounds[1]
         
-        self.image = pygame.image.load(f"{getcwd()}/pieces/{self.type}_{self.name}.png").convert_alpha()
+        self.image = pygame.image.load(f"{MAIN_LOCATION}/pieces/{self.type}_{self.name}.png").convert_alpha()
         self.image = pygame.transform.scale_by(self.image, TILE_SIZE / 60)
         self.image_width = self.image.get_width()
         self.image_height = self.image.get_height()

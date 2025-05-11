@@ -16,6 +16,9 @@ import random
 import multiprocessing
 from math import floor, sqrt
 from os import getcwd
+from rust_utils import FenPy, BotV1Py
+
+MAIN_LOCATION = getcwd()
 
 WHITE = 'w'
 BLACK = 'b'

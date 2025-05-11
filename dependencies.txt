@@ -1,1 +1,5 @@
-The engine needs the pygame library for visual environment.
+- You need to be able to run Rust and Python. There is currently no easy installation setup, so you will have to figure it out yourself.
+
+- Libs for python: pygame
+
+- Libs for rust/python communications: maturin at the python side, pyo3 at the rust side
