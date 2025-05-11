@@ -4,7 +4,7 @@ pub mod utils;
 
 use crate::utils::*;
 
-pub const MAX_MOVES: usize = 27;
+pub const MAX_MOVES: usize = 28;
 
 #[derive(Debug, Clone)]
 pub struct Fen {
