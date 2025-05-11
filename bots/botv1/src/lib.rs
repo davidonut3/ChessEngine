@@ -135,7 +135,6 @@ impl BotV1 {
     }
 
     pub fn minimax(&self, move1: &mut Move, depth: u32, start_time: Instant, max_time: Duration) -> Option<u32> {
-        let minimax_time: Instant = Instant::now();
 
         if start_time.elapsed() >= max_time {
             return None
@@ -160,7 +159,6 @@ impl BotV1 {
                 return None
             }
         }
-        println!("Minimax took {:?}", minimax_time.elapsed());
         return Some(value)
     }
 
@@ -181,7 +179,7 @@ impl BotV1 {
         let mut depth: u32 = 1;
 
         loop {
-            println!("Looking at depth: {:?}", depth);
+            println!("We are currently looking at depth: {:?}", depth);
             let best_move_prev_iter: [u64; 3] = best_move;
             for move1 in &mut possible_moves {
                 if let Some(new_score) = self.minimax(move1, depth, start_time, max_time) {

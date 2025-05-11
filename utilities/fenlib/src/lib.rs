@@ -2,6 +2,8 @@ pub mod parsing;
 pub mod moves;
 pub mod utils;
 
+use std::time::Instant;
+
 use crate::utils::*;
 
 #[derive(Debug, Clone)]
@@ -100,6 +102,8 @@ impl Fen {
         let mut moves: Vec<[u64; 3]> = Vec::new();
         
         let possible_moves: Vec<u64>;
+
+        let mut time: Instant = Instant::now();
     
         if self.boards[0] & start != 0 {
             possible_moves = moves::white_pawn(&start);
@@ -118,9 +122,21 @@ impl Fen {
         } else {
             return Vec::new();
         }
+
+        println!("Guessing moves took {:?}", time.elapsed());
     
         for end in possible_moves {
-            if self.is_legal_move(&[*start, end, NO_PROM]) {
+
+            time = Instant::now();
+
+            let is_legal: bool = self.is_legal_move(&[*start, end, NO_PROM]);
+
+            println!("Checking legality took {:?}", time.elapsed());
+
+            if is_legal {
+
+                time = Instant::now();
+
                 if (self.boards[0] & start != 0 && RANK_0 & end != 0) || (self.boards[6] & start != 0 && RANK_7 & end != 0) {
                     moves.push([*start, end, QUEEN_PROM]);
                     moves.push([*start, end, ROOK_PROM]);
@@ -129,8 +145,12 @@ impl Fen {
                 } else {
                     moves.push([*start, end, NO_PROM])
                 }
+
+                println!("Adding move to list took {:?}", time.elapsed());
             }
         }
+
+        println!("Generating moves took {:?}", time.elapsed());
     
         moves
     }
