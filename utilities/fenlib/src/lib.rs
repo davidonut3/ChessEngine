@@ -2,8 +2,6 @@ pub mod parsing;
 pub mod moves;
 pub mod utils;
 
-use std::time::Instant;
-
 use crate::utils::*;
 
 pub const MAX_MOVES: usize = 27;
@@ -110,14 +108,9 @@ impl Fen {
     }
     
     pub fn get_possible_moves(&self, start: &u64) -> ([[u64; 3]; MAX_MOVES], usize) {
-        // this function takes 500-3000 ns
-
-        // let time: Instant = Instant::now();
-
         let mut moves: [[u64; 3]; MAX_MOVES] = [[0; 3]; MAX_MOVES];
         let mut count: usize = 0;
-    
-        // guessing moves takes 0-2000 ns
+
         if self.boards[0] & start != 0 {
             let possible_moves: [u64; moves::PAWN_GUESS] = moves::white_pawn(&start);
             for i in 0..moves::PAWN_GUESS {
@@ -200,27 +193,6 @@ impl Fen {
         } else {
             return (moves, 0);
         }
-    
-        // // creating list takes 400-2000 ns
-        // for end in possible_moves {
-
-        //     // checking whether a move is legal takes 0-200 ns on average, with jumps to 300-1000 ns
-        //     let is_legal: bool = self.is_legal_move(&[*start, end, NO_PROM]);
-
-        //     // adding move to list takes 0-300 ns on average, with jumps to 400-1200 ns
-        //     if is_legal {
-        //         if (self.boards[0] & start != 0 && RANK_0 & end != 0) || (self.boards[6] & start != 0 && RANK_7 & end != 0) {
-        //             moves.push([*start, end, QUEEN_PROM]);
-        //             moves.push([*start, end, ROOK_PROM]);
-        //             moves.push([*start, end, BISHOP_PROM]);
-        //             moves.push([*start, end, KNIGHT_PROM]);
-        //         } else {
-        //             moves.push([*start, end, NO_PROM]);
-        //         }
-        //     }
-        // }
-
-        // // println!("Generating moves took {:?}", time.elapsed());
     
         (moves, count)
     }
