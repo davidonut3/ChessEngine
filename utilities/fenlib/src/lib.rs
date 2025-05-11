@@ -99,12 +99,15 @@ impl Fen {
     }
     
     pub fn get_possible_moves(&self, start: &u64) -> Vec<[u64; 3]> {
+        // this function takes 500-3000 ns
+
+        let time: Instant = Instant::now();
+
         let mut moves: Vec<[u64; 3]> = Vec::new();
         
         let possible_moves: Vec<u64>;
-
-        let mut time: Instant = Instant::now();
     
+        // guessing moves takes 0-2000 ns
         if self.boards[0] & start != 0 {
             possible_moves = moves::white_pawn(&start);
         } else if self.boards[6] & start != 0 {
@@ -122,31 +125,23 @@ impl Fen {
         } else {
             return Vec::new();
         }
-
-        println!("Guessing moves took {:?}", time.elapsed());
     
+        // creating list takes 400-2000 ns
         for end in possible_moves {
 
-            time = Instant::now();
-
+            // checking whether a move is legal takes 0-200 ns on average, with jumps to 300-1000 ns
             let is_legal: bool = self.is_legal_move(&[*start, end, NO_PROM]);
 
-            println!("Checking legality took {:?}", time.elapsed());
-
+            // adding move to list takes 0-300 ns on average, with jumps to 400-1200 ns
             if is_legal {
-
-                time = Instant::now();
-
                 if (self.boards[0] & start != 0 && RANK_0 & end != 0) || (self.boards[6] & start != 0 && RANK_7 & end != 0) {
                     moves.push([*start, end, QUEEN_PROM]);
                     moves.push([*start, end, ROOK_PROM]);
                     moves.push([*start, end, BISHOP_PROM]);
                     moves.push([*start, end, KNIGHT_PROM]);
                 } else {
-                    moves.push([*start, end, NO_PROM])
+                    moves.push([*start, end, NO_PROM]);
                 }
-
-                println!("Adding move to list took {:?}", time.elapsed());
             }
         }
 

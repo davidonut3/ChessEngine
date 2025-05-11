@@ -1,0 +1,8 @@
+# Ignore Rust build outputs
+target/
+
+# Python wheels and caches
+*.whl
+__pycache__/
+*.pyc
+*.pyo
