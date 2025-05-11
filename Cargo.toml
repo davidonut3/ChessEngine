@@ -1,4 +1,7 @@
 # ChessEngine/Cargo.toml
+
+# The purpose of this file is to let the rust-analyzer know where to look
+
 [workspace]
 members = [
     "utilities/fenlib",
