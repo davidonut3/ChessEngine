@@ -365,6 +365,11 @@ impl Fen {
     }
 
     pub fn get_all_possible_moves(&self) -> Vec<[u64; 3]> {
+
+        // Min duration 6.5µs
+        // Max duration 19.6µs
+        // Average duration 9.006µs
+
         let mut vec_moves: Vec<[u64; 3]> = Vec::new();
     
         let pieces = match self.white_to_move {

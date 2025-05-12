@@ -26,4 +26,6 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-test()
+# test()
+
+benching()
