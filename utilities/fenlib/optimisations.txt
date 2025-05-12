@@ -1,0 +1,15 @@
+Optimising get_all_possible_moves:
+
+get_possible_moves stores the moves for a specific piece in a Vec, benching this gives:
+
+Min duration 8.1µs
+Max duration 21.7µs
+Average duration 11.008µs
+
+Switching to an array based approach gives:
+
+Min duration 6.5µs
+Max duration 19.6µs
+Average duration 9.006µs
+
+We see a slight improvement, which might stack up as many calls to get_all_possible_moves have to be made.
