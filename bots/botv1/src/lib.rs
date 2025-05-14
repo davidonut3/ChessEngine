@@ -1,4 +1,4 @@
-use fenlib::*;
+use fenlib::fen::*;
 use std::time::Instant;
 use std::time::Duration;
 

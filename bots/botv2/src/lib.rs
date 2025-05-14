@@ -1,5 +1,5 @@
-use fenlib::*;
-use std::{collections::HashMap, time::Instant};
+use fenlib::fen::*;
+use std::time::Instant;
 
 // Values from https://www.chessprogramming.org/Simplified_Evaluation_Function
 const PAWN_VAL: u32 = 100;
