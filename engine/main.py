@@ -28,4 +28,4 @@ def test():
 
 # test()
 
-perft_check(8)
+perft_check(3, DEFAULT)

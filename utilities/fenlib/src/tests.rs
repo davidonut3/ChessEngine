@@ -1,14 +1,17 @@
 use crate::fen::*;
+use crate::parsing;
 
-pub fn perft(max_depth: usize) {
-    // see https://www.chessprogramming.org/Perft
+pub fn perft(max_depth: usize, fen_str: &str) {
+    // https://www.chessprogramming.org/Perft
 
-    // this function checks the number of legal moves after every so many moves, up to max_depth
+    let fen: Fen = Fen::from_str(fen_str);
 
-    let fen: Fen = Fen::new();
+    let possible_moves: Vec<[u64; 3]> = fen.get_all_possible_moves();
 
-    for i in 1..max_depth + 1 {
-        println!("Depth {:?} yields {:?} moves", i, recursive_perft_check(&fen, i))
+    for move1 in possible_moves {
+        let mut new_fen: Fen = fen.clone();
+        new_fen.move_to_fen(&move1);
+        println!("Move {} lead to {:?} moves", parsing::move_to_lan(&move1), recursive_perft_check(&new_fen, max_depth - 1))
     }
 }
 
