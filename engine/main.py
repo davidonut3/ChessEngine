@@ -28,4 +28,4 @@ def test():
 
 # test()
 
-benching()
+perft_check(8)

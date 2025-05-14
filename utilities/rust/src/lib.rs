@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
-use fenlib::Fen;
+use fenlib::fen::*;
+use fenlib::tests::*;
 use botv1::BotV1;
 
 use std::time::Instant;
@@ -149,6 +150,11 @@ fn analyze_durations(durations: &[Duration; 100]) -> (Duration, Duration, Durati
 }
 
 #[pyfunction]
+pub fn perft_check(max_depth: usize) {
+    perft(max_depth)
+}
+
+#[pyfunction]
 pub fn benching() {
     let mut random_fens: Vec<Fen> = Vec::new();
 
@@ -292,5 +298,6 @@ fn rust_utils(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FenPy>()?;
     m.add_class::<BotV1Py>()?;
     m.add_function(wrap_pyfunction!(benching, m)?)?;
+    m.add_function(wrap_pyfunction!(perft_check, m)?)?;
     Ok(())
 }
