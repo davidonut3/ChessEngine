@@ -150,8 +150,8 @@ fn analyze_durations(durations: &[Duration; 100]) -> (Duration, Duration, Durati
 }
 
 #[pyfunction]
-pub fn perft_check(max_depth: usize, fen_str: &str) {
-    perft(max_depth, fen_str)
+pub fn perft_check(max_depth: usize, fen_str: &str, per_move: bool) {
+    perft(max_depth, fen_str, per_move)
 }
 
 #[pyfunction]

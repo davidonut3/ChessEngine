@@ -4,6 +4,10 @@ from testbot import TestBot
 from visual.visual import Visual
 from matches import run, bench
 
+def perft(fen_str, per_move):
+    for i in range(1,6):
+        perft_check(i, fen_str, per_move)
+
 def test():
     fen = FenPy()
     # fen = fen.from_str('6k1/5ppp/8/8/8/8/5PPP/5qK1 w - - 0 1')
@@ -28,4 +32,4 @@ def test():
 
 # test()
 
-perft_check(1, 'rnbqkbnr/1ppppppp/p7/8/8/4P3/PPPP1PPP/RNBQKBNR w KQkq - 0 2')
+perft('r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1', False)

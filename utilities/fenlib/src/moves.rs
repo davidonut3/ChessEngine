@@ -9,7 +9,7 @@ pub const KNIGHT_GUESS: usize = 8;
 pub const KING_GUESS: usize = 10;
 pub const ROOK_GUESS: usize = 28;
 pub const BISHOP_GUESS: usize = 28;
-pub const QUEEN_GUESS: usize = 56;
+pub const QUEEN_GUESS: usize = 54;
 
 /// Possible moves for a white pawn. Moves are calculated using bitwise shifts.
 ///
@@ -198,6 +198,10 @@ pub fn bishop(start: &u64) -> [u64; BISHOP_GUESS] {
 pub fn queen(start: &u64) -> [u64; QUEEN_GUESS] {
     let mut moves: [u64; QUEEN_GUESS] = [0; QUEEN_GUESS];
 
+    // one would think that QUEEN_GUESS should be 56, (num for rooks + num for bishops)
+    // however, start << 7 and start >> 7 are checked by both rooks and bishops
+    // so we have removed them to avoid duplicates
+
     // Rook-like moves (horizontal and vertical)
     moves[0] = start << 1;
     moves[1] = start << 2;
@@ -240,29 +244,27 @@ pub fn queen(start: &u64) -> [u64; QUEEN_GUESS] {
     moves[33] = start << 54;
     moves[34] = start << 63;
 
-    moves[35] = start << 7;
-    moves[36] = start << 14;
-    moves[37] = start << 21;
-    moves[38] = start << 28;
-    moves[39] = start << 35;
-    moves[40] = start << 42;
-    moves[41] = start << 49;
+    moves[35] = start << 14;
+    moves[36] = start << 21;
+    moves[37] = start << 28;
+    moves[38] = start << 35;
+    moves[39] = start << 42;
+    moves[40] = start << 49;
 
-    moves[42] = start >> 9;
-    moves[43] = start >> 18;
-    moves[44] = start >> 27;
-    moves[45] = start >> 36;
-    moves[46] = start >> 45;
-    moves[47] = start >> 54;
-    moves[48] = start >> 63;
+    moves[41] = start >> 9;
+    moves[42] = start >> 18;
+    moves[43] = start >> 27;
+    moves[44] = start >> 36;
+    moves[45] = start >> 45;
+    moves[46] = start >> 54;
+    moves[47] = start >> 63;
 
-    moves[49] = start >> 7;
-    moves[50] = start >> 14;
-    moves[51] = start >> 21;
-    moves[52] = start >> 28;
-    moves[53] = start >> 35;
-    moves[54] = start >> 42;
-    moves[55] = start >> 49;
+    moves[48] = start >> 14;
+    moves[49] = start >> 21;
+    moves[50] = start >> 28;
+    moves[51] = start >> 35;
+    moves[52] = start >> 42;
+    moves[53] = start >> 49;
 
     moves
 }
