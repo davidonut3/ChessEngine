@@ -902,10 +902,10 @@ impl Fen {
     
     pub fn check_castle(&self, start: &u64, end: &u64, check_check_castle: bool) -> bool {
 
-        // check if the king is in check
-        if check_check_castle && self.in_check() {
-            return false
-        }
+        // // check if the king is in check
+        // if check_check_castle && self.in_check() {
+        //     return false
+        // }
         
         // check if the white king wants to move
         if self.white_to_move && (start & self.boards[5] == 0) {
