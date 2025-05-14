@@ -8,6 +8,6 @@ name = "rust_utils"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.24.1", features = ["extension-module"] }
+pyo3 = { version = "0.25.0", features = ["extension-module"] }
 fenlib = { path = "../fenlib" }
 botv1 = { path = "../../bots/botv1" }
