@@ -101,6 +101,15 @@ pub const NO_PROM: u64 = 0u64;
 /// Standard FEN string for the initial chess position.
 pub const DEFAULT: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+// -------------------- Main constants --------------------
+
+/// Max number of moves a piece can make
+pub const MAX_MOVES_PIECE: usize = 28;
+
+/// Maximum number of legal moves in a chess position.
+/// The actually largest number is unknown, the known largest is 218.
+/// However, the max number rarely exceeds 80-100, therefore we use 120.
+pub const MAX_MOVES: usize = 120;
 
 // ==================== Helper Functions ====================
 

@@ -1,0 +1,19 @@
+Others:
+
+- load images before running, instead of reloading them during running
+- add types like `type Bitboard = u64;` to fenlib for clarity
+- optimise fenlib (most String -> u64 have been done, but we can still always optimise)
+
+Currently:
+
+- make botv1
+
+Possible optimizations for bots and fenlib:
+
+- Store possible moves and change dynamically in move_to_fen
+- Precompute attacked and defended bits in fenlib to speed up get_possible_moves
+- Switch eval system to bits instead of 'regular' computation
+
+Code quality:
+
+- Add custom types to rust files

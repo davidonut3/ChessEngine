@@ -2,8 +2,6 @@ use crate::utils::*;
 use crate::parsing;
 use crate::moves;
 
-pub const MAX_MOVES: usize = 28;
-
 #[derive(Debug, Clone)]
 pub struct Fen {
     pub boards: [u64; 12],
@@ -92,8 +90,8 @@ impl Fen {
     }
 
     pub fn get_possible_moves_tile(&self, tile: &str) -> Vec<String> {
-        let moves_info: ([[u64; 3]; MAX_MOVES], usize) = self.get_possible_moves(&parsing::tile_to_bit(tile));
-        let moves:[[u64; 3]; MAX_MOVES]  = moves_info.0;
+        let moves_info: ([[u64; 3]; MAX_MOVES_PIECE], usize) = self.get_possible_moves(&parsing::tile_to_bit(tile));
+        let moves:[[u64; 3]; MAX_MOVES_PIECE]  = moves_info.0;
         let count: usize = moves_info.1;
 
         let mut vec_moves: Vec<[u64; 3]> = Vec::new();
@@ -105,8 +103,8 @@ impl Fen {
         parsing::moves_to_lan_list(&vec_moves)
     }
     
-    pub fn get_possible_moves(&self, start: &u64) -> ([[u64; 3]; MAX_MOVES], usize) {
-        let mut moves: [[u64; 3]; MAX_MOVES] = [[0; 3]; MAX_MOVES];
+    pub fn get_possible_moves(&self, start: &u64) -> ([[u64; 3]; MAX_MOVES_PIECE], usize) {
+        let mut moves: [[u64; 3]; MAX_MOVES_PIECE] = [[0; 3]; MAX_MOVES_PIECE];
         let mut count: usize = 0;
 
         if self.boards[0] & start != 0 {
@@ -375,8 +373,8 @@ impl Fen {
             let piece: u64 = FIRST >> i;
             
             if piece & pieces != 0 {
-                let moves_info: ([[u64; 3]; MAX_MOVES], usize) = self.get_possible_moves(&piece);
-                let moves:[[u64; 3]; MAX_MOVES]  = moves_info.0;
+                let moves_info: ([[u64; 3]; MAX_MOVES_PIECE], usize) = self.get_possible_moves(&piece);
+                let moves:[[u64; 3]; MAX_MOVES_PIECE]  = moves_info.0;
                 let count: usize = moves_info.1;
 
                 for i in 0..count {
