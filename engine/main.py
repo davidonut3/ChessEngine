@@ -28,4 +28,4 @@ def test():
 
 # test()
 
-perft_check(3, DEFAULT)
+perft_check(1, 'rnbqkbnr/1ppppppp/p7/8/8/4P3/PPPP1PPP/RNBQKBNR w KQkq - 0 2')

@@ -9,9 +9,13 @@ pub fn perft(max_depth: usize, fen_str: &str) {
     let possible_moves: Vec<[u64; 3]> = fen.get_all_possible_moves();
 
     for move1 in possible_moves {
-        let mut new_fen: Fen = fen.clone();
-        new_fen.move_to_fen(&move1);
-        println!("Move {} lead to {:?} moves", parsing::move_to_lan(&move1), recursive_perft_check(&new_fen, max_depth - 1))
+        if max_depth < 2 {
+            println!("Move {}", parsing::move_to_lan(&move1))
+        } else {
+            let mut new_fen: Fen = fen.clone();
+            new_fen.move_to_fen(&move1);
+            println!("Move {} lead to {:?} moves", parsing::move_to_lan(&move1), recursive_perft_check(&new_fen, max_depth - 1))
+        }
     }
 }
 
