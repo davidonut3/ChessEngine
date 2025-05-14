@@ -1,6 +1,7 @@
 use crate::utils::*;
 use crate::parsing;
 use crate::moves;
+use crate::default;
 
 #[derive(Debug, Clone)]
 pub struct Fen {
@@ -13,11 +14,36 @@ pub struct Fen {
     pub white: u64,
     pub black: u64,
     pub full: u64,
+    pub white_attack: u64,
+    pub black_attack: u64,
+    pub white_check: u64,
+    pub black_check: u64,
+    pub white_pin: u64,
+    pub black_pin: u64,
+    pub legal_moves: [[u64; 3]; MAX_MOVES],
 }
 
 impl Fen {
     pub fn new() -> Self {
-        Self::from_str(DEFAULT)
+        
+        Self {
+            boards: default::BOARDS,
+            white_to_move: default::WHITE_TO_MOVE,
+            castling: default::CASTLING,
+            en_passant: default::ENPASSANT,
+            halfmove: default::HALFMOVE,
+            fullmove: default::FULLMOVE,
+            white: default::WHITE,
+            black: default::BLACK,
+            full: default::FULL,
+            white_attack: default::WHITE_ATTACK,
+            black_attack: default::BLACK_ATTACK,
+            white_check: default::WHITE_CHECK,
+            black_check: default::BLACK_CHECK,
+            white_pin: default::WHITE_PIN,
+            black_pin: default::BLACK_PIN,
+            legal_moves: default::LEGAL_MOVES,
+        }
     }
 
     pub fn from_str(fen_str: &str) -> Self {
@@ -41,6 +67,13 @@ impl Fen {
             white,
             black,
             full,
+            white_attack: EMPTY,
+            black_attack: EMPTY,
+            white_check: EMPTY,
+            black_check: EMPTY,
+            white_pin: EMPTY,
+            black_pin: EMPTY,
+            legal_moves: [[EMPTY, EMPTY, EMPTY]; MAX_MOVES],
         }
     }
 
