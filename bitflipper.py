@@ -1,11 +1,11 @@
 import pygame
 from math import floor
 
-BLACK = (0, 0, 0)
-GREY = (125, 125, 125)
-WHITE = (255, 255, 255)
-
 def main(width):
+    BLACK = (0, 0, 0)
+    GREY = (125, 125, 125)
+    WHITE = (255, 255, 255)
+
     pygame.init()
 
     height = 8
