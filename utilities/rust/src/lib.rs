@@ -254,10 +254,24 @@ pub fn benching() {
     random_fens.push(Fen::from_str("r2qkbnr/pp3pp1/2pp3p/4n2b/2B1P3/2P2N1P/PP3PP1/RNBQ1RK1 w kq - 0 9"));
     random_fens.push(Fen::from_str("r2qkb1r/pp3pp1/2p2nbp/4p3/4P3/2P2P1P/PP1NB1P1/R1BQ1RK1 b kq - 0 12"));
 
+    /*
+    let fen: &Fen = &random_fens[i];
+    let queen: &u64;
+    if fen.white_to_move {
+        queen = &fen.boards[4];
+    } else {
+        queen = &fen.boards[10]
+    }
+    fen.get_possible_moves(queen);
+
+    random_fens[i].get_all_possible_moves();
+
+    */
+
     let mut durations: [Duration; 100] = [Duration::from_nanos(0); 100];
     for i in 0..100 {
         let time: Instant = Instant::now();
-        random_fens[i].get_all_possible_moves();
+        random_fens[i].in_check();
         durations[i] = time.elapsed();
     }
 

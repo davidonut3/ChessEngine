@@ -13,3 +13,11 @@ Max duration 19.6µs
 Average duration 9.006µs
 
 We see a slight improvement, which might stack up as many calls to get_all_possible_moves have to be made.
+
+Speed of in_check:
+
+Min duration 200ns
+Max duration 4.6µs
+Average duration 366ns
+
+We may be able to speed this up by precomputing values.
