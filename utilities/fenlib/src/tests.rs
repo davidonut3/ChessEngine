@@ -1,7 +1,7 @@
 use crate::fen::*;
 use crate::parsing;
 
-pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) {
+pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
     // https://www.chessprogramming.org/Perft
 
     let fen: Fen = Fen::from_str(fen_str);
@@ -15,7 +15,7 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) {
             }
         }
         
-        println!("Checked a total of {:?} moves", possible_moves.len());
+        return possible_moves.len()
     } else {
         let mut total: usize = 0;
 
@@ -30,7 +30,7 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) {
             total += count;
         }
 
-        println!("Checked a total of {:?} moves", total);
+        return total
     }
 }
 

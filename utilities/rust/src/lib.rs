@@ -151,7 +151,8 @@ fn analyze_durations(durations: &[Duration; 100]) -> (Duration, Duration, Durati
 
 #[pyfunction]
 pub fn perft_check(max_depth: usize, fen_str: &str, per_move: bool) {
-    perft(max_depth, fen_str, per_move)
+    let count: usize = perft(max_depth, fen_str, per_move);
+    println!("Checked a total of {:?} moves", count);
 }
 
 #[pyfunction]
