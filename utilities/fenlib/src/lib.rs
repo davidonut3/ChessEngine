@@ -4,3 +4,4 @@ pub mod utils;
 pub mod fen;
 pub mod tests;
 pub mod default;
+pub mod attacks;

@@ -12,7 +12,7 @@ def main(width):
 
     screen_width = 60 * width
     screen_height = 60 * height
-    screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+    screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption('Chess Bit Flipper')
     clock = pygame.time.Clock()
 
@@ -49,10 +49,10 @@ def main(width):
                 pygame.draw.rect(screen, WHITE if not board[rank][file] else BLACK, rect)
 
         for rank in range(height + 1):
-            pygame.draw.line(screen, GREY, (0, 60 * rank), (screen_width, 60 * rank), 2)
+            pygame.draw.line(screen, GREY, (0, 60 * rank), (screen_width, 60 * rank), 2 if not rank == 8 else 4)
         
         for file in range(width + 1):
-            pygame.draw.line(screen, GREY, (60 * file, 0), (60 * file, screen_height), 2)
+            pygame.draw.line(screen, GREY, (60 * file, 0), (60 * file, screen_height), 2 if not file == 8 else 4)
 
         pygame.display.update()
         clock.tick(60)
