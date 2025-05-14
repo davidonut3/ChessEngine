@@ -75,7 +75,7 @@ impl Fen {
         let start: u64 = move1[0];
         let end: u64 = move1[1];
 
-        if !self.is_pseudo_legal(&start, &end) {
+        if !self.is_pseudo_legal(&start, &end, true) {
             return false
         }
 
@@ -212,7 +212,7 @@ impl Fen {
     
         for i in 0..64 {
             let piece: u64 = FIRST >> i;
-            if piece & opponents != 0 && new_fen.is_pseudo_legal(&piece, &king) {
+            if piece & opponents != 0 && new_fen.is_pseudo_legal(&piece, &king, false) {
                 return true;
             }
         }
@@ -869,7 +869,12 @@ impl Fen {
         false
     }
     
-    pub fn check_castle(&self, start: &u64, end: &u64) -> bool {
+    pub fn check_castle(&self, start: &u64, end: &u64, check_check_castle: bool) -> bool {
+
+        // check if the king is in check
+        if check_check_castle && self.in_check() {
+            return false
+        }
         
         // check if the white king wants to move
         if self.white_to_move && (start & self.boards[5] == 0) {
@@ -904,7 +909,7 @@ impl Fen {
         false
     }
     
-    pub fn is_pseudo_legal(&self, start: &u64, end: &u64) -> bool {
+    pub fn is_pseudo_legal(&self, start: &u64, end: &u64, check_check_castle: bool) -> bool {
         if self.check_standard_moves(&start, &end) {
             return true;
         }
@@ -913,7 +918,7 @@ impl Fen {
             return true;
         }
     
-        if self.check_castle(&start, &end) {
+        if self.check_castle(&start, &end, check_check_castle) {
             return true;
         }
     
