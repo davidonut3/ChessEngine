@@ -15,3 +15,11 @@ Possible optimizations for bots and fenlib:
 Code quality:
 
 - Add custom types to rust files
+- Reverse rank order to comply with chess logic
+
+New u128 approach for fenlib:
+
+- Store attack patterns per piece for legal moves
+- Difficulties: enpassant, castling, check
+- Solution: attack + defend patterns for white/black, along with pins
+- Potential problem: we do not break out of checking the legality of a move before all the computation
