@@ -110,6 +110,7 @@ pub fn black_pawn(info: &u128) -> u128 {
     (board & BOARD1) >> 8
 }
 
+/// This functions shoots a ray up from the piece, and stops when it reaches a piece
 pub fn ray_up(info: &u128) -> u128 {
     0x0
 }
