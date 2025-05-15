@@ -20,7 +20,7 @@ pub struct Fen {
     pub black_check: u64,
     pub white_pin: u64,
     pub black_pin: u64,
-    pub legal_moves: [[u64; 3]; MAX_MOVES],
+    // pub legal_moves: [[u64; 3]; MAX_MOVES],
 }
 
 impl Fen {
@@ -42,7 +42,7 @@ impl Fen {
             black_check: default::BLACK_CHECK,
             white_pin: default::WHITE_PIN,
             black_pin: default::BLACK_PIN,
-            legal_moves: default::LEGAL_MOVES,
+            // legal_moves: default::LEGAL_MOVES,
         }
     }
 
@@ -73,7 +73,7 @@ impl Fen {
             black_check: EMPTY,
             white_pin: EMPTY,
             black_pin: EMPTY,
-            legal_moves: [[EMPTY, EMPTY, EMPTY]; MAX_MOVES],
+            // legal_moves: [[EMPTY, EMPTY, EMPTY]; MAX_MOVES],
         }
     }
 

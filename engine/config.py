@@ -16,7 +16,7 @@ import random
 import multiprocessing
 from math import floor, sqrt
 from os import getcwd
-from rust_utils import FenPy, BotV1Py, benching, perft_check
+from rust_utils import FenPy, BotV1Py, move_gen_perft_py, perft_check
 
 MAIN_LOCATION = getcwd()
 

@@ -5,3 +5,4 @@ pub mod fen;
 pub mod tests;
 pub mod default;
 pub mod attacks;
+pub mod games;
