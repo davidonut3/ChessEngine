@@ -12,16 +12,19 @@ use crate::utils_new::*;
 /// and the squares that the white pawn may move to.
 pub fn white_pawn_info(piece_info: &u128, team: &u128, opponents: &u128) -> (u128, u128) {
     let attacks: u128 = white_pawn_attack(piece_info);
+    let piece: u128 = piece_info & BOARD1;
 
-    let stop_at: u128;
-    let all_pieces: u128 = team | opponents;
-    if piece_info & RANK_6 == 0 {
-        stop_at = all_pieces | (piece_info << 32);
-    } else {
-        stop_at = all_pieces | RANK_3;
+    let mut one_up: u128 = piece << 16;
+    let mut two_up: u128 = piece << 32;
+    let all: u128 = team | opponents;
+
+    if one_up & all != 0 {
+        one_up = EMPTY
+    } else if piece & RANK_6 == 0 || two_up & all != 0 {
+        two_up = EMPTY;
     }
 
-    let moving_to: u128 = ray_up(piece_info, &stop_at);
+    let moving_to: u128 = one_up | two_up;
     let pseudo_legals: u128 = (attacks & !team) & moving_to;
 
     (attacks, pseudo_legals)
@@ -31,16 +34,19 @@ pub fn white_pawn_info(piece_info: &u128, team: &u128, opponents: &u128) -> (u12
 /// and the squares that the black pawn may move to.
 pub fn black_pawn_info(piece_info: &u128, team: &u128, opponents: &u128) -> (u128, u128) {
     let attacks: u128 = black_pawn_attack(piece_info);
+    let piece: u128 = piece_info & BOARD1;
 
-    let stop_at: u128;
-    let all_pieces: u128 = team | opponents;
-    if piece_info & RANK_1 == 0 {
-        stop_at = all_pieces | (piece_info >> 32);
-    } else {
-        stop_at = all_pieces | RANK_4;
+    let mut one_down: u128 = piece >> 16;
+    let mut two_down: u128 = piece >> 32;
+    let all: u128 = team | opponents;
+
+    if one_down & all != 0 {
+        one_down = EMPTY
+    } else if piece & RANK_6 == 0 || two_down & all != 0 {
+        two_down = EMPTY;
     }
 
-    let moving_to: u128 = ray_down(piece_info, &stop_at);
+    let moving_to: u128 = one_down | two_down;
     let pseudo_legals: u128 = (attacks & !team) & moving_to;
 
     (attacks, pseudo_legals)
