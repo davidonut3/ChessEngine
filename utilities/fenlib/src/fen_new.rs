@@ -1,8 +1,18 @@
 use crate::attacks::*;
+use crate::parsing_new;
 use crate::utils_new::*;
 use crate::default_new;
 
 /*
+
+The Fen struct only supports legal positions:
+
+Both sides must have: exactly one king, at most 16 pieces, at most 8 pawns,
+and 8 - number of pawns is the amount of extra bishops, knights, rooks and queens a side can have.
+
+The older Fen struct (see git history) does support other positions.
+
+
 
 For pins, we only need to look at sliding pieces.
 We can adapt the ray functions in attacks to find the squares it is directly attacking,
@@ -96,6 +106,24 @@ impl Fen {
             black_check_pin: default_new::BLACK_CHECK_PIN,
             full_enpassant: default_new::FULL_ENPASSANT,
             game_info: default_new::GAME_INFO,
+        }
+    }
+
+    pub fn from_str(fen_str: &str) -> Self {
+        let fen_str_split: Vec<&str> = fen_str.trim().split_whitespace().collect();
+        if fen_str_split.len() != 6 {
+            panic!("Found incorrect fen notation");
+        }
+
+        let white_info: ([u128; 16], u128) = parsing_new::string_to_white_pieces(fen_str_split[0]);
+        let black_info: ([u128; 16], u128) = parsing_new::string_to_black_pieces(fen_str_split[0]);
+
+        let white_pieces: [u128; 16] = white_info.0;
+        let black_pieces: [u128; 16] = black_info.0;
+        let promotion_info: u128 = white_info.1 | black_info.1;
+
+        Self {
+            
         }
     }
 }

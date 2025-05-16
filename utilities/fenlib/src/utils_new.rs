@@ -2,7 +2,7 @@
 pub const BOARD1: u128 = 0xFF00FF00FF00FF00FF00FF00FF00FF00;
 
 /// This represents the right board of the two boards
-pub const BOARD2: u128 = BOARD1 >> 8;
+pub const BOARD2: u128 = 0xFF00FF00FF00FF00FF00FF00FF00FF;
 
 /// Bitboard representing an empty set (no pieces).
 pub const EMPTY: u128 = 0x0;
@@ -34,7 +34,8 @@ pub const FILE_5: u128 = FILE >> 5; // File f
 pub const FILE_6: u128 = FILE >> 6; // File g
 pub const FILE_7: u128 = FILE >> 7; // File h
 
-/// I am unsure whether these are necessary
+// I am unsure whether these are necessary
+
 pub const FILE_8: u128 = FILE >> 8; // File i
 pub const FILE_9: u128 = FILE >> 9; // File j
 pub const FILE_10: u128 = FILE >> 10; // File k
@@ -72,10 +73,29 @@ pub const ROOK_Q: usize = 15;
 
 // -------------------- Info index --------------------
 
+// Locations in game_info where the respective game info is stored
 pub const TURN: u128 = 0x8000000;
 pub const HALFMOVE: u128 = 0xFFFF000000000000;
 pub const FULLMOVE: u128 = 0xFFFF00000000;
 pub const CASTLING: u128 = 0xF0000000;
+
+// How far the 4 bits of each respective piece must move for the right location in game_info
+pub const PAWN_A_W_PROM: u128 = 0;
+pub const PAWN_B_W_PROM: u128 = 1;
+pub const PAWN_C_W_PROM: u128 = 2;
+pub const PAWN_D_W_PROM: u128 = 3;
+pub const PAWN_E_W_PROM: u128 = 4;
+pub const PAWN_F_W_PROM: u128 = 5;
+pub const PAWN_G_W_PROM: u128 = 6;
+pub const PAWN_H_W_PROM: u128 = 7;
+pub const PAWN_A_B_PROM: u128 = 8;
+pub const PAWN_B_B_PROM: u128 = 9;
+pub const PAWN_C_B_PROM: u128 = 10;
+pub const PAWN_D_B_PROM: u128 = 11;
+pub const PAWN_E_B_PROM: u128 = 12;
+pub const PAWN_F_B_PROM: u128 = 13;
+pub const PAWN_G_B_PROM: u128 = 14;
+pub const PAWN_H_B_PROM: u128 = 15;
 
 // -------------------- White Castling --------------------
 
@@ -91,7 +111,10 @@ pub const CASTLING: u128 = 0xF0000000;
 
 // -------------------- Promotion Flags --------------------
 
-
+pub const QUEEN_PROM: u128 = FIRST;
+pub const BISHOP_PROM: u128 = FIRST >> 1;
+pub const KNIGHT_PROM: u128 = FIRST >> 2;
+pub const ROOK_PROM: u128 = FIRST >> 3;
 
 // -------------------- Default Starting Position --------------------
 
@@ -118,4 +141,32 @@ pub fn get_all_pieces(pieces: &[u128; 16]) -> u128 {
     pieces[KNIGHT_Q] |
     pieces[ROOK_K] |
     pieces[ROOK_Q]
+}
+
+pub fn promote_pawn(index: usize, is_white: bool, promote_info: u128) -> u128 {
+    if is_white {
+        match index {
+            PAWN_A => return promote_info >> PAWN_A_W_PROM,
+            PAWN_B => return promote_info >> PAWN_B_W_PROM,
+            PAWN_C => return promote_info >> PAWN_C_W_PROM,
+            PAWN_D => return promote_info >> PAWN_D_W_PROM,
+            PAWN_E => return promote_info >> PAWN_E_W_PROM,
+            PAWN_F => return promote_info >> PAWN_F_W_PROM,
+            PAWN_G => return promote_info >> PAWN_G_W_PROM,
+            PAWN_H => return promote_info >> PAWN_H_W_PROM,
+            _ => panic!("promote_pawn: This pawn index is not allowed")
+        }
+    } else {
+        match index {
+            PAWN_A => return promote_info >> PAWN_A_B_PROM,
+            PAWN_B => return promote_info >> PAWN_B_B_PROM,
+            PAWN_C => return promote_info >> PAWN_C_B_PROM,
+            PAWN_D => return promote_info >> PAWN_D_B_PROM,
+            PAWN_E => return promote_info >> PAWN_E_B_PROM,
+            PAWN_F => return promote_info >> PAWN_F_B_PROM,
+            PAWN_G => return promote_info >> PAWN_G_B_PROM,
+            PAWN_H => return promote_info >> PAWN_H_B_PROM,
+            _ => panic!("promote_pawn: This pawn index is not allowed")
+        }
+    }
 }
