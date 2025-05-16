@@ -1,14 +1,10 @@
-use crate::attacks::*;
-use crate::parsing_new;
-use crate::utils_new::*;
-use crate::default_new;
-
 /*
 
 The Fen struct only supports legal positions:
 
 Both sides must have: exactly one king, at most 16 pieces, at most 8 pawns,
 and 8 - number of pawns is the amount of extra bishops, knights, rooks and queens a side can have.
+Also, the program may panic if the kings are adjacent to one another.
 
 The older Fen struct (see git history) does support other positions.
 
@@ -40,7 +36,7 @@ q knight = 13
 k rook = 14
 q rook = 15
 
-All:
+Attack:
 
 white_all and black_all store all their respective piece on the left board,
 and all the squares they attack on the right board.
@@ -80,13 +76,19 @@ and the rays that pin pieces to the king on the right board.
 
 */
 
+use crate::logic::*;
+use crate::parsing_new;
+use crate::utils_new::*;
+use crate::default_new;
+
+
 #[derive(Debug, Clone)]
 pub struct Fen {
     pub white_pieces: [u128; 16],
     pub black_pieces: [u128; 16],
 
-    pub white_all: u128,
-    pub black_all: u128,
+    pub white_attack: u128,
+    pub black_attack: u128,
     
     pub white_check_pin: u128,
     pub black_check_pin: u128,
@@ -100,8 +102,8 @@ impl Fen {
         Self {
             white_pieces: default_new::WHITE_PIECES,
             black_pieces: default_new::BLACK_PIECES,
-            white_all: default_new::WHITE_ALL,
-            black_all: default_new::BLACK_ALL,
+            white_attack: default_new::WHITE_ATTACK,
+            black_attack: default_new::BLACK_ATTACK,
             white_check_pin: default_new::WHITE_CHECK_PIN,
             black_check_pin: default_new::BLACK_CHECK_PIN,
             full_enpassant: default_new::FULL_ENPASSANT,
@@ -118,9 +120,12 @@ impl Fen {
         let white_info: ([u128; 16], u128) = parsing_new::string_to_white_pieces(fen_str_split[0]);
         let black_info: ([u128; 16], u128) = parsing_new::string_to_black_pieces(fen_str_split[0]);
 
-        let white_pieces: [u128; 16] = white_info.0;
-        let black_pieces: [u128; 16] = black_info.0;
-        let promotion_info: u128 = white_info.1 | black_info.1;
+        let white_pieces_pos_only: [u128; 16] = white_info.0;
+        let black_pieces_pos_only: [u128; 16] = black_info.0;
+        let game_info_promotion_only: u128 = white_info.1 | black_info.1;
+
+        let white_attack_pos_only: u128 = get_all_pieces(&white_pieces_pos_only);
+        let black_attack_pos_only: u128 = get_all_pieces(&black_pieces_pos_only);
 
         Self {
             

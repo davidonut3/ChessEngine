@@ -223,6 +223,12 @@ pub fn string_to_white_pieces(board: &str) -> ([u128; 16], u128) {
         }
     }
 
+    for i in 0..16 {
+        if white_pieces[i] & BOARD2 != 0 {
+            panic!("string_to_white_pieces: Found pieces on second board")
+        }
+    }
+
     (white_pieces, promotion)
 }
 
@@ -346,6 +352,12 @@ pub fn string_to_black_pieces(board: &str) -> ([u128; 16], u128) {
                 file += 1;
 
             }
+        }
+    }
+
+    for i in 0..16 {
+        if black_pieces[i] & BOARD2 != 0 {
+            panic!("string_to_black_pieces: Found pieces on second board")
         }
     }
 
