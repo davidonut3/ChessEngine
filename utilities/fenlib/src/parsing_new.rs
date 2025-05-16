@@ -1,4 +1,4 @@
-use crate::utils::*;
+use crate::utils_new::*;
 
 /// Converts a tile in algebraic notation (e.g., "e4") to a bitboard representation.
 ///
@@ -8,8 +8,8 @@ use crate::utils::*;
 /// * `tile` - A string slice representing the tile.
 ///
 /// # Returns
-/// * `u64` - Bitboard representation of the tile.
-pub fn tile_to_bit(tile: &str) -> u64 {
+/// * `u128` - Bitboard representation of the tile.
+pub fn tile_to_bit(tile: &str) -> u128 {
     if tile == "-" {
         return EMPTY;
     } 
@@ -45,7 +45,7 @@ pub fn tile_to_bit(tile: &str) -> u64 {
         _ => panic!("Found unknown char when attempting to parse tile file"),
     };
 
-    (FIRST >> (rank * 8)) >> file
+    FIRST >> (rank * 16 + file)
 }
 
 /// Converts a single-bit bitboard to its algebraic tile notation (e.g., 0b1 -> "h1").
@@ -55,7 +55,7 @@ pub fn tile_to_bit(tile: &str) -> u64 {
 ///
 /// # Returns
 /// * `String` - Tile in algebraic notation.
-pub fn bit_to_tile(bit: &u64) -> String {
+pub fn bit_to_tile(bit: &u128) -> String {
     let ones: u32 = bit.count_ones();
     if ones > 1 || ones == 0 {
         panic!("Found wrong format when attempting to parse bit")
@@ -63,13 +63,13 @@ pub fn bit_to_tile(bit: &u64) -> String {
 
     let mut rank: usize = 0;
     let mut file: usize = 0;
-    for i in 0..8 {
+    for i in 0..8 as usize{
         if bit & RANKS[i] != 0 {
-            rank = i as usize;
+            rank = i;
         }
 
         if bit & FILES[i] != 0 {
-            file = i as usize;
+            file = i;
         }
     }
 
@@ -100,39 +100,6 @@ pub fn bit_to_tile(bit: &u64) -> String {
     file.to_string() + rank
 }
 
-/// Converts a chess piece character to its corresponding index in the bitboard array.
-///
-/// Piece mappings:
-/// * P = 0, p = 6
-/// * N = 1, n = 7
-/// * B = 2, b = 8
-/// * R = 3, r = 9
-/// * Q = 4, q = 10
-/// * K = 5, k = 11
-///
-/// # Arguments
-/// * `piece` - A character representing the piece.
-///
-/// # Returns
-/// * `usize` - Index corresponding to the piece.
-pub fn piece_to_index(piece: char) -> usize {
-    match piece {
-        'P' => 0,
-        'N' => 1,
-        'B' => 2,
-        'R' => 3,
-        'Q' => 4,
-        'K' => 5,
-        'p' => 6,
-        'n' => 7,
-        'b' => 8,
-        'r' => 9,
-        'q' => 10,
-        'k' => 11,
-        _ => panic!("Found unknown char when attempting to parse piece char"),
-    }
-}
-
 /// Converts a bitboard index back to its corresponding piece character.
 ///
 /// # Arguments
@@ -140,6 +107,9 @@ pub fn piece_to_index(piece: char) -> usize {
 ///
 /// # Returns
 /// * `String` - Character representation of the piece.
+/// 
+/// Piece mappings:
+/// * 0-7 = pawn, 8 = king, 9 = queen, 10-11 = bishop, 12-13 = knight, 14-15 = rook
 pub fn index_to_piece(index: usize) -> String {
     let result = match index {
         0 => "P",

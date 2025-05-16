@@ -9,3 +9,4 @@ pub mod games;
 pub mod fen_new;
 pub mod default_new;
 pub mod parsing_new;
+pub mod utils_new;

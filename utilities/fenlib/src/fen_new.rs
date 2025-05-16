@@ -1,4 +1,6 @@
 use crate::attacks::*;
+use crate::utils_new::*;
+use crate::default_new;
 
 /*
 
@@ -28,13 +30,19 @@ q knight = 13
 k rook = 14
 q rook = 15
 
-Pawn_info:
+All:
 
-left board stores en passant square (empty if no en passant),
-right board stores promotion info:
+white_all and black_all store all their respective piece on the left board,
+and all the squares they attack on the right board.
 
-first 32 bits of second board are for white pawns,
-other 32 bits of second board are for black pawns,
+Full_enpassant:
+
+left board stores all pieces, right board stores en passant square (empty if no en passant).
+
+Game_info
+
+first 32 bits are for white pawns promotion info,
+next 32 bits are for black pawns promotion info,
 4 bits per pawn:
 
 0000 - not promoted
@@ -43,19 +51,17 @@ other 32 bits of second board are for black pawns,
 0010 - is biship
 0001 - is knight
 
-All:
-
-white_all and black_all store all their respective piece on the left board,
-and all the squares they attack on the right board.
-
-Full_info:
-
-left board stores all pieces, right board contains other info:
-
-the first 8 moves store whether white is to move or not
 the next 16 bits store the number of halfmoves,
 the next 16 bits store the number of fullmoves,
-and the next 8 store the castling information.
+the next 4 store the castling information,
+and the next bit stores whether white is to move or not.
+
+castling:
+0000 - no castle rights
+1000 - white kingside
+0100 - white queenside
+0010 - black kingside
+0001 - black queenside
 
 Check_pin:
 
@@ -75,6 +81,21 @@ pub struct Fen {
     pub white_check_pin: u128,
     pub black_check_pin: u128,
 
-    pub full_info: u128,
-    pub pawn_info: u128,
+    pub full_enpassant: u128,
+    pub game_info: u128,
+}
+
+impl Fen {
+    pub fn new() -> Self {
+        Self {
+            white_pieces: default_new::WHITE_PIECES,
+            black_pieces: default_new::BLACK_PIECES,
+            white_all: default_new::WHITE_ALL,
+            black_all: default_new::BLACK_ALL,
+            white_check_pin: default_new::WHITE_CHECK_PIN,
+            black_check_pin: default_new::BLACK_CHECK_PIN,
+            full_enpassant: default_new::FULL_ENPASSANT,
+            game_info: default_new::GAME_INFO,
+        }
+    }
 }
