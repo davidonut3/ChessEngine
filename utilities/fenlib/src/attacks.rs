@@ -111,8 +111,22 @@ pub fn black_pawn(info: &u128) -> u128 {
 }
 
 /// This functions shoots a ray up from the piece, and stops when it reaches a piece
-pub fn ray_up(info: &u128) -> u128 {
-    0x0
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_up(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece << 16 * i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
 }
 
 /// This function shoots a ray up from the piece, regardless of any piece in the way
@@ -130,6 +144,25 @@ pub fn xray_up(info: &u128) -> u128 {
     (board & BOARD1) >> 8
 }
 
+/// This functions shoots a ray down from the piece, and stops when it reaches a piece
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_down(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece >> 16 * i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
+}
+
 /// This function shoots a ray down from the piece, regardless of any piece in the way
 pub fn xray_down(info: &u128) -> u128 {
     let piece: u128 = info & BOARD1;
@@ -143,6 +176,25 @@ pub fn xray_down(info: &u128) -> u128 {
 
     let board: u128 = d1 | d2 | d3 | d4 | d5 | d6 | d7;
     (board & BOARD1) >> 8
+}
+
+/// This functions shoots a ray left from the piece, and stops when it reaches a piece
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_left(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece << i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
 }
 
 /// This function shoots a ray left from the piece, regardless of any piece in the way
@@ -160,6 +212,25 @@ pub fn xray_left(info: &u128) -> u128 {
     (board & BOARD1) >> 8
 }
 
+/// This functions shoots a ray right from the piece, and stops when it reaches a piece
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_right(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece >> i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
+}
+
 /// This function shoots a ray right from the piece, regardless of any piece in the way
 pub fn xray_right(info: &u128) -> u128 {
     let piece: u128 = info & BOARD1;
@@ -173,6 +244,25 @@ pub fn xray_right(info: &u128) -> u128 {
 
     let board: u128 = r1 | r2 | r3 | r4 | r5 | r6 | r7;
     (board & BOARD1) >> 8
+}
+
+/// This functions shoots a ray up left from the piece, and stops when it reaches a piece
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_upleft(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece << 17 * i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
 }
 
 /// This function shoots a ray up left from the piece, regardless of any piece in the way
@@ -190,6 +280,25 @@ pub fn xray_upleft(info: &u128) -> u128 {
     (board & BOARD1) >> 8
 }
 
+/// This functions shoots a ray up right from the piece, and stops when it reaches a piece
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_upright(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece << 15 * i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
+}
+
 /// This function shoots a ray up right from the piece, regardless of any piece in the way
 pub fn xray_upright(info: &u128) -> u128 {
     let piece: u128 = info & BOARD1;
@@ -205,6 +314,25 @@ pub fn xray_upright(info: &u128) -> u128 {
     (board & BOARD1) >> 8
 }
 
+/// This functions shoots a ray down left from the piece, and stops when it reaches a piece
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_downleft(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece >> 15 * i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
+}
+
 /// This function shoots a ray down left from the piece, regardless of any piece in the way
 pub fn xray_downleft(info: &u128) -> u128 {
     let piece: u128 = info & BOARD1;
@@ -218,6 +346,25 @@ pub fn xray_downleft(info: &u128) -> u128 {
 
     let board: u128 = dl1 | dl2 | dl3 | dl4 | dl5 | dl6 | dl7;
     (board & BOARD1) >> 8
+}
+
+/// This functions shoots a ray down right from the piece, and stops when it reaches a piece
+/// 
+/// `stop_at` should be the positions in BOARD1 where you do not want the piece to go
+pub fn ray_downright(info: &u128, stop_at: &u128) -> u128 {
+    let mut result: u128 = 0x0;
+    let piece: u128 = info & BOARD1;
+
+    for i in 1..8 {
+        let pos: u128 = piece >> 17 * i;
+        if pos & stop_at == 0 {
+            result |= pos;
+        } else {
+            break;
+        }
+    }
+
+    (result & BOARD1) >> 8
 }
 
 /// This function shoots a ray right from the piece, regardless of any piece in the way
