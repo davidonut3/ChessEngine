@@ -6,3 +6,6 @@ pub mod tests;
 pub mod default;
 pub mod attacks;
 pub mod games;
+pub mod fen_new;
+pub mod default_new;
+pub mod parsing_new;
