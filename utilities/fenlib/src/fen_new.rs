@@ -16,7 +16,7 @@ the squares a piece would have to move to to block a check and the piece that ma
 
 Pieces:
 
-left board stores position, right board stores legal moves
+left board stores position, right board stores attacks
 
 a pawn = 0
 b pawn = 1
@@ -120,12 +120,18 @@ impl Fen {
         let white_info: ([u128; 16], u128) = parsing_new::string_to_white_pieces(fen_str_split[0]);
         let black_info: ([u128; 16], u128) = parsing_new::string_to_black_pieces(fen_str_split[0]);
 
-        let white_pieces_pos_only: [u128; 16] = white_info.0;
-        let black_pieces_pos_only: [u128; 16] = black_info.0;
-        let game_info_promotion_only: u128 = white_info.1 | black_info.1;
+        // Load the piece positions into white_pieces and black_pieces
+        let mut white_pieces: [u128; 16] = white_info.0;
+        let mut black_pieces: [u128; 16] = black_info.0;
 
-        let white_attack_pos_only: u128 = get_all_pieces(&white_pieces_pos_only);
-        let black_attack_pos_only: u128 = get_all_pieces(&black_pieces_pos_only);
+        // Load the promotion info into game_info
+        let mut game_info: u128 = white_info.1 | black_info.1;
+
+        // Load the piece positions into white_attack and black_attack
+        let mut white_attack: u128 = get_all_pieces(&white_pieces);
+        let mut black_attack: u128 = get_all_pieces(&black_pieces);
+
+        
 
         Self {
             
