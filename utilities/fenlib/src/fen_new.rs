@@ -1,5 +1,21 @@
 /*
 
+The new Fen struct will work with u128 instead of u64 to efficiently check whether a piece has moved off the board.
+
+The struct will only contain one array of 9 u128:
+
+Per piece type, we will store the positions of the white pieces on the left board and the positions of the black pieces on the right board.
+Per color, we will store the positions of all the pieces on the left board and all the attacked pieces on the right board.
+We will use the last u128 for the rest of the info:
+
+64 bits for en passant info,
+16 bits for the number of halfmoves,
+16 bits for the number of fullmoves,
+4 bits for castling info,
+1 bit for turn info
+
+THIS IS WHERE OLD INFO BEGINS, NO LONGER RELEVANT
+
 The Fen struct only supports legal positions:
 
 Both sides must have: exactly one king, at most 16 pieces, at most 8 pawns,
@@ -73,6 +89,8 @@ Check_pin:
 
 white_check_pin and black_check_pin store the rays that attack the king on the left board,
 and the rays that pin pieces to the king on the right board.
+
+THIS IS WHERE OLD INFO ENDS, NO LONGER RELEVANT
 
 */
 
