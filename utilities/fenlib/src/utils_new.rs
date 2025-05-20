@@ -48,54 +48,37 @@ pub const FILE_15: u128 = FILE >> 15; // File p
 pub const RANKS: [u128; 8] = [RANK_0, RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7];
 pub const FILES: [u128; 8] = [FILE_0, FILE_1, FILE_2, FILE_3, FILE_4, FILE_5, FILE_6, FILE_7];
 
-// -------------------- Piece Names --------------------
+// -------------------- Info Index --------------------
 
-// NOTE: it should not matter if the pawns are in the wrong place in the array,
-// as long as all pawns are in separate places.
+pub const PAWNS: usize = 0;
+pub const KINGS: usize = 1;
+pub const QUEENS: usize = 2;
+pub const BISHOPS: usize = 3;
+pub const KNIGHTS: usize = 4;
+pub const ROOKS: usize = 5;
+pub const WHITE: usize = 6;
+pub const BLACK: usize = 7;
+pub const INFO: usize = 8;
 
-pub const PAWN_A: usize = 0;
-pub const PAWN_B: usize = 1;
-pub const PAWN_C: usize = 2;
-pub const PAWN_D: usize = 3;
-pub const PAWN_E: usize = 4;
-pub const PAWN_F: usize = 5;
-pub const PAWN_G: usize = 6;
-pub const PAWN_H: usize = 7;
-
-pub const KING: usize = 8;
-pub const QUEEN: usize = 9;
-pub const BISHOP_K: usize = 10;
-pub const BISHOP_Q: usize = 11;
-pub const KNIGHT_K: usize = 12;
-pub const KNIGHT_Q: usize = 13;
-pub const ROOK_K: usize = 14;
-pub const ROOK_Q: usize = 15;
+pub const DEFAULT_FEN: [u128; 9] = [
+    0b00000000000000000000000011111111000000000000000000000000000000000000000000000000000000000000000011111111000000000000000000000000,
+    0b00000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000,
+    0b00000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000,
+    0b00000000001001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010010000000000,
+    0b00000000010000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100001000000000,
+    0b00000000100000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000100000000,
+    0b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000001111111111111111000000001111111100000000,
+    0b11111111000000001111111100000000000000001111111100000000000000000000000000000000000000000000000000000000000000000000000000000000,
+    0b00000000000000000000000000000001000000001111100000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+];
 
 // -------------------- Info index --------------------
 
 // Locations in game_info where the respective game info is stored
-pub const TURN: u128 = 0x8000000;
-pub const HALFMOVE: u128 = 0xFFFF000000000000;
-pub const FULLMOVE: u128 = 0xFFFF00000000;
-pub const CASTLING: u128 = 0xF0000000;
-
-// How far the 4 bits of each respective piece must move for the right location in game_info
-pub const PAWN_A_W_PROM: u128 = 0;
-pub const PAWN_B_W_PROM: u128 = 1;
-pub const PAWN_C_W_PROM: u128 = 2;
-pub const PAWN_D_W_PROM: u128 = 3;
-pub const PAWN_E_W_PROM: u128 = 4;
-pub const PAWN_F_W_PROM: u128 = 5;
-pub const PAWN_G_W_PROM: u128 = 6;
-pub const PAWN_H_W_PROM: u128 = 7;
-pub const PAWN_A_B_PROM: u128 = 8;
-pub const PAWN_B_B_PROM: u128 = 9;
-pub const PAWN_C_B_PROM: u128 = 10;
-pub const PAWN_D_B_PROM: u128 = 11;
-pub const PAWN_E_B_PROM: u128 = 12;
-pub const PAWN_F_B_PROM: u128 = 13;
-pub const PAWN_G_B_PROM: u128 = 14;
-pub const PAWN_H_B_PROM: u128 = 15;
+pub const TURN: u128 = 0x800000000000000000000;
+pub const HALFMOVE: u128 = 0xFF0000000000000000000000000000;
+pub const FULLMOVE: u128 = 0xFF000000000000000000000000;
+pub const CASTLING: u128 = 0xF000000000000000000000;
 
 // -------------------- White Castling --------------------
 
@@ -111,10 +94,7 @@ pub const PAWN_H_B_PROM: u128 = 15;
 
 // -------------------- Promotion Flags --------------------
 
-pub const QUEEN_PROM: u128 = FIRST;
-pub const BISHOP_PROM: u128 = FIRST >> 1;
-pub const KNIGHT_PROM: u128 = FIRST >> 2;
-pub const ROOK_PROM: u128 = FIRST >> 3;
+
 
 // -------------------- Default Starting Position --------------------
 
@@ -123,50 +103,11 @@ pub const DEFAULT: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 
 
 // ==================== Helper Functions ====================
 
-/// Combines all pieces of a color into a single bitboard.
-pub fn get_all_pieces(pieces: &[u128; 16]) -> u128 {
-    pieces[PAWN_A] |
-    pieces[PAWN_B] |
-    pieces[PAWN_C] |
-    pieces[PAWN_D] |
-    pieces[PAWN_E] |
-    pieces[PAWN_F] |
-    pieces[PAWN_G] |
-    pieces[PAWN_H] |
-    pieces[KING] | 
-    pieces[QUEEN] |
-    pieces[BISHOP_K] |
-    pieces[BISHOP_Q] |
-    pieces[KNIGHT_K] |
-    pieces[KNIGHT_Q] |
-    pieces[ROOK_K] |
-    pieces[ROOK_Q]
-}
+/// Combine all white piece positions and all black piece positions into a single bitboard.
+pub fn get_pieces(pieces: &[u128; 6]) -> (u128, u128) {
+    let combined: u128 = pieces[PAWNS] | pieces[KINGS] | pieces[QUEENS] | pieces[BISHOPS] | pieces[KNIGHTS] | pieces[ROOKS];
+    let white_pieces: u128 = combined & BOARD1;
+    let black_pieces: u128 = (combined & BOARD2) << 8;
 
-pub fn promote_pawn(index: usize, is_white: bool, promote_info: u128) -> u128 {
-    if is_white {
-        match index {
-            PAWN_A => return promote_info >> PAWN_A_W_PROM,
-            PAWN_B => return promote_info >> PAWN_B_W_PROM,
-            PAWN_C => return promote_info >> PAWN_C_W_PROM,
-            PAWN_D => return promote_info >> PAWN_D_W_PROM,
-            PAWN_E => return promote_info >> PAWN_E_W_PROM,
-            PAWN_F => return promote_info >> PAWN_F_W_PROM,
-            PAWN_G => return promote_info >> PAWN_G_W_PROM,
-            PAWN_H => return promote_info >> PAWN_H_W_PROM,
-            _ => panic!("promote_pawn: This pawn index is not allowed")
-        }
-    } else {
-        match index {
-            PAWN_A => return promote_info >> PAWN_A_B_PROM,
-            PAWN_B => return promote_info >> PAWN_B_B_PROM,
-            PAWN_C => return promote_info >> PAWN_C_B_PROM,
-            PAWN_D => return promote_info >> PAWN_D_B_PROM,
-            PAWN_E => return promote_info >> PAWN_E_B_PROM,
-            PAWN_F => return promote_info >> PAWN_F_B_PROM,
-            PAWN_G => return promote_info >> PAWN_G_B_PROM,
-            PAWN_H => return promote_info >> PAWN_H_B_PROM,
-            _ => panic!("promote_pawn: This pawn index is not allowed")
-        }
-    }
+    (white_pieces, black_pieces)
 }

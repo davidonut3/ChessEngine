@@ -14,6 +14,11 @@ We will use the last u128 for the rest of the info:
 4 bits for castling info,
 1 bit for turn info
 
+
+
+
+
+
 THIS IS WHERE OLD INFO BEGINS, NO LONGER RELEVANT
 
 The Fen struct only supports legal positions:
@@ -97,35 +102,17 @@ THIS IS WHERE OLD INFO ENDS, NO LONGER RELEVANT
 use crate::logic::*;
 use crate::parsing_new;
 use crate::utils_new::*;
-use crate::default_new;
 
 
 #[derive(Debug, Clone)]
 pub struct Fen {
-    pub white_pieces: [u128; 16],
-    pub black_pieces: [u128; 16],
-
-    pub white_attack: u128,
-    pub black_attack: u128,
-    
-    pub white_check_pin: u128,
-    pub black_check_pin: u128,
-
-    pub full_enpassant: u128,
-    pub game_info: u128,
+    pub array: [u128; 9],
 }
 
 impl Fen {
     pub fn new() -> Self {
         Self {
-            white_pieces: default_new::WHITE_PIECES,
-            black_pieces: default_new::BLACK_PIECES,
-            white_attack: default_new::WHITE_ATTACK,
-            black_attack: default_new::BLACK_ATTACK,
-            white_check_pin: default_new::WHITE_CHECK_PIN,
-            black_check_pin: default_new::BLACK_CHECK_PIN,
-            full_enpassant: default_new::FULL_ENPASSANT,
-            game_info: default_new::GAME_INFO,
+            array: DEFAULT_FEN,
         }
     }
 
