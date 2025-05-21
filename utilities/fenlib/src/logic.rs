@@ -2,13 +2,80 @@
 /// 
 /// THIS DOCUMENTATION NEEDS SOME WORK
 /// 
-/// Checking if a move is legal then comes down to checking:
+/// Checking if a move is legal comes down to checking:
 /// whether there is a piece of the same color on the target square,
 /// whether we are in check (using attack patterns),
-/// whether we can enpassant (only move where taking a piece =/= moving to that square),
+/// whether we can enpassant (only move where taking a piece != moving to that square),
 /// whether we can castle.
 
 use crate::utils_new::*;
+
+/// This function provides the attack patterns for white and black
+pub fn get_attacks(array: [u128; 6], all_pieces: &u128) -> (u128, u128) {
+    let white_pawns: u128 = array[PAWNS] & BOARD1;
+    let white_kings: u128 = array[KINGS] & BOARD1;
+    let white_knights: u128 = array[KNIGHTS] & BOARD1;
+
+    let mut white_attack: u128 = white_pawn_attack(&white_pawns) | knight_attack(&white_knights) | king_attack(&white_kings);
+
+    let mut white_queens: u128 = array[QUEENS] & BOARD1;
+    let mut white_bishops: u128 = array[BISHOPS] & BOARD1;
+    let mut white_rooks: u128 = array[ROOKS] & BOARD1;
+
+    while white_queens != 0 {
+        let square: u32 = white_queens.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+        white_attack |= queen_attack(&piece, all_pieces);
+        white_queens &= !piece;
+    }
+
+    while white_bishops != 0 {
+        let square: u32 = white_bishops.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+        white_attack |= bishop_attack(&piece, all_pieces);
+        white_bishops &= !piece;
+    }
+
+    while white_rooks != 0 {
+        let square: u32 = white_rooks.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+        white_attack |= rook_attack(&piece, all_pieces);
+        white_rooks &= !piece;
+    }
+
+    let black_pawns: u128 = (array[PAWNS] & BOARD2) << 8;
+    let black_kings: u128 = (array[KINGS] & BOARD2) << 8;
+    let black_knights: u128 = (array[KNIGHTS] & BOARD2) << 8;
+
+    let mut black_attack: u128 = black_pawn_attack(&black_pawns) | knight_attack(&black_knights) | king_attack(&black_kings);
+
+    let mut black_queens: u128 = (array[QUEENS] & BOARD2) << 8;
+    let mut black_bishops: u128 = (array[BISHOPS] & BOARD2) << 8;
+    let mut black_rooks: u128 = (array[ROOKS] & BOARD2) << 8;
+
+    while black_queens != 0 {
+        let square: u32 = black_queens.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+        black_attack |= queen_attack(&piece, all_pieces);
+        black_queens &= !piece;
+    }
+
+    while black_bishops != 0 {
+        let square: u32 = black_bishops.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+        black_attack |= bishop_attack(&piece, all_pieces);
+        black_bishops &= !piece;
+    }
+
+    while black_rooks != 0 {
+        let square: u32 = black_rooks.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+        black_attack |= rook_attack(&piece, all_pieces);
+        black_rooks &= !piece;
+    }
+
+    (white_attack, black_attack)
+}
 
 /// This function determines the squares that the white pawn attacks
 pub fn white_pawn_attack(piece_info: &u128) -> u128 {
@@ -63,473 +130,141 @@ pub fn king_attack(piece_info: &u128) -> u128 {
 }
 
 /// This function determines the squares that the bishop attacks,
-/// as well as additional information on pins and checks.
-pub fn bishop_info(piece_info: &u128, all_pieces: &u128, opponent_king: &u128) -> (u128, u128, u128) {
-    
-    // This function repeats itself, however I do not see a good fix right now,
-    // and as it is not a big deal, I will leave it like this for now.
-
+pub fn bishop_attack(piece_info: &u128, all_pieces: &u128) -> u128 {
     let mut attacks: u128 = EMPTY;
-    let mut check: u128 = EMPTY;
-    let mut pin: u128 = EMPTY;
 
     let piece: u128 = piece_info & BOARD1;
-    let mut result: u128;
-    let mut blocked: bool;
-
-    // Shoot ray up left to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece << 17 * i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
-
-    // Shoot ray up right to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece << 15 * i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
-
-    // Shoot ray down left to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece >> 15 * i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
-
-    // Shoot ray right to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece >> 17 * i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
 
-    // We move the info to the other board, since that is where we expect them
-    (attacks >> 8, check >> 8, pin >> 8)
+    attacks
 }
 
-/// This function determines the squares that the rook attack and the squares it may move to,
-/// as well as additional information on pins and checks.
-pub fn rook_info(piece_info: &u128, all_pieces: &u128, opponent_king: &u128) -> (u128, u128, u128) {
-
-    // This function repeats itself, however I do not see a good fix right now,
-    // and as it is not a big deal, I will leave it like this for now.
-
+/// This function determines the squares that the rook attacks
+pub fn rook_attack(piece_info: &u128, all_pieces: &u128) -> u128 {
     let mut attacks: u128 = EMPTY;
-    let mut check: u128 = EMPTY;
-    let mut pin: u128 = EMPTY;
 
     let piece: u128 = piece_info & BOARD1;
-    let mut result: u128;
-    let mut blocked: bool;
-
-    // Shoot ray up to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece << 16 * i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
-
-    // Shoot ray down to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece >> 16 * i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
-
-    // Shoot ray left to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece << i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
-
-    // Shoot ray right to check attack, checks and pins
-    result = piece;
-    blocked = false;
 
     for i in 1..8 {
         let pos: u128 = piece >> i;
 
         if pos & BOARD1 == 0 {
-
-            // If the ray goes off the board, we can exit the loop.
-            // Since we have not reached the opponent king, we do not have to add anything to check or pin
             break;
-
         }
 
-        result |= pos;
+        attacks |= pos;
 
-        if pos & opponent_king != 0 {
-
-            if blocked {
-
-                // If we have been blocked before, this is a pin, so we add it
-                pin |= result;
-                
-            } else {
-
-                // If we were not blocked yet, we can attack the king. This is a check and an attack, but not a pin
-                attacks |= pos;
-                check |= result;
-
-            }
-
-            // Since we are blocked and we do not have to look further for pins and checks,
-            // we can exit out of the loop
-            break;
-
-        }
-
-        if !blocked {
-
-            if pos & all_pieces != 0 {
-
-                // If we reach an opponent, we set blocked to true
-                blocked = true;
-
-            }
-
-            // If we reach an opponent or an empty square whilst not having been blocked yet, we add the pos to the attacks
-            attacks |= pos;
+        if pos & all_pieces != 0 {
+            break
         }
     }
 
-    // We move the info to the other board, since that is where we expect them
-    (attacks >> 8, check >> 8, pin >> 8)
+    attacks
 }
 
-/// This function determines the squares that the queen attack and the squares it may move to,
-/// as well as additional information on pins and checks.
-pub fn queen_info(piece_info: &u128, all_pieces: &u128, opponent_king: &u128) -> (u128, u128, u128) {
+/// This function determines the squares that the queen attacks
+pub fn queen_attack(piece_info: &u128, all_pieces: &u128) -> u128 {
 
     // The queen combines the patterns of the rook and the bishop
-    
-    let bishop_info: (u128, u128, u128) = bishop_info(piece_info, all_pieces, opponent_king);
-    let rook_info: (u128, u128, u128) = rook_info(piece_info, all_pieces, opponent_king);
 
-    let attacks: u128 = bishop_info.0 | rook_info.0;
-    let check: u128 = bishop_info.1 | rook_info.1;
-    let pin: u128 = bishop_info.2 | rook_info.2;
-
-    (attacks, check, pin)
+    bishop_attack(piece_info, all_pieces) | rook_attack(piece_info, all_pieces)
 }
 
 /// This functions shoots a ray up from the piece, and stops when it reaches a piece

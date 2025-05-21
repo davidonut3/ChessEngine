@@ -100,268 +100,43 @@ pub fn bit_to_tile(bit: &u128) -> String {
     file.to_string() + rank
 }
 
-/// Converts board into white_pieces and promotion info
-pub fn string_to_white_pieces(board: &str) -> ([u128; 16], u128) {
+/// Converts board string into array of pieces
+pub fn board_string_to_pieces(board: &str) -> [u128; ARRAY_SIZE] {
+    let mut pieces: [u128; ARRAY_SIZE] = [0; ARRAY_SIZE];
 
-    // This function is a lot more complicated because we store each piece separately now.
-
-    let mut white_pieces: [u128; 16] = [EMPTY; 16];
-    let mut promotion: u128 = EMPTY;
-
-    // These are used to indicate where in the array the next piece of a certain type must be stored.
-    // If there are more than 2 bishops, knights or rooks, or more than 1 queen, the next pieces will be stored in the pawns,
-    // since the pawns must have promoted to those.
-    let mut pawn_index: usize = PAWN_A;
-    let mut king_index: usize = KING;
-    let mut queen_index: usize = QUEEN;
-    let mut bishop_index: usize = BISHOP_K;
-    let mut knight_index: usize = KNIGHT_K;
-    let mut rook_index: usize = ROOK_K;
-
-    // We split the fen board into its 8 rows and loop over them
+    // We loop over the 8 rows of the board string
     let rows: Vec<&str> = board.split('/').collect();
-    for (rank, pieces) in rows.iter().enumerate() {
+    for (rank, char_pieces) in rows.iter().enumerate() {
         let mut file: usize = 0;
-
+        
         // For each piece in each row, we check its value
-        for piece in pieces.chars() {
-
+        for piece in char_pieces.chars() {
             if piece.is_digit(10) {
 
-                // If the piece is a number, we skip that number of places in our file index
+                // If the piece is a number, we skip that number of pieces
                 file += piece.to_digit(10).unwrap() as usize;
-
             } else {
-
-                // If the piece is a char, we add it to the appropriate index
                 let bit: u128 = FIRST >> (rank * 16 + file);
                 match piece {
-
-                    // In case there are more than 8 pawns, we panic
-                    'P' => {
-                        white_pieces[pawn_index] |= bit;
-                        pawn_index += 1;
-                        if pawn_index > PAWN_H {
-                            panic!("string_to_white_pieces: Found more than 8 pawns")
-                        }
-                    },
-
-                    // In case there is more than one king, we panic
-                    'K' => {
-                        white_pieces[king_index] |= bit;
-                        king_index += 1;
-                        if king_index > KING {
-                            panic!("string_to_white_pieces: Found more than one king")
-                        }
-                    },
-
-                    // In case there is more than two bishops, we add it to the pawns
-                    'B' => { 
-                        if bishop_index > BISHOP_Q {
-                            white_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, true, BISHOP_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_white_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            white_pieces[bishop_index] |= bit;
-                            bishop_index += 1;
-                        }
-                    },
-
-                    // In case there is more than two knights, we add it to the pawns
-                    'N' => { 
-                        if knight_index > KNIGHT_Q {
-                            white_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, true, KNIGHT_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_white_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            white_pieces[knight_index] |= bit;
-                            knight_index += 1;
-                        }
-                    },
-
-                    // In case there is more than two rooks, we add it to the pawns
-                    'R' => { 
-                        if rook_index > ROOK_Q {
-                            white_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, true, ROOK_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_white_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            white_pieces[rook_index] |= bit;
-                            rook_index += 1;
-                        }
-                    },
-
-                    // In case there is more than one queen, we add it to the pawns
-                    'Q' => { 
-                        if queen_index > QUEEN {
-                            white_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, true, QUEEN_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_white_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            white_pieces[queen_index] |= bit;
-                            queen_index += 1;
-                        }
-                    },
-
-                    _ => { },
+                    'P' => pieces[PAWNS] |= bit,
+                    'p' => pieces[PAWNS] |= bit >> 8,
+                    'K' => pieces[KINGS] |= bit,
+                    'k' => pieces[KINGS] |= bit >> 8,
+                    'Q' => pieces[QUEENS] |= bit,
+                    'q' => pieces[QUEENS] |= bit >> 8,
+                    'B' => pieces[BISHOPS] |= bit,
+                    'b' => pieces[BISHOPS] |= bit >> 8,
+                    'N' => pieces[KNIGHTS] |= bit,
+                    'n' => pieces[KNIGHTS] |= bit >> 8,
+                    'R' => pieces[ROOKS] |= bit,
+                    'r' => pieces[ROOKS] |= bit >> 8,
+                    _ => panic!("board_string_to_pieces: Found unknown string in board string")
                 }
-                file += 1;
-
             }
         }
     }
 
-    for i in 0..16 {
-        if white_pieces[i] & BOARD2 != 0 {
-            panic!("string_to_white_pieces: Found pieces on second board")
-        }
-    }
-
-    (white_pieces, promotion)
-}
-
-/// Converts board into black_pieces and promotion info
-pub fn string_to_black_pieces(board: &str) -> ([u128; 16], u128) {
-
-    // This function is a lot more complicated because we store each piece separately now.
-
-    let mut black_pieces: [u128; 16] = [EMPTY; 16];
-    let mut promotion: u128 = EMPTY;
-
-    // These are used to indicate where in the array the next piece of a certain type must be stored.
-    // If there are more then 2 bishops, knights or rooks, or more than 1 queen, the next pieces will be stored in the pawns,
-    // since the pawns must have promoted to those. If there are more then 8 pawns, we panic.
-    let mut pawn_index: usize = PAWN_A;
-    let mut king_index: usize = KING;
-    let mut queen_index: usize = QUEEN;
-    let mut bishop_index: usize = BISHOP_K;
-    let mut knight_index: usize = KNIGHT_K;
-    let mut rook_index: usize = ROOK_K;
-
-    // We split the fen board into its 8 rows and loop over them
-    let rows: Vec<&str> = board.split('/').collect();
-    for (rank, pieces) in rows.iter().enumerate() {
-        let mut file: usize = 0;
-
-        // For each piece in each row, we check its value
-        for piece in pieces.chars() {
-
-            if piece.is_digit(10) {
-
-                // If the piece is a number, we skip that number of places in our file index
-                file += piece.to_digit(10).unwrap() as usize;
-
-            } else {
-
-                // If the piece is a char, we add it to the appropriate index
-                let bit: u128 = FIRST >> (rank * 16 + file);
-                match piece {
-
-                    // In case there are more than 8 pawns, we panic
-                    'p' => {
-                        black_pieces[pawn_index] |= bit;
-                        pawn_index += 1;
-                        if pawn_index > PAWN_H {
-                            panic!("string_to_black_pieces: Found more than 8 pawns")
-                        }
-                    },
-
-                    // In case there is more than one king, we panic
-                    'k' => {
-                        black_pieces[king_index] |= bit;
-                        king_index += 1;
-                        if king_index > KING {
-                            panic!("string_to_black_pieces: Found more than one king")
-                        }
-                    },
-
-                    // In case there is more than two bishops, we add it to the pawns
-                    'b' => { 
-                        if bishop_index > BISHOP_Q {
-                            black_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, false, BISHOP_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_black_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            black_pieces[bishop_index] |= bit;
-                            bishop_index += 1;
-                        }
-                    },
-
-                    // In case there is more than two knights, we add it to the pawns
-                    'n' => { 
-                        if knight_index > KNIGHT_Q {
-                            black_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, false, KNIGHT_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_black_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            black_pieces[knight_index] |= bit;
-                            knight_index += 1;
-                        }
-                    },
-
-                    // In case there is more than two rooks, we add it to the pawns
-                    'r' => { 
-                        if rook_index > ROOK_Q {
-                            black_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, false, ROOK_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_black_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            black_pieces[rook_index] |= bit;
-                            rook_index += 1;
-                        }
-                    },
-
-                    // In case there is more than one queen, we add it to the pawns
-                    'q' => { 
-                        if queen_index > QUEEN {
-                            black_pieces[pawn_index] |= bit;
-                            promotion |= promote_pawn(pawn_index, false, QUEEN_PROM);
-                            pawn_index += 1;
-                            if pawn_index > PAWN_H {
-                                panic!("string_to_black_pieces: Found more than 8 pawns")
-                            }
-                        } else {
-                            black_pieces[queen_index] |= bit;
-                            queen_index += 1;
-                        }
-                    },
-
-                    _ => { },
-                }
-                file += 1;
-
-            }
-        }
-    }
-
-    for i in 0..16 {
-        if black_pieces[i] & BOARD2 != 0 {
-            panic!("string_to_black_pieces: Found pieces on second board")
-        }
-    }
-
-    (black_pieces, promotion)
+    pieces
 }
 
 /// Converts a bitboard index back to its corresponding piece character.

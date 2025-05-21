@@ -2,10 +2,10 @@
 
 The new Fen struct will work with u128 instead of u64 to efficiently check whether a piece has moved off the board.
 
-The struct will only contain one array of 9 u128:
+The struct will only contain one array of 8 u128:
 
 Per piece type, we will store the positions of the white pieces on the left board and the positions of the black pieces on the right board.
-Per color, we will store the positions of all the pieces on the left board and all the attacked pieces on the right board.
+We will also have a u128 which stores all white pieces on the left board and all the black pieces on the right board.
 We will use the last u128 for the rest of the info:
 
 64 bits for en passant info,
@@ -106,7 +106,7 @@ use crate::utils_new::*;
 
 #[derive(Debug, Clone)]
 pub struct Fen {
-    pub array: [u128; 9],
+    pub array: [u128; ARRAY_SIZE],
 }
 
 impl Fen {
@@ -122,21 +122,8 @@ impl Fen {
             panic!("Found incorrect fen notation");
         }
 
-        let white_info: ([u128; 16], u128) = parsing_new::string_to_white_pieces(fen_str_split[0]);
-        let black_info: ([u128; 16], u128) = parsing_new::string_to_black_pieces(fen_str_split[0]);
-
-        // Load the piece positions into white_pieces and black_pieces
-        let mut white_pieces: [u128; 16] = white_info.0;
-        let mut black_pieces: [u128; 16] = black_info.0;
-
-        // Load the promotion info into game_info
-        let mut game_info: u128 = white_info.1 | black_info.1;
-
-        // Load the piece positions into white_attack and black_attack
-        let mut white_attack: u128 = get_all_pieces(&white_pieces);
-        let mut black_attack: u128 = get_all_pieces(&black_pieces);
-
-        
+        let mut array: [u128; ARRAY_SIZE] = parsing_new::board_string_to_pieces(fen_str_split[0]);
+        array[PIECES] = get_pieces(&array);
 
         Self {
             
