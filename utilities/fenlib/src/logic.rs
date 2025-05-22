@@ -11,7 +11,7 @@
 use crate::utils_new::*;
 
 /// This function provides the attack patterns for white and black
-pub fn get_attacks(array: [u128; 6], all_pieces: &u128) -> (u128, u128) {
+pub fn get_attacks(array: [u128; ARRAY_SIZE], all_pieces: &u128) -> (u128, u128) {
     let white_pawns: u128 = array[PAWNS] & BOARD1;
     let white_kings: u128 = array[KINGS] & BOARD1;
     let white_knights: u128 = array[KNIGHTS] & BOARD1;

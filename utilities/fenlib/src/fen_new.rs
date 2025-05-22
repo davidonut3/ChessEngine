@@ -55,4 +55,29 @@ impl Fen {
     pub fn to_visual(&self) -> [[String; 8]; 8] {
         parsing_new::board_to_visual(self.array)
     }
+
+    pub fn in_check(&self) -> bool {
+        let all_pieces: u128 = get_pieces(&self.array);
+        let attacks:(u128, u128) = get_attacks(self.array, &all_pieces);
+
+        let white_to_move: bool = self.white_to_move();
+
+        if white_to_move {
+
+            // The white king is in check if it is attacked by any black piece
+            let king: u128 = self.array[KINGS] & BOARD1;
+            let black_attacks: u128 = attacks.1;
+            return king & black_attacks != 0
+        } else {
+
+            // The black king is in check if it is attacked by any white piece
+            let king: u128 = (self.array[KINGS] & BOARD2) << 8;
+            let white_attacks: u128 = attacks.0;
+            return king & white_attacks != 0
+        }
+    }
+
+    pub fn white_to_move(&self) -> bool {
+        self.array[INFO] & TURN != 0
+    }
 }
