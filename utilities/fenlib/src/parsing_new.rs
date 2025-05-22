@@ -437,65 +437,53 @@ pub fn enpassant_to_string(info: u128) -> String {
     }
 }
 
-/*
-
 /// Parses the promotion information from a LAN move string (e.g., "e7e8q").
-pub fn string_to_promotion(lan: &str) -> u64 {
+pub fn string_to_promotion(lan: &str) -> u128 {
     if lan.len() == 5 {
         match &lan[4..5] {
-            "q" | "Q" => QUEEN_PROM,
-            "r" | "R" => ROOK_PROM,
-            "b" | "B" => BISHOP_PROM,
-            "n" | "N" => KNIGHT_PROM,
+            "q" | "Q" => QUEEN_PROMOTION,
+            "r" | "R" => ROOK_PROMOTION,
+            "b" | "B" => BISHOP_PROMOTION,
+            "n" | "N" => KNIGHT_PROMOTION,
             _ => panic!("Found unknown char when attempting to parse promotion info")
         }
     } else {
-        NO_PROM
+        NO_PROMOTION
     }
 }
 
-/// Converts a move (start bit, end bit, promotion) to a long algebraic notation (LAN) string.
-/// 
-/// **NOTE:** this function does not check whether the move is legal
-/// 
-/// # Arguments
-/// * `start` - Bitboard with starting position.
-/// * `end` - Bitboard with ending position.
-/// * `promoting_to` - Bitboard mask for promotion piece.
-///
-/// # Returns
-/// * `String` - Move in LAN (e.g., "e7e8q").
-pub fn move_to_lan(move1: &[u64; 3]) -> String {
-
+/// Converts binary move to LAN move string
+pub fn move_to_lan(move1: &[u128; 3]) -> String {
     let mut result: String = "".to_string();
 
     result += &bit_to_tile(&move1[0]);
     result += &bit_to_tile(&move1[1]);
 
-    let promoting_to: u64 = move1[2];
+    let promoting_to: u128 = move1[2];
 
-    if promoting_to & QUEEN_PROM != 0 {
+    if promoting_to & QUEEN_PROMOTION != 0 {
         result += "q"
-    } else if promoting_to & ROOK_PROM != 0 {
+    } else if promoting_to & ROOK_PROMOTION != 0 {
         result += "r"
-    } else if promoting_to & BISHOP_PROM != 0 {
+    } else if promoting_to & BISHOP_PROMOTION != 0 {
         result += "b"
-    } else if promoting_to & KNIGHT_PROM != 0 {
+    } else if promoting_to & KNIGHT_PROMOTION != 0 {
         result += "n"
     }
     
     result
 }
 
-/// Converts a vector of moves in [start, end, promotion] bitboard format into a list of LAN strings.
-///
-/// # Arguments
-/// * `moves` - Vector of moves, each represented by `start`, `end`, `promotion`.
-///
-/// # Returns
-/// * `Vec<String>` - Vector of moves in LAN format.
-pub fn moves_to_lan_list(moves: &Vec<[u64; 3]>) -> Vec<String> {
-    moves.iter().map(|move1: &[u64; 3]| move_to_lan(move1)).collect()
+/// Converts LAN move string to binary move
+pub fn lan_to_move(lan: &str) -> [u128; 3] {
+    let start: u128 = tile_to_bit(&lan[0..2]);
+    let end: u128 = tile_to_bit(&lan[2..4]);
+    let promoting_to: u128 = string_to_promotion(lan);
+
+    [start, end, promoting_to]
 }
 
-*/
+/// Converts a vector of moves in [start, end, promotion] bitboard format into a list of LAN strings.
+pub fn moves_to_lan_list(moves: &Vec<[u128; 3]>) -> Vec<String> {
+    moves.iter().map(|move1: &[u128; 3]| move_to_lan(move1)).collect()
+}

@@ -3,11 +3,10 @@ Others:
 - load images before running, instead of reloading them during running
 - add types like `type Bitboard = u64;` to fenlib for clarity
 - optimise fenlib (most String -> u64 have been done, but we can still always optimise)
+- make custom LargeMove ([u128; 3], good for speed, bad for memory) and SmallMove (u16, bad for speed, good for memory) structs in fenlib
 
 Possible optimizations for bots and fenlib:
 
-- Store possible moves and change dynamically in move_to_fen
-- Precompute attacked and defended bits in fenlib to speed up get_possible_moves
 - Switch eval system to bits instead of 'regular' computation
 - Remove promotion flag from move to save space
 - Use binary search to find pieces on board
@@ -16,10 +15,3 @@ Code quality:
 
 - Add custom types to rust files
 - Reverse rank order to comply with chess logic
-
-New u128 approach for fenlib:
-
-- Store attack patterns per piece for legal moves
-- Difficulties: enpassant, castling, check
-- Solution: attack + defend patterns for white/black, along with pins
-- Potential problem: we do not break out of checking the legality of a move before all the computation
