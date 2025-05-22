@@ -127,7 +127,7 @@ pub fn board_string_to_pieces(board: &str) -> [u128; ARRAY_SIZE] {
 
 /// Converts string info into bit info
 pub fn get_info(info: Vec<&str>) -> u128 {
-    string_to_turn(info[1]) | string_to_castling(info[2]) | string_to_enpassant(info[3]) | string_to_halfmove(info[4]) | string_to_fullmove(info[5])
+    string_to_turn(info[1]) | string_to_castling(info[2]) | string_to_enpassant(info[3]) | string_to_compr_halfmove(info[4]) | string_to_compr_fullmove(info[5])
 }
 
 /// Converts enpassant string into bit represenation
@@ -175,86 +175,84 @@ pub fn string_to_castling(castling: &str) -> u128 {
     result
 }
 
-/// Converts halfmove string to bit representation
-pub fn string_to_halfmove(halfmove: &str) -> u128 {
+/// Converts halfmove string to compressed bit representation
+pub fn string_to_compr_halfmove(halfmove: &str) -> u128 {
     let halfmove_binary: u128 = halfmove.parse().unwrap();
     let first_part: u128 = halfmove_binary & 0xFF00;
     let second_part: u128 = halfmove_binary & 0xFF;
     
-    (first_part << 5 * 16) & (second_part << 6 * 16)
+    (first_part << 13 * 8) & (second_part << 12 * 8)
 }
 
-/// Converts fullmove string to bit representation
-pub fn string_to_fullmove(fullmove: &str) -> u128 {
+/// Converts halfmove compressed bit representation to string
+pub fn compr_to_string_halfmove(info: u128) -> String {
+    let first_part: u128 = (info & HALFMOVE1) >> 13 * 8;
+    let second_part: u128 = (info & HALFMOVE2) >> 12 * 8;
+    let halfmove_binary: u128 = first_part | second_part;
+    halfmove_binary.to_string()
+}
+
+/// Converts halfmove binary representation to compressed bit representation
+pub fn bin_to_compr_halfmove(halfmove: u16) -> u128 {
+    let first_part: u128 = (halfmove & 0xFF00) as u128;
+    let second_part: u128 = (halfmove & 0xFF) as u128;
+    
+    (first_part << 13 * 8) & (second_part << 12 * 8)
+}
+
+/// Converts halfmove compressed bit representation to binary representation
+pub fn compr_to_bin_halfmove(info: u128) -> u16 {
+    let first_part: u128 = (info & HALFMOVE1) >> 13 * 8;
+    let second_part: u128 = (info & HALFMOVE2) >> 12 * 8;
+    let halfmove_binary: u16 = (first_part | second_part) as u16;
+    halfmove_binary
+}
+
+/// Converts fullmove string to compressed bit representation
+pub fn string_to_compr_fullmove(fullmove: &str) -> u128 {
     let fullmove_binary: u128 = fullmove.parse().unwrap();
     let first_part: u128 = fullmove_binary & 0xFF00;
     let second_part: u128 = fullmove_binary & 0xFF;
     
-    (first_part << 3 * 16) & (second_part << 4 * 16)
-}
- 
-/*
-
-/// Parses the promotion information from a LAN move string (e.g., "e7e8q").
-pub fn string_to_promotion(lan: &str) -> u64 {
-    if lan.len() == 5 {
-        match &lan[4..5] {
-            "q" | "Q" => QUEEN_PROM,
-            "r" | "R" => ROOK_PROM,
-            "b" | "B" => BISHOP_PROM,
-            "n" | "N" => KNIGHT_PROM,
-            _ => panic!("Found unknown char when attempting to parse promotion info")
-        }
-    } else {
-        NO_PROM
-    }
+    (first_part << 9 * 8) & (second_part << 8 * 8)
 }
 
-/// Converts a move (start bit, end bit, promotion) to a long algebraic notation (LAN) string.
-/// 
-/// **NOTE:** this function does not check whether the move is legal
-/// 
-/// # Arguments
-/// * `start` - Bitboard with starting position.
-/// * `end` - Bitboard with ending position.
-/// * `promoting_to` - Bitboard mask for promotion piece.
-///
-/// # Returns
-/// * `String` - Move in LAN (e.g., "e7e8q").
-pub fn move_to_lan(move1: &[u64; 3]) -> String {
+/// Converts fullmove compressed bit representation to string
+pub fn compr_to_string_fullmove(info: u128) -> String {
+    let first_part: u128 = (info & FULLMOVE1) >> 9 * 8;
+    let second_part: u128 = (info & FULLMOVE2) >> 8 * 8;
+    let fullmove_binary: u128 = first_part | second_part;
+    fullmove_binary.to_string()
+}
 
-    let mut result: String = "".to_string();
-
-    result += &bit_to_tile(&move1[0]);
-    result += &bit_to_tile(&move1[1]);
-
-    let promoting_to: u64 = move1[2];
-
-    if promoting_to & QUEEN_PROM != 0 {
-        result += "q"
-    } else if promoting_to & ROOK_PROM != 0 {
-        result += "r"
-    } else if promoting_to & BISHOP_PROM != 0 {
-        result += "b"
-    } else if promoting_to & KNIGHT_PROM != 0 {
-        result += "n"
-    }
+/// Converts fullmove binary representation to compressed bit representation
+pub fn bin_to_compr_fullmove(fullmove: u16) -> u128 {
+    let first_part: u128 = (fullmove & 0xFF00) as u128;
+    let second_part: u128 = (fullmove & 0xFF) as u128;
     
-    result
+    (first_part << 9 * 8) & (second_part << 8 * 8)
 }
 
-/// Converts a vector of moves in [start, end, promotion] bitboard format into a list of LAN strings.
-///
-/// # Arguments
-/// * `moves` - Vector of moves, each represented by `start`, `end`, `promotion`.
-///
-/// # Returns
-/// * `Vec<String>` - Vector of moves in LAN format.
-pub fn moves_to_lan_list(moves: &Vec<[u64; 3]>) -> Vec<String> {
-    moves.iter().map(|move1: &[u64; 3]| move_to_lan(move1)).collect()
+/// Converts fullmove compressed bit representation to binary representation
+pub fn compr_to_bin_fullmove(info: u128) -> u16 {
+    let first_part: u128 = (info & FULLMOVE1) >> 9 * 8;
+    let second_part: u128 = (info & FULLMOVE2) >> 8 * 8;
+    let fullmove_binary: u16 = (first_part | second_part) as u16;
+    fullmove_binary
 }
 
-*/
+/// Converts array into FEN string.
+pub fn fen_to_string(array: [u128; ARRAY_SIZE]) -> String {
+    format!(
+        "{} {} {} {} {} {}",
+        board_to_string(array),
+        turn_to_string(array[INFO]),
+        castling_to_string(array[INFO]),
+        enpassant_to_string(array[INFO]),
+        compr_to_string_halfmove(array[INFO]),
+        compr_to_string_fullmove(array[INFO]),
+    )
+}
 
 /// Converts array into a visual 8x8 board of piece strings.
 pub fn board_to_visual(array: [u128; ARRAY_SIZE]) -> [[String; 8]; 8] {
@@ -438,3 +436,66 @@ pub fn enpassant_to_string(info: u128) -> String {
         bit_to_tile(&enpassant)
     }
 }
+
+/*
+
+/// Parses the promotion information from a LAN move string (e.g., "e7e8q").
+pub fn string_to_promotion(lan: &str) -> u64 {
+    if lan.len() == 5 {
+        match &lan[4..5] {
+            "q" | "Q" => QUEEN_PROM,
+            "r" | "R" => ROOK_PROM,
+            "b" | "B" => BISHOP_PROM,
+            "n" | "N" => KNIGHT_PROM,
+            _ => panic!("Found unknown char when attempting to parse promotion info")
+        }
+    } else {
+        NO_PROM
+    }
+}
+
+/// Converts a move (start bit, end bit, promotion) to a long algebraic notation (LAN) string.
+/// 
+/// **NOTE:** this function does not check whether the move is legal
+/// 
+/// # Arguments
+/// * `start` - Bitboard with starting position.
+/// * `end` - Bitboard with ending position.
+/// * `promoting_to` - Bitboard mask for promotion piece.
+///
+/// # Returns
+/// * `String` - Move in LAN (e.g., "e7e8q").
+pub fn move_to_lan(move1: &[u64; 3]) -> String {
+
+    let mut result: String = "".to_string();
+
+    result += &bit_to_tile(&move1[0]);
+    result += &bit_to_tile(&move1[1]);
+
+    let promoting_to: u64 = move1[2];
+
+    if promoting_to & QUEEN_PROM != 0 {
+        result += "q"
+    } else if promoting_to & ROOK_PROM != 0 {
+        result += "r"
+    } else if promoting_to & BISHOP_PROM != 0 {
+        result += "b"
+    } else if promoting_to & KNIGHT_PROM != 0 {
+        result += "n"
+    }
+    
+    result
+}
+
+/// Converts a vector of moves in [start, end, promotion] bitboard format into a list of LAN strings.
+///
+/// # Arguments
+/// * `moves` - Vector of moves, each represented by `start`, `end`, `promotion`.
+///
+/// # Returns
+/// * `Vec<String>` - Vector of moves in LAN format.
+pub fn moves_to_lan_list(moves: &Vec<[u64; 3]>) -> Vec<String> {
+    moves.iter().map(|move1: &[u64; 3]| move_to_lan(move1)).collect()
+}
+
+*/

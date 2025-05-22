@@ -40,7 +40,7 @@ impl Fen {
         }
 
         let mut array: [u128; ARRAY_SIZE] = parsing_new::board_string_to_pieces(fen_str_split[0]);
-        array[PIECES] = get_pieces(&array);
+        array[ALL_PIECES] = get_pieces(&array);
         array[INFO] = parsing_new::get_info(fen_str_split);
 
         Self {
@@ -49,15 +49,7 @@ impl Fen {
     }
 
     pub fn to_string(&self) -> String {
-        format!(
-            "{} {} {} {} {} {}",
-            parsing::board_to_string(&self.boards),
-            parsing::turn_to_string(self.white_to_move),
-            parsing::castling_to_string(&self.castling),
-            parsing::enpassant_to_string(&self.en_passant),
-            self.halfmove,
-            self.fullmove
-        )
+        parsing_new::fen_to_string(self.array)
     }
 
     pub fn to_visual(&self) -> [[String; 8]; 8] {
