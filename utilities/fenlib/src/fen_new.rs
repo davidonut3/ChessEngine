@@ -18,6 +18,7 @@ We will use the last u128 for the rest of the info:
 
 use crate::logic::*;
 use crate::parsing_new;
+use crate::parsing_new::move_to_lan;
 use crate::utils_new::*;
 
 
@@ -262,12 +263,10 @@ impl Fen {
 
     }
 
-    pub fn in_check(&self) -> bool {
+    pub fn player_in_check(&self, player_is_white: bool) -> bool {
         let attacks:(u128, u128) = get_attacks(self.array);
 
-        let white_to_move: bool = self.white_to_move();
-
-        if white_to_move {
+        if player_is_white {
 
             // The white king is in check if it is attacked by any black piece
             let king: u128 = self.array[KINGS] & BOARD1;
@@ -286,5 +285,48 @@ impl Fen {
 
     pub fn white_to_move(&self) -> bool {
         self.array[INFO] & TURN != 0
+    }
+
+    pub fn get_legal_moves_lan(&self) -> Vec<String> {
+        let mut result: Vec<String> = Vec::new();
+        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array();
+
+        for i in 0..MAX_MOVES {
+            if legal_moves[i][0] == 0 {
+                
+                // If the from pos is 0, the array is empty from this point, so we break.
+                break;
+
+            } else {
+                result.push(move_to_lan(&legal_moves[i]));
+            }
+        }
+
+        result
+    }
+
+    pub fn get_legal_moves_vec(&self) -> Vec<[u128; 3]> {
+        let mut result: Vec<[u128; 3]> = Vec::new();
+        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array();
+
+        for i in 0..MAX_MOVES {
+            if legal_moves[i][0] == 0 {
+                
+                // If the from pos is 0, the array is empty from this point, so we break.
+                break;
+
+            } else {
+                result.push(legal_moves[i]);
+            }
+        }
+
+        result
+    }
+
+    pub fn get_legal_moves_array(&self) -> [[u128; 3]; MAX_MOVES] {
+        let mut result: [[u128; 3]; MAX_MOVES] = [[0; 3]; MAX_MOVES];
+        let mut index: usize = 0;
+
+        result
     }
 }
