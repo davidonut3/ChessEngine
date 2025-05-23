@@ -15,3 +15,9 @@ Code quality:
 
 - Add custom types to rust files
 - Reverse rank order to comply with chess logic
+
+Currently:
+
+- Check if moving rook in case of castling in move_to_fen actually requires the check that the castling right is present.
+- Check if get_attacks in fenlib::logic should become a struct function instead of a separate function.
+- Check error in old fenlib that did not properly update castling rights ( & instead of | )

@@ -10,8 +10,11 @@
 
 use crate::utils_new::*;
 
-/// This function provides the attack patterns for white and black
-pub fn get_attacks(array: [u128; ARRAY_SIZE], all_pieces: &u128) -> (u128, u128) {
+/// This function provides the attack patterns for white and black,
+/// in the form of two u128, which both have the respective attack patterns on the left board.
+pub fn get_attacks(array: [u128; ARRAY_SIZE]) -> (u128, u128) {
+    let all_pieces: u128 = (array[ALL_PIECES] & BOARD1) | ((array[ALL_PIECES] & BOARD2) << 8);
+
     let white_pawns: u128 = array[PAWNS] & BOARD1;
     let white_kings: u128 = array[KINGS] & BOARD1;
     let white_knights: u128 = array[KNIGHTS] & BOARD1;
@@ -25,21 +28,21 @@ pub fn get_attacks(array: [u128; ARRAY_SIZE], all_pieces: &u128) -> (u128, u128)
     while white_queens != 0 {
         let square: u32 = white_queens.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        white_attack |= queen_attack(&piece, all_pieces);
+        white_attack |= queen_attack(&piece, &all_pieces);
         white_queens &= !piece;
     }
 
     while white_bishops != 0 {
         let square: u32 = white_bishops.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        white_attack |= bishop_attack(&piece, all_pieces);
+        white_attack |= bishop_attack(&piece, &all_pieces);
         white_bishops &= !piece;
     }
 
     while white_rooks != 0 {
         let square: u32 = white_rooks.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        white_attack |= rook_attack(&piece, all_pieces);
+        white_attack |= rook_attack(&piece, &all_pieces);
         white_rooks &= !piece;
     }
 
@@ -56,21 +59,21 @@ pub fn get_attacks(array: [u128; ARRAY_SIZE], all_pieces: &u128) -> (u128, u128)
     while black_queens != 0 {
         let square: u32 = black_queens.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        black_attack |= queen_attack(&piece, all_pieces);
+        black_attack |= queen_attack(&piece, &all_pieces);
         black_queens &= !piece;
     }
 
     while black_bishops != 0 {
         let square: u32 = black_bishops.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        black_attack |= bishop_attack(&piece, all_pieces);
+        black_attack |= bishop_attack(&piece, &all_pieces);
         black_bishops &= !piece;
     }
 
     while black_rooks != 0 {
         let square: u32 = black_rooks.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        black_attack |= rook_attack(&piece, all_pieces);
+        black_attack |= rook_attack(&piece, &all_pieces);
         black_rooks &= !piece;
     }
 
