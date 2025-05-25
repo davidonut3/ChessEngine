@@ -264,7 +264,7 @@ impl Fen {
     }
 
     pub fn player_in_check(&self, player_is_white: bool) -> bool {
-        let (white_attacks, black_attacks): (u128, u128) = get_attacks(self.array);
+        let (white_attacks, black_attacks): (u128, u128) = get_attacks(&self.array);
 
         if player_is_white {
 

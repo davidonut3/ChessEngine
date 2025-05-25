@@ -19,16 +19,12 @@ use crate::utils_new::*;
 /// along with all the attacks of the opponent pieces.
 /// 
 /// If `player_is_white`, we check all the black sliders, else, we check all the white sliders.
-pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], player_is_white: bool) -> ([u128; MAX_SLIDERS], usize, u128) {
+pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, u128) {
     let mut number_of_checks: usize = 0;
     let mut pins_and_checks: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
+    let mut index: usize = 0;
     let mut attacks: u128 = EMPTY;
     let mut pins: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
-
-    let white_pieces: u128 = array[ALL_PIECES] & BOARD1;
-    let black_pieces: u128 = (array[ALL_PIECES] & BOARD2) << 8;
-
-    let (a, b): (u128, u128) = get_attacks(array);
 
     if player_is_white {
 
@@ -49,28 +45,328 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], player_is_white: bool) ->
     (pins_and_checks, number_of_checks, attacks)
 }
 
-/// This function determines the squares that the rook pins/checks
-pub fn rook_pins_or_checks(piece: u128, team_pieces: u128, opponent_pieces: u128) -> (u128, u128, bool) {
+/// This function determines the squares that the rook pins/checks.
+/// This function is very complex (sorry) and may contain sneaky errors.
+/// The function also determines whether we may en passant or not.
+pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, bool, bool) {
+    let team: u128;
+    let opponents: u128;
+    let opponent_king: u128;
+    let opponent_pawns: u128;
+
+    let enpassant: u128 = array[INFO] & BOARD1;
+    let can_enpassant: bool;
+    let enpassant_attacks: u128;
+
+    // The variables are named from the perspective of the sliding pieces of the opposing color.
+    if white_to_move {
+        team = (array[ALL_PIECES] & BOARD2) << 8;
+        opponents = array[ALL_PIECES] & BOARD1;
+        opponent_king = array[KINGS] & BOARD1;
+        opponent_pawns = array[PAWNS] & BOARD1;
+        enpassant_attacks = enpassant >> 16;
+        can_enpassant = enpassant != 0 && (((enpassant >> 15 | enpassant >> 17) & BOARD1) & (array[PAWNS] & BOARD1) != 0);
+    } else {
+        team = array[ALL_PIECES] & BOARD1;
+        opponents = (array[ALL_PIECES] & BOARD2) << 8;
+        opponent_king = (array[KINGS] & BOARD2) << 8;
+        opponent_pawns = (array[PAWNS] & BOARD2) << 8;
+        enpassant_attacks = enpassant << 16;
+        can_enpassant = enpassant != 0 && (((enpassant << 15 | enpassant << 17) & BOARD1) & ((array[PAWNS] & BOARD2) << 8) != 0);
+    }
+
+    let all_pieces: u128 = team | opponents;
+
     let mut check_or_pin: u128 = EMPTY;
     let mut attacks: u128 = EMPTY;
-
     let mut is_check: bool = false;
-    let mut is_check_or_pin: bool = false;
-    let mut is_blocked: bool = false;
+    let mut may_enpassant: bool = can_enpassant;
 
     let directions: [fn(u128, usize) -> u128; 4] = [up, down, left, right];
 
     for direction in directions {
 
-        for i in 1..8 {
+        // First, we shoot a ray in the given direction until we hit the end of the board or the opponent king.
+        // We also add the squares to the attack if no piece has been found yet.
+        let mut ray: u128 = piece;
+        let mut blocked: bool = false;
+        let mut found_king: bool = false;
+
+        for i in 0..8 {
             let pos: u128 = direction(piece, i);
 
-            
+            if pos & BOARD1 == 0 {
+                // If we reach the end of the board, we stop the ray
+                break
+            }
+
+            ray |= pos;
+
+            if pos & opponent_king != 0 {
+                // If we find the opponent king, we stop the ray
+                found_king = true;
+                break
+            }
+
+            if !blocked {
+                // If we have not been blocked yet, we add the position to the attacks.
+                attacks |= pos;
+
+                if pos & all_pieces != 0 {
+                    // If we find a piece, we cannot attack furthur, so we set blocked to true.
+                    blocked = true;
+                }
+            }
         }
 
+        if found_king {
+
+            let number_of_blockers: u32 = (ray & all_pieces).count_ones() - 2;
+            let blockers: u128 = ray & !(piece | opponent_king);
+
+            if number_of_blockers == 0 {
+
+                // If the only pieces in the ray are the piece itself and the opponent king, we have a check.
+                is_check = true;
+                check_or_pin = ray & !opponent_king;
+
+            } else if number_of_blockers == 1 {
+
+                if blockers & opponents != 0 {
+                    // If the attack is blocked by one piece of the opposing color, we have a pin.
+                    check_or_pin = ray & !opponent_king;
+                } else if can_enpassant && (enpassant_attacks & blockers != 0) {
+                    // If doing the enpassant reveals the king, we may not en passant.
+                    // This can be caused by a bishop that attacks the opponent king through the piece that could be captured with en passant.
+                    may_enpassant = false;
+                }
+
+            // I would like to express my ... and repeat, regret and ape ape apologies.
+            } else if number_of_blockers == 2 && can_enpassant && (enpassant_attacks & blockers != 0) && ((((enpassant_attacks >> 1) & BOARD1) & opponent_pawns & blockers != 0) || (((enpassant_attacks << 1) & BOARD1) & opponent_pawns & blockers != 0)) {
+                // If doing the enpassant reveals the king, we may not en passant.
+                // This can be caused by a rook that attacks the opponent king through the piece that could be captured with en passant and the piece that does the en passant.
+                may_enpassant = false;
+            }
+        }
     }
 
-    (attacks, check_or_pin, is_check)
+    (attacks, check_or_pin, is_check, may_enpassant)
+}
+
+/// This function determines the squares that the bishop pins/checks.
+/// This function is very complex (sorry) and may contain sneaky errors.
+/// The function also determines whether we may en passant or not.
+pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, bool, bool) {
+    let team: u128;
+    let opponents: u128;
+    let opponent_king: u128;
+    let opponent_pawns: u128;
+
+    let enpassant: u128 = array[INFO] & BOARD1;
+    let can_enpassant: bool;
+    let enpassant_attacks: u128;
+
+    // The variables are named from the perspective of the sliding pieces of the opposing color.
+    if white_to_move {
+        team = (array[ALL_PIECES] & BOARD2) << 8;
+        opponents = array[ALL_PIECES] & BOARD1;
+        opponent_king = array[KINGS] & BOARD1;
+        opponent_pawns = array[PAWNS] & BOARD1;
+        enpassant_attacks = enpassant >> 16;
+        can_enpassant = enpassant != 0 && (((enpassant >> 15 | enpassant >> 17) & BOARD1) & (array[PAWNS] & BOARD1) != 0);
+    } else {
+        team = array[ALL_PIECES] & BOARD1;
+        opponents = (array[ALL_PIECES] & BOARD2) << 8;
+        opponent_king = (array[KINGS] & BOARD2) << 8;
+        opponent_pawns = (array[PAWNS] & BOARD2) << 8;
+        enpassant_attacks = enpassant << 16;
+        can_enpassant = enpassant != 0 && (((enpassant << 15 | enpassant << 17) & BOARD1) & ((array[PAWNS] & BOARD2) << 8) != 0);
+    }
+
+    let all_pieces: u128 = team | opponents;
+
+    let mut check_or_pin: u128 = EMPTY;
+    let mut attacks: u128 = EMPTY;
+    let mut is_check: bool = false;
+    let mut may_enpassant: bool = can_enpassant;
+
+    let directions: [fn(u128, usize) -> u128; 4] = [upleft, upright, downleft, downright];
+
+    for direction in directions {
+
+        // First, we shoot a ray in the given direction until we hit the end of the board or the opponent king.
+        // We also add the squares to the attack if no piece has been found yet.
+        let mut ray: u128 = piece;
+        let mut blocked: bool = false;
+        let mut found_king: bool = false;
+
+        for i in 0..8 {
+            let pos: u128 = direction(piece, i);
+
+            if pos & BOARD1 == 0 {
+                // If we reach the end of the board, we stop the ray
+                break
+            }
+
+            ray |= pos;
+
+            if pos & opponent_king != 0 {
+                // If we find the opponent king, we stop the ray
+                found_king = true;
+                break
+            }
+
+            if !blocked {
+                // If we have not been blocked yet, we add the position to the attacks.
+                attacks |= pos;
+
+                if pos & all_pieces != 0 {
+                    // If we find a piece, we cannot attack furthur, so we set blocked to true.
+                    blocked = true;
+                }
+            }
+        }
+
+        if found_king {
+
+            let number_of_blockers: u32 = (ray & all_pieces).count_ones() - 2;
+            let blockers: u128 = ray & !(piece | opponent_king);
+
+            if number_of_blockers == 0 {
+
+                // If the only pieces in the ray are the piece itself and the opponent king, we have a check.
+                is_check = true;
+                check_or_pin = ray & !opponent_king;
+
+            } else if number_of_blockers == 1 {
+
+                if blockers & opponents != 0 {
+                    // If the attack is blocked by one piece of the opposing color, we have a pin.
+                    check_or_pin = ray & !opponent_king;
+                } else if can_enpassant && (enpassant_attacks & blockers != 0) {
+                    // If doing the enpassant reveals the king, we may not en passant.
+                    // This can be caused by a bishop that attacks the opponent king through the piece that could be captured with en passant.
+                    may_enpassant = false;
+                }
+
+            // I would like to express my ... and repeat, regret and ape ape apologies.
+            } else if number_of_blockers == 2 && can_enpassant && (enpassant_attacks & blockers != 0) && ((((enpassant_attacks >> 1) & BOARD1) & opponent_pawns & blockers != 0) || (((enpassant_attacks << 1) & BOARD1) & opponent_pawns & blockers != 0)) {
+                // If doing the enpassant reveals the king, we may not en passant.
+                // This can be caused by a rook that attacks the opponent king through the piece that could be captured with en passant and the piece that does the en passant.
+                may_enpassant = false;
+            }
+        }
+    }
+
+    (attacks, check_or_pin, is_check, may_enpassant)
+}
+
+/// This function determines the squares that the queen pins/checks.
+/// This function is very complex (sorry) and may contain sneaky errors.
+/// The function also determines whether we may en passant or not.
+pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, bool, bool) {
+    let team: u128;
+    let opponents: u128;
+    let opponent_king: u128;
+    let opponent_pawns: u128;
+
+    let enpassant: u128 = array[INFO] & BOARD1;
+    let can_enpassant: bool;
+    let enpassant_attacks: u128;
+
+    // The variables are named from the perspective of the sliding pieces of the opposing color.
+    if white_to_move {
+        team = (array[ALL_PIECES] & BOARD2) << 8;
+        opponents = array[ALL_PIECES] & BOARD1;
+        opponent_king = array[KINGS] & BOARD1;
+        opponent_pawns = array[PAWNS] & BOARD1;
+        enpassant_attacks = enpassant >> 16;
+        can_enpassant = enpassant != 0 && (((enpassant >> 15 | enpassant >> 17) & BOARD1) & (array[PAWNS] & BOARD1) != 0);
+    } else {
+        team = array[ALL_PIECES] & BOARD1;
+        opponents = (array[ALL_PIECES] & BOARD2) << 8;
+        opponent_king = (array[KINGS] & BOARD2) << 8;
+        opponent_pawns = (array[PAWNS] & BOARD2) << 8;
+        enpassant_attacks = enpassant << 16;
+        can_enpassant = enpassant != 0 && (((enpassant << 15 | enpassant << 17) & BOARD1) & ((array[PAWNS] & BOARD2) << 8) != 0);
+    }
+
+    let all_pieces: u128 = team | opponents;
+
+    let mut check_or_pin: u128 = EMPTY;
+    let mut attacks: u128 = EMPTY;
+    let mut is_check: bool = false;
+    let mut may_enpassant: bool = can_enpassant;
+
+    let directions: [fn(u128, usize) -> u128; 8] = [up, down, left, right, upleft, upright, downleft, downright];
+
+    for direction in directions {
+
+        // First, we shoot a ray in the given direction until we hit the end of the board or the opponent king.
+        // We also add the squares to the attack if no piece has been found yet.
+        let mut ray: u128 = piece;
+        let mut blocked: bool = false;
+        let mut found_king: bool = false;
+
+        for i in 0..8 {
+            let pos: u128 = direction(piece, i);
+
+            if pos & BOARD1 == 0 {
+                // If we reach the end of the board, we stop the ray
+                break
+            }
+
+            ray |= pos;
+
+            if pos & opponent_king != 0 {
+                // If we find the opponent king, we stop the ray
+                found_king = true;
+                break
+            }
+
+            if !blocked {
+                // If we have not been blocked yet, we add the position to the attacks.
+                attacks |= pos;
+
+                if pos & all_pieces != 0 {
+                    // If we find a piece, we cannot attack furthur, so we set blocked to true.
+                    blocked = true;
+                }
+            }
+        }
+
+        if found_king {
+
+            let number_of_blockers: u32 = (ray & all_pieces).count_ones() - 2;
+            let blockers: u128 = ray & !(piece | opponent_king);
+
+            if number_of_blockers == 0 {
+
+                // If the only pieces in the ray are the piece itself and the opponent king, we have a check.
+                is_check = true;
+                check_or_pin = ray & !opponent_king;
+
+            } else if number_of_blockers == 1 {
+
+                if blockers & opponents != 0 {
+                    // If the attack is blocked by one piece of the opposing color, we have a pin.
+                    check_or_pin = ray & !opponent_king;
+                } else if can_enpassant && (enpassant_attacks & blockers != 0) {
+                    // If doing the enpassant reveals the king, we may not en passant.
+                    // This can be caused by a bishop that attacks the opponent king through the piece that could be captured with en passant.
+                    may_enpassant = false;
+                }
+
+            // I would like to express my ... and repeat, regret and ape ape apologies.
+            } else if number_of_blockers == 2 && can_enpassant && (enpassant_attacks & blockers != 0) && ((((enpassant_attacks >> 1) & BOARD1) & opponent_pawns & blockers != 0) || (((enpassant_attacks << 1) & BOARD1) & opponent_pawns & blockers != 0)) {
+                // If doing the enpassant reveals the king, we may not en passant.
+                // This can be caused by a rook that attacks the opponent king through the piece that could be captured with en passant and the piece that does the en passant.
+                may_enpassant = false;
+            }
+        }
+    }
+
+    (attacks, check_or_pin, is_check, may_enpassant)
 }
 
 /// This function provides the attack patterns for white and black,
@@ -216,7 +512,6 @@ pub fn bishop_attack(piece_info: &u128, all_pieces: &u128) -> u128 {
             if pos & all_pieces != 0 {
                 break
             }
-
         }
     }
 
@@ -244,7 +539,6 @@ pub fn rook_attack(piece_info: &u128, all_pieces: &u128) -> u128 {
             if pos & all_pieces != 0 {
                 break
             }
-
         }
     }
 

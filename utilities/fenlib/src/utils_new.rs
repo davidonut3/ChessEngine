@@ -123,3 +123,16 @@ pub const DEFAULT_FEN: [u128; ARRAY_SIZE] = [
 pub fn get_pieces(pieces: &[u128; ARRAY_SIZE]) -> u128 {
     pieces[PAWNS] | pieces[KINGS] | pieces[QUEENS] | pieces[BISHOPS] | pieces[KNIGHTS] | pieces[ROOKS]
 }
+
+/// Helper function for printing u128 bitboards.
+pub fn print_bitboard(bitboard: u128) {
+    let mut result: String = "0b".to_string();
+    for i in 0..128 {
+        if (FIRST >> i) & bitboard != 0 {
+            result += "1";
+        } else {
+            result += "0";
+        }
+    }
+    println!("{:?}", result);
+}
