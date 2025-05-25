@@ -17,6 +17,7 @@ We will use the last u128 for the rest of the info:
 */
 
 use crate::logic::*;
+use crate::moves::king;
 use crate::parsing_new;
 use crate::parsing_new::move_to_lan;
 use crate::utils_new::*;
@@ -285,6 +286,15 @@ impl Fen {
         self.array[INFO] & TURN != 0
     }
 
+    pub fn is_valid_board(&self) {
+        let white_king_count: u32 = (self.array[KINGS] & BOARD1).count_ones();
+        let black_king_count: u32 = (self.array[KINGS] & BOARD2).count_ones();
+
+        if white_king_count != 1 || black_king_count != 1 {
+            panic!("is_valid_move: This board has too many or too few kings")
+        }
+    }
+
     pub fn get_legal_moves_lan(&self) -> Vec<String> {
         let mut result: Vec<String> = Vec::new();
         let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array();
@@ -324,6 +334,65 @@ impl Fen {
     pub fn get_legal_moves_array(&self) -> [[u128; 3]; MAX_MOVES] {
         let mut result: [[u128; 3]; MAX_MOVES] = [[0; 3]; MAX_MOVES];
         let mut index: usize = 0;
+
+        let white_to_move: bool = self.white_to_move();
+        let all_pieces: u128 = (self.array[ALL_PIECES] & BOARD1) | ((self.array[ALL_PIECES] & BOARD2) << 8);
+
+        // We want to make sure the board is valid before we do all the calculations.
+        self.is_valid_board();
+
+        let (checks_and_pins, number_of_checks, number_of_pins_and_checks, attacks, allow_enpassant) = get_pins_and_checks(&self.array, white_to_move);
+
+        if white_to_move {
+
+            let king: u128 = self.array[KINGS] & BOARD1;
+            let in_check: bool = king & attacks != 0;
+            let in_check_by_slider: bool = number_of_checks > 0;
+
+            // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
+            let mut king_moves: u128 = king_attack(king) & !attacks;
+
+            // If castling is allowed, and the squares between are empty and not attacked, we can castle.
+            if !in_check && (WHITE_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_KINGSIDE_SQUARES & all_pieces == 0) && (WHITE_KINGSIDE_SQUARES & attacks == 0) {
+                king_moves |= WHITE_KINGSIDE_MOVE_TO;
+            } else if !in_check && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_QUEENSIDE_SQUARES & all_pieces == 0) && (WHITE_QUEENSIDE_SQUARES & attacks == 0) {
+                king_moves |= WHITE_QUEENSIDE_MOVE_TO;
+            }
+
+            while king_moves != 0 {
+                let square: u32 = king_moves.trailing_zeros();
+                let pos: u128 = 1u128 << square;
+                let move1: [u128; 3] = [king, pos, EMPTY];
+                result[index] = move1;
+                index += 1;
+                king_moves &= !pos;
+            }
+
+        } else {
+
+            let king: u128 = (self.array[KINGS] & BOARD2) << 8;
+            let in_check: bool = king & attacks != 0;
+            let in_check_by_slider: bool = number_of_checks > 0;
+
+            // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
+            let mut king_moves: u128 = king_attack(king) & !attacks;
+
+            // If castling is allowed, and the squares between are empty and not attacked, we can castle.
+            if !in_check && (BLACK_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_KINGSIDE_SQUARES & all_pieces == 0) && (BLACK_KINGSIDE_SQUARES & attacks == 0) {
+                king_moves |= BLACK_KINGSIDE_MOVE_TO;
+            } else if !in_check && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_QUEENSIDE_SQUARES & all_pieces == 0) && (BLACK_QUEENSIDE_SQUARES & attacks == 0) {
+                king_moves |= BLACK_QUEENSIDE_MOVE_TO;
+            }
+
+            while king_moves != 0 {
+                let square: u32 = king_moves.trailing_zeros();
+                let pos: u128 = 1u128 << square;
+                let move1: [u128; 3] = [king, pos, EMPTY];
+                result[index] = move1;
+                index += 1;
+                king_moves &= !pos;
+            }
+        }
 
         result
     }

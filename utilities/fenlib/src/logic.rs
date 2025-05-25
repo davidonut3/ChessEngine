@@ -19,7 +19,7 @@ use crate::utils_new::*;
 /// along with all the attacks of the opponent pieces.
 /// 
 /// If `player_is_white`, we check all the black sliders, else, we check all the white sliders.
-pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, u128, bool) {
+pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, usize, u128, bool) {
     let mut pins_and_checks: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
     let mut number_of_checks: usize = 0;
     let mut pins: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
@@ -133,7 +133,7 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
         pins_and_checks[number_of_checks + i] = pins[i];
     }
 
-    (pins_and_checks, number_of_checks, attacks, allow_enpassant)
+    (pins_and_checks, number_of_checks, number_of_pins + number_of_checks, attacks, allow_enpassant)
 }
 
 /// This function determines the squares that the rook pins/checks.
