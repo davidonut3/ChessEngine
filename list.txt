@@ -10,6 +10,8 @@ Possible optimizations for bots and fenlib:
 - Switch eval system to bits instead of 'regular' computation
 - Remove promotion flag from move to save space
 - Use binary search to find pieces on board
+- Switch back to u64 to see performance differences
+- Borrow u64/u128 in functions instead of passing
 
 Code quality:
 

@@ -37,12 +37,16 @@ pub const FILE_7: u128 = FILE >> 7; // File h
 pub const RANKS: [u128; 8] = [RANK_0, RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7];
 pub const FILES: [u128; 8] = [FILE_0, FILE_1, FILE_2, FILE_3, FILE_4, FILE_5, FILE_6, FILE_7];
 
-// -------------------- Number Of Legal Moves --------------------
+// -------------------- Chess Constants --------------------
 
 /// Since an array of moves in the current implementation is 16 * 3 * 218 = 10464 bytes > 10 kB,
 /// we might want to consider creating a struct for moves in u16 notation:
 /// 6 bits for the from pos, 6 bits for the to pos, 4 bits for promotion.
 pub const MAX_MOVES: usize = 218;
+
+/// Max number of sliding pieces per side, this is 13 in a legal chess game.
+/// We may want to increase it to allow for any number of sliding pieces.
+pub const MAX_SLIDERS: usize = 13;
 
 // -------------------- Info Index --------------------
 

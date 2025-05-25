@@ -264,20 +264,18 @@ impl Fen {
     }
 
     pub fn player_in_check(&self, player_is_white: bool) -> bool {
-        let attacks:(u128, u128) = get_attacks(self.array);
+        let (white_attacks, black_attacks): (u128, u128) = get_attacks(self.array);
 
         if player_is_white {
 
             // The white king is in check if it is attacked by any black piece
             let king: u128 = self.array[KINGS] & BOARD1;
-            let black_attacks: u128 = attacks.1;
             return king & black_attacks != 0
 
         } else {
 
             // The black king is in check if it is attacked by any white piece
             let king: u128 = (self.array[KINGS] & BOARD2) << 8;
-            let white_attacks: u128 = attacks.0;
             return king & white_attacks != 0
 
         }
