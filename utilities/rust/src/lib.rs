@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use fenlib::fen::*;
+use fenlib::fen_new::*;
 use fenlib::tests;
 use botv1::BotV1;
 
@@ -57,14 +57,14 @@ impl FenPy {
     /// # Arguments
     /// * `tile` - A square in algebraic notation, e.g., "e2".
     pub fn get_possible_moves_tile(&mut self, tile: &str) -> Vec<String> {
-        self.fen.get_possible_moves_tile(tile)
+        self.fen.get_legal_moves_for_tile(tile)
     }
 
     /// Returns true if the current player is in check.
     ///
     /// This may mutate internal state during the computation.
     pub fn in_check(&mut self) -> bool {
-        self.fen.in_check()
+        self.fen.player_in_check(true)
     }
 
     /// Makes a move (in LAN format) and updates the FEN state accordingly.
@@ -77,7 +77,7 @@ impl FenPy {
 
     /// Returns a list of all legal moves for the current player.
     pub fn get_all_possible_moves_lan(&mut self) -> Vec<String> {
-        self.fen.get_all_possible_moves_lan()
+        self.fen.get_legal_moves_lan()
     }
 
     /// Checks if the game has ended, and returns the result.
@@ -93,7 +93,7 @@ impl FenPy {
 
     /// Returns true if it's white's turn to move, false if it's black's.
     pub fn white_to_move(&self) -> bool {
-        self.fen.white_to_move
+        self.fen.white_to_move()
     }
 }
 

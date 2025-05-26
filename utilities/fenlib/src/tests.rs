@@ -1,5 +1,5 @@
-use crate::fen::*;
-use crate::parsing;
+use crate::fen_new::*;
+use crate::parsing_new;
 use crate::games;
 
 use std::time::Instant;
@@ -10,26 +10,26 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
 
     let fen: Fen = Fen::from_str(fen_str);
 
-    let possible_moves: Vec<[u64; 3]> = fen.get_legal_moves_vec();
+    let (legal_moves, move_count) = fen.get_legal_moves_array();
 
     if max_depth < 2 {
         if per_move {
-            for move1 in &possible_moves {
-                println!("Move {}", parsing::move_to_lan(&move1))
+            for move1 in &legal_moves {
+                println!("Move {}", parsing_new::move_to_lan(&move1))
             }
         }
         
-        return possible_moves.len()
+        return move_count
     } else {
         let mut total: usize = 0;
 
-        for move1 in possible_moves {
+        for move1 in legal_moves {
             let mut new_fen: Fen = fen.clone();
-            new_fen.move_to_fen(&move1);
+            new_fen.move_to_fen(move1);
             let count: usize = recursive_perft_check(&new_fen, max_depth - 1);
 
             if per_move {
-                println!("Move {} lead to {:?} moves", parsing::move_to_lan(&move1), count);
+                println!("Move {} lead to {:?} moves", parsing_new::move_to_lan(&move1), count);
             }
             total += count;
         }
@@ -39,17 +39,17 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
 }
 
 pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
-    let possible_moves: Vec<[u64; 3]> = fen.get_legal_moves_vec();
+    let (legal_moves, move_count) = fen.get_legal_moves_array();
 
     if depth == 1 {
         // if we reach a depth of 1, we return the number of legal moves from the current fen
-        return possible_moves.len()
+        return move_count
     } else {
         // if we are not at a depth of 1, we recursively call the function to determine the number of legal moves after <depth> moves
         let mut total: usize = 0;
-        for move1 in possible_moves {
+        for move1 in legal_moves {
             let mut new_fen: Fen = fen.clone();
-            new_fen.move_to_fen(&move1);
+            new_fen.move_to_fen(move1);
             total += recursive_perft_check(&new_fen, depth - 1)
         }
         return total;

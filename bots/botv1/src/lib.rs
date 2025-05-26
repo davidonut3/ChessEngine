@@ -91,7 +91,7 @@ impl Move {
         fen.move_to_fen(&move1);
         
         // getting possible moves seems to take 45-55 us, we could speed this up by precomputing attacked and defended squares, and perhaps magic bitboards
-        let new_moves: Vec<[u64; 3]> = fen.get_all_possible_moves();
+        let new_moves: Vec<[u64; 3]> = fen.get_legal_moves_vec();
 
         // getting the eval seems to take 0-100 ns, though this is still a very primitive function so time could increase in future versions
         let eval: u32 = eval(&fen.boards);
@@ -167,7 +167,7 @@ impl BotV1 {
         let max_time: Duration = Duration::from_millis(MAX_TIME_MILI);
         let white_to_move: bool = self.fen.white_to_move;
 
-        let moves: Vec<[u64; 3]> = self.fen.get_all_possible_moves();
+        let moves: Vec<[u64; 3]> = self.fen.get_legal_moves_vec();
         let mut possible_moves: Vec<Move> = Vec::new();
         for move1 in moves {
             let new_move = Move::new(move1, &self.fen);

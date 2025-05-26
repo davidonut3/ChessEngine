@@ -1,4 +1,4 @@
-use crate::fen::*;
+use crate::fen_new::*;
 
 pub fn get_random_games() -> [Fen; 1000] {
 

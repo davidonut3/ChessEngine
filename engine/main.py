@@ -15,9 +15,9 @@ def test():
     bot2 = BotV1Py()
     bot1 = bot1.from_fen(fen.to_string())
     bot2 = bot2.from_fen(fen.to_string())
-    PlayerVsBotMatch(bot1, player_is_white=True, fen=fen, perspective=WHITE).run_match()
+    # PlayerVsBotMatch(bot1, player_is_white=True, fen=fen, perspective=WHITE).run_match()
     # BotVsBotMatch(visual_debugger, bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
-    # PlayerVsPlayerMatch(fen, WHITE).run_match()
+    PlayerVsPlayerMatch(fen, WHITE).run_match()
 
 # def show_board(board):
 #     fen = FenPy().from_str(board)
@@ -30,6 +30,6 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-test()
+# test()
 
-# move_gen_perft_py()
+move_gen_perft_py()
