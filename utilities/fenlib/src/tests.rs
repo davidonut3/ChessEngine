@@ -14,8 +14,8 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
 
     if max_depth < 2 {
         if per_move {
-            for move1 in &legal_moves {
-                println!("Move {}", parsing_new::move_to_lan(&move1))
+            for i in 0..move_count {
+                println!("Move {}", parsing_new::move_to_lan(&legal_moves[i]))
             }
         }
         
@@ -23,7 +23,9 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
     } else {
         let mut total: usize = 0;
 
-        for move1 in legal_moves {
+        for i in 0..move_count {
+            let move1: [u128; 3] = legal_moves[i];
+
             let mut new_fen: Fen = fen.clone();
             new_fen.move_to_fen(move1);
             let count: usize = recursive_perft_check(&new_fen, max_depth - 1);
@@ -47,11 +49,14 @@ pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
     } else {
         // if we are not at a depth of 1, we recursively call the function to determine the number of legal moves after `depth` moves
         let mut total: usize = 0;
-        for move1 in legal_moves {
+        for i in 0..move_count {
+            let move1: [u128; 3] = legal_moves[i];
+
             let mut new_fen: Fen = fen.clone();
             new_fen.move_to_fen(move1);
             total += recursive_perft_check(&new_fen, depth - 1)
         }
+        
         return total;
     }
 }

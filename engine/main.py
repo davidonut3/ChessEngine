@@ -30,8 +30,8 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-test()
+# test()
 
-# perft(DEFAULT, False)
+perft(DEFAULT, True)
 
 # move_gen_perft_py()
