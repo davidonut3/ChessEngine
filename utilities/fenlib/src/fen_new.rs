@@ -280,7 +280,7 @@ impl Fen {
         }
     }
 
-    pub fn game_ended(&self) -> String {
+    pub fn game_ended(&self) -> &str {
         let move_count: usize = self.get_legal_moves_array().1;
         let white_to_move: bool = self.white_to_move();
         let in_check: bool = self.player_in_check(white_to_move);
@@ -288,14 +288,14 @@ impl Fen {
     
         if move_count == 0 && in_check {
             if white_to_move {
-                "0-1".to_string()
+                BLACK_WINS
             } else {
-                "1-0".to_string()
+                WHITE_WINS
             }
         } else if move_count == 0 || halfmove > 99 {
-            "½-½".to_string()
+            DRAW
         } else {
-            "not ended".to_string()
+            NOT_ENDED
         }
     }
 
@@ -481,7 +481,7 @@ impl Fen {
                     pawn_moves &= non_sliding_checks;
                 }
 
-                for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                for i in number_of_sliding_checks..number_of_pins_and_checks {
                     if pawn & checks_and_pins[i] != 0 {
                         pawn_moves &= checks_and_pins[i];
                     }
@@ -535,7 +535,7 @@ impl Fen {
                     pawn_moves &= non_sliding_checks;
                 }
 
-                for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                for i in number_of_sliding_checks..number_of_pins_and_checks {
                     if pawn & checks_and_pins[i] != 0 {
                         pawn_moves &= checks_and_pins[i];
                     }
@@ -567,7 +567,7 @@ impl Fen {
                 queen_moves &= non_sliding_checks;
             }
 
-            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+            for i in number_of_sliding_checks..number_of_pins_and_checks {
                 if queen & checks_and_pins[i] != 0 {
                     queen_moves &= checks_and_pins[i];
                 }
@@ -597,7 +597,7 @@ impl Fen {
                 knight_moves &= non_sliding_checks;
             }
 
-            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+            for i in number_of_sliding_checks..number_of_pins_and_checks {
                 if knight & checks_and_pins[i] != 0 {
                     knight_moves &= checks_and_pins[i];
                 }
@@ -627,7 +627,7 @@ impl Fen {
                 rook_moves &= non_sliding_checks;
             }
 
-            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+            for i in number_of_sliding_checks..number_of_pins_and_checks {
                 if rook & checks_and_pins[i] != 0 {
                     rook_moves &= checks_and_pins[i];
                 }
@@ -657,7 +657,8 @@ impl Fen {
                 bishop_moves &= non_sliding_checks;
             }
 
-            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+
+            for i in number_of_sliding_checks..number_of_pins_and_checks {
                 if bishop & checks_and_pins[i] != 0 {
                     bishop_moves &= checks_and_pins[i];
                 }
@@ -674,6 +675,11 @@ impl Fen {
             
             bishops &= !bishop;
         }
+
+        // for i in 0..index {
+        //     print!("{:?} ", parsing_new::move_to_lan(&result[i]))
+        // }
+        // print!("\n");
 
         (result, index)
     }

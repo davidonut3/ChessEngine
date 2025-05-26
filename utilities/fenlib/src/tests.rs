@@ -1,4 +1,4 @@
-use crate::fen_new::*;
+use crate::fen_new::Fen;
 use crate::parsing_new;
 use crate::games;
 
@@ -45,7 +45,7 @@ pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
         // if we reach a depth of 1, we return the number of legal moves from the current fen
         return move_count
     } else {
-        // if we are not at a depth of 1, we recursively call the function to determine the number of legal moves after <depth> moves
+        // if we are not at a depth of 1, we recursively call the function to determine the number of legal moves after `depth` moves
         let mut total: usize = 0;
         for move1 in legal_moves {
             let mut new_fen: Fen = fen.clone();

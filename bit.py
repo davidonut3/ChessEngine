@@ -1,7 +1,7 @@
 import pygame
 from math import floor
 
-def main(width):
+def main(width, board_str=None):
     BLACK = (0, 0, 0)
     GREY = (125, 125, 125)
     WHITE = (255, 255, 255)
@@ -16,7 +16,10 @@ def main(width):
     pygame.display.set_caption('Chess Bit Flipper')
     clock = pygame.time.Clock()
 
-    board = [[0 for _ in range(width)] for _ in range(height)]
+    if board_str is None:
+        board = [[0 for _ in range(width)] for _ in range(height)]
+    else:
+        board = [[1 if board_str[y * width + x] == "1" else 0 for x in range(width)] for y in range(height)]
 
     running = True
 

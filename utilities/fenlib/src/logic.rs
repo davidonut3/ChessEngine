@@ -213,7 +213,7 @@ pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mov
         let mut blocked: bool = false;
         let mut found_king: bool = false;
 
-        for i in 0..8 {
+        for i in 1..8 {
             let pos: u128 = direction(piece, i);
 
             if pos & BOARD1 == 0 {
@@ -321,7 +321,7 @@ pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_m
         let mut blocked: bool = false;
         let mut found_king: bool = false;
 
-        for i in 0..8 {
+        for i in 1..8 {
             let pos: u128 = direction(piece, i);
 
             if pos & BOARD1 == 0 {
@@ -429,7 +429,7 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
         let mut blocked: bool = false;
         let mut found_king: bool = false;
 
-        for i in 0..8 {
+        for i in 1..8 {
             let pos: u128 = direction(piece, i);
 
             if pos & BOARD1 == 0 {

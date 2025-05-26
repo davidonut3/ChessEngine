@@ -87,7 +87,7 @@ impl FenPy {
     /// * "0-1" if black wins
     /// * "½-½" if draw
     /// * "not ended" if the game is still ongoing
-    pub fn game_ended(&mut self) -> String {
+    pub fn game_ended(&mut self) -> &str {
         self.fen.game_ended()
     }
 
