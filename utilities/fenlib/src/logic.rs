@@ -11,7 +11,7 @@
 use crate::utils_new::*;
 
 /// This function determines the patterns for pins and checks by the other player, along with other information.
-pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, usize, usize, u128, u128, bool) {
+pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, usize, usize, u128, u128, u128, bool) {
     let mut pins_and_checks: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
     let mut number_of_sliding_checks: usize = 0;
     let mut pins: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
@@ -19,6 +19,7 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
 
     let mut allow_enpassant: bool = true;
     let mut attacks: u128 = EMPTY;
+    let mut xray_checks: u128 = EMPTY;
 
     let mut queens: u128;
     let mut rooks: u128;
@@ -54,9 +55,10 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
     while queens != 0 {
         let square: u32 = queens.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        let (piece_attacks, check_or_pin, is_check, may_enpassant) = queen_pins_or_checks(piece, array, white_to_move);
+        let (piece_attacks, check_or_pin, xray_check, is_check, may_enpassant) = queen_pins_or_checks(piece, array, white_to_move);
 
         attacks |= piece_attacks;
+        xray_checks |= xray_check;
             
         if check_or_pin != 0 {
 
@@ -80,9 +82,10 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
     while rooks != 0 {
         let square: u32 = rooks.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        let (piece_attacks, check_or_pin, is_check, may_enpassant) = rook_pins_or_checks(piece, array, white_to_move);
+        let (piece_attacks, check_or_pin, xray_check, is_check, may_enpassant) = rook_pins_or_checks(piece, array, white_to_move);
 
         attacks |= piece_attacks;
+        xray_checks |= xray_check;
         
         if check_or_pin != 0 {
 
@@ -106,9 +109,10 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
     while bishops != 0 {
         let square: u32 = bishops.trailing_zeros();
         let piece: u128 = 1u128 << square;
-        let (piece_attacks, check_or_pin, is_check, may_enpassant) = bishop_pins_or_checks(piece, array, white_to_move);
+        let (piece_attacks, check_or_pin, xray_check, is_check, may_enpassant) = bishop_pins_or_checks(piece, array, white_to_move);
 
         attacks |= piece_attacks;
+        xray_checks |= xray_check;
         
         if check_or_pin != 0 {
 
@@ -163,13 +167,13 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
         pins_and_checks[number_of_sliding_checks + i] = pins[i];
     }
 
-    (pins_and_checks, number_of_sliding_checks, number_of_checks, number_of_pins + number_of_sliding_checks, non_sliding_checks, attacks, allow_enpassant)
+    (pins_and_checks, number_of_sliding_checks, number_of_checks, number_of_pins + number_of_sliding_checks, non_sliding_checks, attacks, xray_checks, allow_enpassant)
 }
 
 /// This function determines the squares that the rook pins/checks.
 /// This function is very complex (sorry) and may contain sneaky errors.
 /// The function also determines whether we may en passant or not.
-pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, bool, bool) {
+pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, u128, bool, bool) {
     let team: u128;
     let opponents: u128;
     let opponent_king: u128;
@@ -202,6 +206,7 @@ pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mov
     let mut attacks: u128 = EMPTY;
     let mut is_check: bool = false;
     let mut may_enpassant: bool = can_enpassant;
+    let mut xray_check: u128 = EMPTY;
 
     let directions: [fn(u128, usize) -> u128; 4] = [up, down, left, right];
 
@@ -211,6 +216,7 @@ pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mov
         // We also add the squares to the attack if no piece has been found yet.
         let mut ray: u128 = piece;
         let mut blocked: bool = false;
+        let mut xray_blocked: bool = false;
         let mut found_king: bool = false;
 
         for i in 1..8 {
@@ -221,12 +227,22 @@ pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mov
                 break
             }
 
-            ray |= pos;
+            if !found_king {
+                ray |= pos;
+            } else if !xray_blocked {
+                xray_check |= pos;
+
+                if pos & all_pieces != 0 {
+                    xray_blocked = true;
+                }
+            }
 
             if pos & opponent_king != 0 {
-                // If we find the opponent king, we stop the ray
                 found_king = true;
-                break
+
+                if blocked {
+                    xray_blocked = true;
+                }
             }
 
             if !blocked {
@@ -236,6 +252,10 @@ pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mov
                 if pos & all_pieces != 0 {
                     // If we find a piece, we cannot attack furthur, so we set blocked to true.
                     blocked = true;
+                    
+                    if pos & opponent_king == 0 {
+                        xray_blocked = true;
+                    }
                 }
             }
         }
@@ -271,13 +291,13 @@ pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mov
         }
     }
 
-    (attacks, check_or_pin, is_check, may_enpassant)
+    (attacks, check_or_pin, xray_check, is_check, may_enpassant)
 }
 
 /// This function determines the squares that the bishop pins/checks.
 /// This function is very complex (sorry) and may contain sneaky errors.
 /// The function also determines whether we may en passant or not.
-pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, bool, bool) {
+pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, u128, bool, bool) {
     let team: u128;
     let opponents: u128;
     let opponent_king: u128;
@@ -310,6 +330,7 @@ pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_m
     let mut attacks: u128 = EMPTY;
     let mut is_check: bool = false;
     let mut may_enpassant: bool = can_enpassant;
+    let mut xray_check: u128 = EMPTY;
 
     let directions: [fn(u128, usize) -> u128; 4] = [upleft, upright, downleft, downright];
 
@@ -319,6 +340,7 @@ pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_m
         // We also add the squares to the attack if no piece has been found yet.
         let mut ray: u128 = piece;
         let mut blocked: bool = false;
+        let mut xray_blocked: bool = false;
         let mut found_king: bool = false;
 
         for i in 1..8 {
@@ -329,12 +351,22 @@ pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_m
                 break
             }
 
-            ray |= pos;
+            if !found_king {
+                ray |= pos;
+            } else if !xray_blocked {
+                xray_check |= pos;
+
+                if pos & all_pieces != 0 {
+                    xray_blocked = true;
+                }
+            }
 
             if pos & opponent_king != 0 {
-                // If we find the opponent king, we stop the ray
                 found_king = true;
-                break
+
+                if blocked {
+                    xray_blocked = true;
+                }
             }
 
             if !blocked {
@@ -344,6 +376,10 @@ pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_m
                 if pos & all_pieces != 0 {
                     // If we find a piece, we cannot attack furthur, so we set blocked to true.
                     blocked = true;
+                    
+                    if pos & opponent_king == 0 {
+                        xray_blocked = true;
+                    }
                 }
             }
         }
@@ -379,13 +415,13 @@ pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_m
         }
     }
 
-    (attacks, check_or_pin, is_check, may_enpassant)
+    (attacks, check_or_pin, xray_check, is_check, may_enpassant)
 }
 
 /// This function determines the squares that the queen pins/checks.
 /// This function is very complex (sorry) and may contain sneaky errors.
 /// The function also determines whether we may en passant or not.
-pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, bool, bool) {
+pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (u128, u128, u128, bool, bool) {
     let team: u128;
     let opponents: u128;
     let opponent_king: u128;
@@ -418,6 +454,7 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
     let mut attacks: u128 = EMPTY;
     let mut is_check: bool = false;
     let mut may_enpassant: bool = can_enpassant;
+    let mut xray_check: u128 = EMPTY;
 
     let directions: [fn(u128, usize) -> u128; 8] = [up, down, left, right, upleft, upright, downleft, downright];
 
@@ -427,6 +464,7 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
         // We also add the squares to the attack if no piece has been found yet.
         let mut ray: u128 = piece;
         let mut blocked: bool = false;
+        let mut xray_blocked: bool = false;
         let mut found_king: bool = false;
 
         for i in 1..8 {
@@ -437,12 +475,22 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
                 break
             }
 
-            ray |= pos;
+            if !found_king {
+                ray |= pos;
+            } else if !xray_blocked {
+                xray_check |= pos;
+
+                if pos & all_pieces != 0 {
+                    xray_blocked = true;
+                }
+            }
 
             if pos & opponent_king != 0 {
-                // If we find the opponent king, we stop the ray
                 found_king = true;
-                break
+
+                if blocked {
+                    xray_blocked = true;
+                }
             }
 
             if !blocked {
@@ -452,6 +500,10 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
                 if pos & all_pieces != 0 {
                     // If we find a piece, we cannot attack furthur, so we set blocked to true.
                     blocked = true;
+                    
+                    if pos & opponent_king == 0 {
+                        xray_blocked = true;
+                    }
                 }
             }
         }
@@ -487,7 +539,7 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
         }
     }
 
-    (attacks, check_or_pin, is_check, may_enpassant)
+    (attacks, check_or_pin, xray_check, is_check, may_enpassant)
 }
 
 /// This function provides the attack patterns for white and black,

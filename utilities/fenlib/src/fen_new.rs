@@ -105,7 +105,7 @@ impl Fen {
                 self.array[PAWNS] &= !(white_to >> 24);
             }
 
-            // In case a pawn has moved to squares forward, we update the enpassant flag accordingly.
+            // In case a pawn has moved two squares forward, we update the enpassant flag accordingly.
             self.array[INFO] &= !BOARD1;
 
             if (white_to & RANK_4 != 0) && (white_from & self.array[PAWNS] & RANK_6 != 0) {
@@ -117,32 +117,32 @@ impl Fen {
             // In case of castling, we move the respective rook, since the king is the piece that is moved in the move
             let king_to_move: bool = black_from & self.array[KINGS] != 0;
 
-            if king_to_move && (black_to & BLACK_KINGSIDE_MOVE_TO != 0) {
+            if king_to_move && (black_to & (BLACK_KINGSIDE_MOVE_TO >> 8) != 0) {
 
                 // In case the king wants to move to the kingside castle square, we remove the rook to the right of the king,
                 // and place it to the left of the king.
-                self.array[ROOKS] &= !(BLACK_KINGSIDE_MOVE_TO >> 1);
-                self.array[ROOKS] |= BLACK_KINGSIDE_MOVE_TO << 1;
+                self.array[ROOKS] &= !(BLACK_KINGSIDE_MOVE_TO >> 9);
+                self.array[ROOKS] |= BLACK_KINGSIDE_MOVE_TO >> 7;
 
-            } else if king_to_move && (black_to & BLACK_QUEENSIDE_MOVE_TO != 0) {
+            } else if king_to_move && (black_to & (BLACK_QUEENSIDE_MOVE_TO >> 8) != 0) {
 
                 // In case the king wants to move to the queenside castle square, we remove the rook to the left of the king,
                 // and place it to the right of the king.
-                self.array[ROOKS] &= !(BLACK_QUEENSIDE_MOVE_TO << 2);
-                self.array[ROOKS] |= BLACK_QUEENSIDE_MOVE_TO >> 1;
+                self.array[ROOKS] &= !(BLACK_QUEENSIDE_MOVE_TO >> 6);
+                self.array[ROOKS] |= BLACK_QUEENSIDE_MOVE_TO >> 9;
 
             }
 
             // In case of en passant, we remove the piece that is captured.
             if (self.array[INFO] >> 8) & black_to != 0 && self.array[PAWNS] & black_from != 0 {
-                self.array[PAWNS] &= !(black_to >> 8);
+                self.array[PAWNS] &= !(black_to << 24);
             }
 
-            // In case a pawn has moved to squares forward, we update the enpassant flag accordingly.
+            // In case a pawn has moved two squares forward, we update the enpassant flag accordingly.
             self.array[INFO] &= !BOARD1;
 
             if (black_to & RANK_3 != 0) && (black_from & self.array[PAWNS] & RANK_1 != 0) {
-                self.array[INFO] |= black_from >> 16;
+                self.array[INFO] |= black_from >> 8;
             }
 
         }
@@ -230,7 +230,7 @@ impl Fen {
             self.array[INFO] &= !(WHITE_KINGSIDE_RIGHTS | WHITE_QUEENSIDE_RIGHTS);
         }
 
-        if self.array[KINGS] & BLACK_KING_POS == 0 {
+        if (self.array[KINGS] << 8) & BLACK_KING_POS == 0 {
             self.array[INFO] &= !(BLACK_KINGSIDE_RIGHTS | BLACK_QUEENSIDE_RIGHTS);
         }
 
@@ -242,11 +242,11 @@ impl Fen {
             self.array[INFO] &= !WHITE_QUEENSIDE_RIGHTS;
         }
 
-        if self.array[ROOKS] & (BLACK_KING_POS >> 3) == 0 {
+        if (self.array[ROOKS] << 8) & (BLACK_KING_POS >> 3) == 0 {
             self.array[INFO] &= !BLACK_KINGSIDE_RIGHTS;
         }
 
-        if self.array[ROOKS] & (BLACK_KING_POS << 4) == 0 {
+        if (self.array[ROOKS] << 8) & (BLACK_KING_POS << 4) == 0 {
             self.array[INFO] &= !BLACK_QUEENSIDE_RIGHTS;
         }
 
@@ -373,7 +373,7 @@ impl Fen {
         // We want to make sure the board is valid before we do all the calculations.
         self.is_valid_board();
 
-        let (checks_and_pins, number_of_sliding_checks, number_of_checks, number_of_pins_and_checks, non_sliding_checks, attacks, allow_enpassant) = get_pins_and_checks(&self.array, white_to_move);
+        let (checks_and_pins, number_of_sliding_checks, number_of_checks, number_of_pins_and_checks, non_sliding_checks, attacks, xray_checks, allow_enpassant) = get_pins_and_checks(&self.array, white_to_move);
 
         let king: u128;
         let in_check: bool;
@@ -399,12 +399,14 @@ impl Fen {
             bishops = self.array[BISHOPS] & BOARD1;
 
             // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
-            king_moves = king_attack(king) & !attacks & !team;
+            king_moves = king_attack(king) & !attacks & !team & !xray_checks;
 
             // If castling is allowed, and the squares between are empty and not attacked, we can castle.
             if !in_check && (WHITE_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_KINGSIDE_SQUARES & all_pieces == 0) && (WHITE_KINGSIDE_SQUARES & attacks == 0) {
                 king_moves |= WHITE_KINGSIDE_MOVE_TO;
-            } else if !in_check && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_QUEENSIDE_SQUARES & all_pieces == 0) && (WHITE_QUEENSIDE_SQUARES & attacks == 0) {
+            }
+            
+            if !in_check && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_QUEENSIDE_SQUARES & all_pieces == 0) && (WHITE_QUEENSIDE_SQUARES & attacks == 0) {
                 king_moves |= WHITE_QUEENSIDE_MOVE_TO;
             }
 
@@ -421,12 +423,14 @@ impl Fen {
             bishops = (self.array[BISHOPS] & BOARD2) << 8;
 
             // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
-            king_moves = king_attack(king) & !attacks & !team;
+            king_moves = king_attack(king) & !attacks & !team & !xray_checks;
 
             // If castling is allowed, and the squares between are empty and not attacked, we can castle.
             if !in_check && (BLACK_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_KINGSIDE_SQUARES & all_pieces == 0) && (BLACK_KINGSIDE_SQUARES & attacks == 0) {
                 king_moves |= BLACK_KINGSIDE_MOVE_TO;
-            } else if !in_check && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_QUEENSIDE_SQUARES & all_pieces == 0) && (BLACK_QUEENSIDE_SQUARES & attacks == 0) {
+            }
+            
+            if !in_check && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_QUEENSIDE_SQUARES & all_pieces == 0) && (BLACK_QUEENSIDE_SQUARES & attacks == 0) {
                 king_moves |= BLACK_QUEENSIDE_MOVE_TO;
             }
         }

@@ -10,7 +10,7 @@ def perft(fen_str, per_move):
 
 def test():
     fen = FenPy()
-    # fen = fen.from_str('6k1/5ppp/8/8/8/8/5PPP/5qK1 w - - 0 1')
+    fen = fen.from_str("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
     bot1 = BotV1Py()
     bot2 = BotV1Py()
     bot1 = bot1.from_fen(fen.to_string())
@@ -32,6 +32,6 @@ def test():
 
 # test()
 
-perft(DEFAULT, True)
+perft("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", True)
 
 # move_gen_perft_py()
