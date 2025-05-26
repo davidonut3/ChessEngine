@@ -32,4 +32,6 @@ def test():
 
 test()
 
+# perft(DEFAULT, False)
+
 # move_gen_perft_py()

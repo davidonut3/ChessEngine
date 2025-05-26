@@ -118,6 +118,7 @@ pub fn board_string_to_pieces(board: &str) -> [u128; ARRAY_SIZE] {
                     'r' => pieces[ROOKS] |= bit >> 8,
                     _ => panic!("board_string_to_pieces: Found unknown string in board string")
                 }
+                file += 1;
             }
         }
     }
@@ -181,7 +182,7 @@ pub fn string_to_compr_halfmove(halfmove: &str) -> u128 {
     let first_part: u128 = halfmove_binary & 0xFF00;
     let second_part: u128 = halfmove_binary & 0xFF;
     
-    (first_part << 13 * 8) & (second_part << 12 * 8)
+    (first_part << 13 * 8) | (second_part << 12 * 8)
 }
 
 /// Converts halfmove compressed bit representation to string
@@ -197,7 +198,7 @@ pub fn bin_to_compr_halfmove(halfmove: u16) -> u128 {
     let first_part: u128 = (halfmove & 0xFF00) as u128;
     let second_part: u128 = (halfmove & 0xFF) as u128;
     
-    (first_part << 13 * 8) & (second_part << 12 * 8)
+    (first_part << 13 * 8) | (second_part << 12 * 8)
 }
 
 /// Converts halfmove compressed bit representation to binary representation
@@ -211,10 +212,11 @@ pub fn compr_to_bin_halfmove(info: u128) -> u16 {
 /// Converts fullmove string to compressed bit representation
 pub fn string_to_compr_fullmove(fullmove: &str) -> u128 {
     let fullmove_binary: u128 = fullmove.parse().unwrap();
+
     let first_part: u128 = fullmove_binary & 0xFF00;
     let second_part: u128 = fullmove_binary & 0xFF;
     
-    (first_part << 9 * 8) & (second_part << 8 * 8)
+    (first_part << 9 * 8) | (second_part << 8 * 8)
 }
 
 /// Converts fullmove compressed bit representation to string
@@ -230,7 +232,7 @@ pub fn bin_to_compr_fullmove(fullmove: u16) -> u128 {
     let first_part: u128 = (fullmove & 0xFF00) as u128;
     let second_part: u128 = (fullmove & 0xFF) as u128;
     
-    (first_part << 9 * 8) & (second_part << 8 * 8)
+    (first_part << 9 * 8) | (second_part << 8 * 8)
 }
 
 /// Converts fullmove compressed bit representation to binary representation
@@ -394,8 +396,8 @@ pub fn board_to_string(array: [u128; ARRAY_SIZE]) -> String {
 /// Converts a boolean turn value into FEN turn string.
 pub fn turn_to_string(info: u128) -> String {
     match info & TURN != 0 {
-        true => "b".to_string(),
-        false => "w".to_string(),
+        true => "w".to_string(),
+        false => "b".to_string(),
     }
 }
 

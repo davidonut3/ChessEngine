@@ -399,7 +399,7 @@ impl Fen {
             bishops = self.array[BISHOPS] & BOARD1;
 
             // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
-            king_moves = king_attack(king) & !attacks;
+            king_moves = king_attack(king) & !attacks & !team;
 
             // If castling is allowed, and the squares between are empty and not attacked, we can castle.
             if !in_check && (WHITE_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_KINGSIDE_SQUARES & all_pieces == 0) && (WHITE_KINGSIDE_SQUARES & attacks == 0) {
@@ -421,7 +421,7 @@ impl Fen {
             bishops = (self.array[BISHOPS] & BOARD2) << 8;
 
             // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
-            king_moves = king_attack(king) & !attacks;
+            king_moves = king_attack(king) & !attacks & !team;
 
             // If castling is allowed, and the squares between are empty and not attacked, we can castle.
             if !in_check && (BLACK_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_KINGSIDE_SQUARES & all_pieces == 0) && (BLACK_KINGSIDE_SQUARES & attacks == 0) {
@@ -458,8 +458,9 @@ impl Fen {
                 if up & all_pieces == 0 {
                     pawn_moves |= up;
 
-                    if pawn & RANK_6 != 0 && (pawn << 32) & all_pieces == 0 {
-                        pawn_moves |= up;
+                    let upup: u128 = pawn << 32;
+                    if pawn & RANK_6 != 0 && upup & all_pieces == 0 {
+                        pawn_moves |= upup;
                     }
                 }
 
@@ -511,8 +512,9 @@ impl Fen {
                 if down & all_pieces == 0 {
                     pawn_moves |= down;
 
-                    if pawn & RANK_1 != 0 && (pawn >> 32) & all_pieces == 0 {
-                        pawn_moves |= down;
+                    let downdown: u128 = pawn >> 32;
+                    if pawn & RANK_1 != 0 && downdown & all_pieces == 0 {
+                        pawn_moves |= downdown;
                     }
                 }
 
