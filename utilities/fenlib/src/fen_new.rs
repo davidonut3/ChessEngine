@@ -16,8 +16,8 @@ We will use the last u128 for the rest of the info:
 
 */
 
+use crate::default::BOARDS;
 use crate::logic::*;
-use crate::moves::king;
 use crate::parsing_new;
 use crate::parsing_new::move_to_lan;
 use crate::utils_new::*;
@@ -291,7 +291,14 @@ impl Fen {
         let black_king_count: u32 = (self.array[KINGS] & BOARD2).count_ones();
 
         if white_king_count != 1 || black_king_count != 1 {
-            panic!("is_valid_move: This board has too many or too few kings")
+            panic!("is_valid_board: This board has too many or too few kings")
+        }
+
+        let white_piece_count: u32 = (self.array[ALL_PIECES] & BOARD1).count_ones();
+        let black_piece_count: u32 = (self.array[ALL_PIECES] & BOARD2).count_ones();
+
+        if white_piece_count > 20 || black_piece_count > 20 {
+            panic!("is_valid_board: This board has too many pieces")
         }
     }
 
@@ -332,25 +339,49 @@ impl Fen {
     }
 
     pub fn get_legal_moves_array(&self) -> [[u128; 3]; MAX_MOVES] {
+
+        // This function is very large and should maybe be cut up into pieces (pun intended).
+        // It relies heavily on the logic in get_pins_and_checks, which is also a massive function.
+
         let mut result: [[u128; 3]; MAX_MOVES] = [[0; 3]; MAX_MOVES];
         let mut index: usize = 0;
 
         let white_to_move: bool = self.white_to_move();
-        let all_pieces: u128 = (self.array[ALL_PIECES] & BOARD1) | ((self.array[ALL_PIECES] & BOARD2) << 8);
+        let white_pieces: u128 = self.array[ALL_PIECES] & BOARD1;
+        let black_pieces: u128 = (self.array[ALL_PIECES] & BOARD2) << 8;
+        let all_pieces: u128 = white_pieces | black_pieces;
+        let enpassant: u128 = self.array[INFO] & BOARD1;
 
         // We want to make sure the board is valid before we do all the calculations.
         self.is_valid_board();
 
-        let (checks_and_pins, number_of_checks, number_of_pins_and_checks, attacks, allow_enpassant) = get_pins_and_checks(&self.array, white_to_move);
+        let (checks_and_pins, number_of_sliding_checks, number_of_checks, number_of_pins_and_checks, non_sliding_checks, attacks, allow_enpassant) = get_pins_and_checks(&self.array, white_to_move);
+
+        let king: u128;
+        let in_check: bool;
+        let mut king_moves: u128;
+        let team: u128;
+        let opponents: u128;
+
+        let mut queens: u128;
+        let mut knights: u128;
+        let mut rooks: u128;
+        let mut bishops: u128;
 
         if white_to_move {
 
-            let king: u128 = self.array[KINGS] & BOARD1;
-            let in_check: bool = king & attacks != 0;
-            let in_check_by_slider: bool = number_of_checks > 0;
+            king = self.array[KINGS] & BOARD1;
+            in_check = king & attacks != 0;
+            team = white_pieces;
+            opponents = black_pieces;
+
+            queens = self.array[QUEENS] & BOARD1;
+            knights = self.array[KNIGHTS] & BOARD1;
+            rooks = self.array[ROOKS] & BOARD1;
+            bishops = self.array[BISHOPS] & BOARD1;
 
             // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
-            let mut king_moves: u128 = king_attack(king) & !attacks;
+            king_moves = king_attack(king) & !attacks;
 
             // If castling is allowed, and the squares between are empty and not attacked, we can castle.
             if !in_check && (WHITE_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_KINGSIDE_SQUARES & all_pieces == 0) && (WHITE_KINGSIDE_SQUARES & attacks == 0) {
@@ -359,23 +390,20 @@ impl Fen {
                 king_moves |= WHITE_QUEENSIDE_MOVE_TO;
             }
 
-            while king_moves != 0 {
-                let square: u32 = king_moves.trailing_zeros();
-                let pos: u128 = 1u128 << square;
-                let move1: [u128; 3] = [king, pos, EMPTY];
-                result[index] = move1;
-                index += 1;
-                king_moves &= !pos;
-            }
-
         } else {
 
-            let king: u128 = (self.array[KINGS] & BOARD2) << 8;
-            let in_check: bool = king & attacks != 0;
-            let in_check_by_slider: bool = number_of_checks > 0;
+            king = (self.array[KINGS] & BOARD2) << 8;
+            in_check = king & attacks != 0;
+            team = black_pieces;
+            opponents = white_pieces;
+
+            queens = (self.array[QUEENS] & BOARD2) << 8;
+            knights = (self.array[KNIGHTS] & BOARD2) << 8;
+            rooks = (self.array[ROOKS] & BOARD2) << 8;
+            bishops = (self.array[BISHOPS] & BOARD2) << 8;
 
             // The king may move to a square that it attacks, but that is not attack by any other opponent piece.
-            let mut king_moves: u128 = king_attack(king) & !attacks;
+            king_moves = king_attack(king) & !attacks;
 
             // If castling is allowed, and the squares between are empty and not attacked, we can castle.
             if !in_check && (BLACK_KINGSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_KINGSIDE_SQUARES & all_pieces == 0) && (BLACK_KINGSIDE_SQUARES & attacks == 0) {
@@ -383,15 +411,248 @@ impl Fen {
             } else if !in_check && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_QUEENSIDE_SQUARES & all_pieces == 0) && (BLACK_QUEENSIDE_SQUARES & attacks == 0) {
                 king_moves |= BLACK_QUEENSIDE_MOVE_TO;
             }
+        }
 
-            while king_moves != 0 {
-                let square: u32 = king_moves.trailing_zeros();
+        while king_moves != 0 {
+            let square: u32 = king_moves.trailing_zeros();
+            let pos: u128 = 1u128 << square;
+            let move1: [u128; 3] = [king, pos, EMPTY];
+            result[index] = move1;
+            index += 1;
+            king_moves &= !pos;
+        }
+
+        // If there are more than two checks, the only piece that may move is the king.
+        if number_of_checks > 1 {
+            return result
+        }
+
+        if white_to_move {
+
+            let mut pawns: u128 = self.array[PAWNS] & BOARD1;
+
+            while pawns != 0 {
+                let square: u32 = pawns.trailing_zeros();
+                let pawn: u128 = 1u128 << square;
+                let mut pawn_moves: u128 = EMPTY;
+
+                let up: u128 = pawn << 16;
+                if up & all_pieces == 0 {
+                    pawn_moves |= up;
+
+                    if pawn & RANK_6 != 0 && (pawn << 32) & all_pieces == 0 {
+                        pawn_moves |= up;
+                    }
+                }
+
+                let upleft: u128 = (pawn << 17) & BOARD1;
+                let upright: u128 = (pawn << 15) & BOARD1;
+
+                if (upleft & opponents != 0) || (allow_enpassant && (upleft & enpassant != 0)) {
+                    pawn_moves |= upleft;
+                }
+
+                if (upright & opponents != 0) || (allow_enpassant && (upright & enpassant != 0)) {
+                    pawn_moves |= upright;
+                }
+
+                if number_of_sliding_checks == 1 {
+                    pawn_moves &= checks_and_pins[0];
+                } else if number_of_checks == 1 {
+                    pawn_moves &= non_sliding_checks;
+                }
+
+                for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                    if pawn & checks_and_pins[i] != 0 {
+                        pawn_moves &= checks_and_pins[i];
+                    }
+                }
+
+                while pawn_moves != 0 {
+                    let square: u32 = pawn_moves.trailing_zeros();
+                    let pos: u128 = 1u128 << square;
+                    let move1: [u128; 3] = [pawn, pos, EMPTY];
+                    result[index] = move1;
+                    index += 1;
+                    pawn_moves &= !pos;
+                }
+
+                pawns &= !pawn;
+            }
+
+        } else {
+
+            let mut pawns: u128 = (self.array[PAWNS] & BOARD2) << 8;
+
+            while pawns != 0 {
+                let square: u32 = pawns.trailing_zeros();
+                let pawn: u128 = 1u128 << square;
+                let mut pawn_moves: u128 = EMPTY;
+
+                let down: u128 = pawn >> 16;
+                if down & all_pieces == 0 {
+                    pawn_moves |= down;
+
+                    if pawn & RANK_1 != 0 && (pawn >> 32) & all_pieces == 0 {
+                        pawn_moves |= down;
+                    }
+                }
+
+                let downleft: u128 = (pawn >> 15) & BOARD1;
+                let downright: u128 = (pawn >> 17) & BOARD1;
+
+                if (downleft & opponents != 0) || (allow_enpassant && (downleft & enpassant != 0)) {
+                    pawn_moves |= downleft;
+                }
+
+                if (downright & opponents != 0) || (allow_enpassant && (downright & enpassant != 0)) {
+                    pawn_moves |= downright;
+                }
+
+                if number_of_sliding_checks == 1 {
+                    pawn_moves &= checks_and_pins[0];
+                } else if number_of_checks == 1 {
+                    pawn_moves &= non_sliding_checks;
+                }
+
+                for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                    if pawn & checks_and_pins[i] != 0 {
+                        pawn_moves &= checks_and_pins[i];
+                    }
+                }
+
+                while pawn_moves != 0 {
+                    let square: u32 = pawn_moves.trailing_zeros();
+                    let pos: u128 = 1u128 << square;
+                    let move1: [u128; 3] = [pawn, pos, EMPTY];
+                    result[index] = move1;
+                    index += 1;
+                    pawn_moves &= !pos;
+                }
+
+                pawns &= !pawn;
+            }
+
+        }
+
+        while queens != 0 {
+            let square: u32 = queens.trailing_zeros();
+            let queen: u128 = 1u128 << square;
+
+            let mut queen_moves: u128 = queen_attack(queen, all_pieces) & !(team);
+
+            if number_of_sliding_checks == 1 {
+                queen_moves &= checks_and_pins[0];
+            } else if number_of_checks == 1 {
+                queen_moves &= non_sliding_checks;
+            }
+
+            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                if queen & checks_and_pins[i] != 0 {
+                    queen_moves &= checks_and_pins[i];
+                }
+            }
+
+            while queen_moves != 0 {
+                let square: u32 = queen_moves.trailing_zeros();
                 let pos: u128 = 1u128 << square;
-                let move1: [u128; 3] = [king, pos, EMPTY];
+                let move1: [u128; 3] = [queen, pos, EMPTY];
                 result[index] = move1;
                 index += 1;
-                king_moves &= !pos;
+                queen_moves &= !pos;
             }
+            
+            queens &= !queen;
+        }
+
+        while knights != 0 {
+            let square: u32 = knights.trailing_zeros();
+            let knight: u128 = 1u128 << square;
+
+            let mut knight_moves: u128 = knight_attack(knight) & !(team);
+
+            if number_of_sliding_checks == 1 {
+                knight_moves &= checks_and_pins[0];
+            } else if number_of_checks == 1 {
+                knight_moves &= non_sliding_checks;
+            }
+
+            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                if knight & checks_and_pins[i] != 0 {
+                    knight_moves &= checks_and_pins[i];
+                }
+            }
+
+            while knight_moves != 0 {
+                let square: u32 = knight_moves.trailing_zeros();
+                let pos: u128 = 1u128 << square;
+                let move1: [u128; 3] = [knight, pos, EMPTY];
+                result[index] = move1;
+                index += 1;
+                knight_moves &= !pos;
+            }
+            
+            knights &= !knight;
+        }
+
+        while rooks != 0 {
+            let square: u32 = rooks.trailing_zeros();
+            let rook: u128 = 1u128 << square;
+
+            let mut rook_moves: u128 = rook_attack(rook, all_pieces) & !(team);
+
+            if number_of_sliding_checks == 1 {
+                rook_moves &= checks_and_pins[0];
+            } else if number_of_checks == 1 {
+                rook_moves &= non_sliding_checks;
+            }
+
+            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                if rook & checks_and_pins[i] != 0 {
+                    rook_moves &= checks_and_pins[i];
+                }
+            }
+
+            while rook_moves != 0 {
+                let square: u32 = rook_moves.trailing_zeros();
+                let pos: u128 = 1u128 << square;
+                let move1: [u128; 3] = [rook, pos, EMPTY];
+                result[index] = move1;
+                index += 1;
+                rook_moves &= !pos;
+            }
+            
+            rooks &= !rook;
+        }
+
+        while bishops != 0 {
+            let square: u32 = bishops.trailing_zeros();
+            let bishop: u128 = 1u128 << square;
+
+            let mut bishop_moves: u128 = bishop_attack(bishop, all_pieces) & !(team);
+
+            if number_of_sliding_checks == 1 {
+                bishop_moves &= checks_and_pins[0];
+            } else if number_of_checks == 1 {
+                bishop_moves &= non_sliding_checks;
+            }
+
+            for i in (number_of_sliding_checks + 1)..number_of_pins_and_checks {
+                if bishop & checks_and_pins[i] != 0 {
+                    bishop_moves &= checks_and_pins[i];
+                }
+            }
+
+            while bishop_moves != 0 {
+                let square: u32 = bishop_moves.trailing_zeros();
+                let pos: u128 = 1u128 << square;
+                let move1: [u128; 3] = [bishop, pos, EMPTY];
+                result[index] = move1;
+                index += 1;
+                bishop_moves &= !pos;
+            }
+            
+            bishops &= !bishop;
         }
 
         result

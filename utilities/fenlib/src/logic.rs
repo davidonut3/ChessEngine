@@ -10,18 +10,10 @@
 
 use crate::utils_new::*;
 
-/// This function determines the patterns for pins and checks by the other player.
-/// 
-/// We return an array that contains the information per sliding piece,
-/// 
-/// as well as the number of checks, which will all be at the beginning of the array,
-/// 
-/// along with all the attacks of the opponent pieces.
-/// 
-/// If `player_is_white`, we check all the black sliders, else, we check all the white sliders.
-pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, usize, u128, bool) {
+/// This function determines the patterns for pins and checks by the other player, along with other information.
+pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, usize, usize, u128, u128, bool) {
     let mut pins_and_checks: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
-    let mut number_of_checks: usize = 0;
+    let mut number_of_sliding_checks: usize = 0;
     let mut pins: [u128; MAX_SLIDERS] = [0; MAX_SLIDERS];
     let mut number_of_pins: usize = 0;
 
@@ -31,23 +23,32 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
     let mut queens: u128;
     let mut rooks: u128;
     let mut bishops: u128;
+    let mut knights: u128;
+    let mut pawns: u128;
+    let pawn_attack: fn(u128) -> u128;
+
+    let active_king: u128;
 
     if white_to_move {
         queens = (array[QUEENS] & BOARD2) << 8;
         rooks = (array[ROOKS] & BOARD2) << 8;
         bishops = (array[BISHOPS] & BOARD2) << 8;
+        knights = (array[KNIGHTS] & BOARD2) << 8;
+        pawns = (array[PAWNS] & BOARD2) << 8;
 
+        active_king = array[KINGS] & BOARD1;
+        pawn_attack = black_pawn_attack;
         attacks |= king_attack(array[KINGS] << 8);
-        attacks |= knight_attack(array[KNIGHTS] << 8);
-        attacks |= black_pawn_attack(array[PAWNS] << 8);
     } else {
         queens = array[QUEENS] & BOARD1;
         rooks = array[ROOKS] & BOARD1;
         bishops = array[BISHOPS] & BOARD1;
+        knights = array[KNIGHTS] & BOARD1;
+        pawns = array[PAWNS] & BOARD1;
 
+        active_king = (array[KINGS] & BOARD2) << 8;
+        pawn_attack = white_pawn_attack;
         attacks |= king_attack(array[KINGS]);
-        attacks |= knight_attack(array[KNIGHTS]);
-        attacks |= white_pawn_attack(array[PAWNS]);
     }
 
     while queens != 0 {
@@ -60,8 +61,8 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
         if check_or_pin != 0 {
 
             if is_check {
-                pins_and_checks[number_of_checks] = check_or_pin;
-                number_of_checks += 1;
+                pins_and_checks[number_of_sliding_checks] = check_or_pin;
+                number_of_sliding_checks += 1;
             } else {
                 pins[number_of_pins] = check_or_pin;
                 number_of_pins += 1;
@@ -86,8 +87,8 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
         if check_or_pin != 0 {
 
             if is_check {
-                pins_and_checks[number_of_checks] = check_or_pin;
-                number_of_checks += 1;
+                pins_and_checks[number_of_sliding_checks] = check_or_pin;
+                number_of_sliding_checks += 1;
             } else {
                 pins[number_of_pins] = check_or_pin;
                 number_of_pins += 1;
@@ -112,8 +113,8 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
         if check_or_pin != 0 {
 
             if is_check {
-                pins_and_checks[number_of_checks] = check_or_pin;
-                number_of_checks += 1;
+                pins_and_checks[number_of_sliding_checks] = check_or_pin;
+                number_of_sliding_checks += 1;
             } else {
                 pins[number_of_pins] = check_or_pin;
                 number_of_pins += 1;
@@ -128,12 +129,41 @@ pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> (
         bishops &= !piece;
     }
 
-    // We add the pins to the array of pins and checks, so that the checks come first and the pins after that
-    for i in 0..number_of_pins {
-        pins_and_checks[number_of_checks + i] = pins[i];
+    let mut number_of_checks: usize = number_of_sliding_checks;
+    let mut non_sliding_checks: u128 = EMPTY;
+
+    while knights != 0 {
+        let square: u32 = knights.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+
+        let attack: u128 = knight_attack(piece);
+        if attack & active_king != 0 {
+            non_sliding_checks |= piece;
+            number_of_checks += 1;
+        }
+        attacks |= attack;
+        knights &= !piece;
     }
 
-    (pins_and_checks, number_of_checks, number_of_pins + number_of_checks, attacks, allow_enpassant)
+    while pawns != 0 {
+        let square: u32 = pawns.trailing_zeros();
+        let piece: u128 = 1u128 << square;
+
+        let attack: u128 = pawn_attack(piece);
+        if attack & active_king != 0 {
+            non_sliding_checks |= piece;
+            number_of_checks += 1;
+        }
+        attacks |= attack;
+        pawns &= !piece;
+    }
+
+    // We add the pins to the array of pins and checks, so that the checks come first and the pins after that
+    for i in 0..number_of_pins {
+        pins_and_checks[number_of_sliding_checks + i] = pins[i];
+    }
+
+    (pins_and_checks, number_of_sliding_checks, number_of_checks, number_of_pins + number_of_sliding_checks, non_sliding_checks, attacks, allow_enpassant)
 }
 
 /// This function determines the squares that the rook pins/checks.
