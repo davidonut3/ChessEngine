@@ -676,4 +676,41 @@ impl Fen {
 
         (result, index)
     }
+
+    pub fn is_legal_move_lan(&self, lan: &str) -> bool {
+        let move1: [u128; 3] = parsing_new::lan_to_move(lan);
+        self.is_legal_move(&move1)
+    }
+
+    pub fn is_legal_move(&self, move1: &[u128; 3]) -> bool {
+        let (moves, move_count) = self.get_legal_moves_array();
+        let mut result: bool = false;
+
+        for i in 0..move_count {
+            if &moves[i] == move1 {
+                result = true;
+            }
+        }
+
+        result
+    }
+
+    pub fn get_legal_moves_for_tile(&self, tile: &str) -> Vec<String> {
+        let bit: u128 = parsing_new::tile_to_bit(tile);
+        let moves: Vec<[u128; 3]> = self.get_legal_moves_for_bit(bit);
+        parsing_new::moves_to_lan_list(&moves)
+    }
+
+    pub fn get_legal_moves_for_bit(&self, bit: u128) -> Vec<[u128; 3]> {
+        let mut moves: Vec<[u128; 3]> = Vec::new();
+        let (legal_moves, move_count) = self.get_legal_moves_array();
+
+        for i in 0..move_count {
+            if legal_moves[i][0] == bit {
+                moves.push(legal_moves[i])
+            }
+        }
+
+        moves
+    }
 }
