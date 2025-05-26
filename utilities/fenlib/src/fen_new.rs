@@ -84,14 +84,14 @@ impl Fen {
             // In case of castling, we move the respective rook, since the king is the piece that is moved in the move
             let king_to_move: bool = white_from & self.array[KINGS] != 0;
 
-            if king_to_move && (white_to & WHITE_KINGSIDE_MOVE_TO != 0) {
+            if king_to_move && (white_to & WHITE_KINGSIDE_MOVE_TO != 0) && (white_from & WHITE_KING_POS != 0) && (WHITE_KINGSIDE_RIGHTS & self.array[INFO] != 0) {
 
                 // In case the king wants to move to the kingside castle square, we remove the rook to the right of the king,
                 // and place it to the left of the king.
                 self.array[ROOKS] &= !(WHITE_KINGSIDE_MOVE_TO >> 1);
                 self.array[ROOKS] |= WHITE_KINGSIDE_MOVE_TO << 1;
 
-            } else if king_to_move && (white_to & WHITE_QUEENSIDE_MOVE_TO != 0) {
+            } else if king_to_move && (white_to & WHITE_QUEENSIDE_MOVE_TO != 0) && (white_from & WHITE_KING_POS != 0) && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
 
                 // In case the king wants to move to the queenside castle square, we remove the rook to the left of the king,
                 // and place it to the right of the king.
@@ -117,14 +117,14 @@ impl Fen {
             // In case of castling, we move the respective rook, since the king is the piece that is moved in the move
             let king_to_move: bool = black_from & self.array[KINGS] != 0;
 
-            if king_to_move && (black_to & (BLACK_KINGSIDE_MOVE_TO >> 8) != 0) {
+            if king_to_move && (black_to & (BLACK_KINGSIDE_MOVE_TO >> 8) != 0) && (white_from & BLACK_KING_POS != 0) && (BLACK_KINGSIDE_RIGHTS & self.array[INFO] != 0) {
 
                 // In case the king wants to move to the kingside castle square, we remove the rook to the right of the king,
                 // and place it to the left of the king.
                 self.array[ROOKS] &= !(BLACK_KINGSIDE_MOVE_TO >> 9);
                 self.array[ROOKS] |= BLACK_KINGSIDE_MOVE_TO >> 7;
 
-            } else if king_to_move && (black_to & (BLACK_QUEENSIDE_MOVE_TO >> 8) != 0) {
+            } else if king_to_move && (black_to & (BLACK_QUEENSIDE_MOVE_TO >> 8) != 0) && (white_from & BLACK_KING_POS != 0) && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
 
                 // In case the king wants to move to the queenside castle square, we remove the rook to the left of the king,
                 // and place it to the right of the king.
@@ -406,7 +406,7 @@ impl Fen {
                 king_moves |= WHITE_KINGSIDE_MOVE_TO;
             }
             
-            if !in_check && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_QUEENSIDE_SQUARES & all_pieces == 0) && (WHITE_QUEENSIDE_SQUARES & attacks == 0) {
+            if !in_check && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (WHITE_QUEENSIDE_SQUARES & all_pieces == 0) && (WHITE_QUEENSIDE_ATTACKS & attacks == 0) {
                 king_moves |= WHITE_QUEENSIDE_MOVE_TO;
             }
 
@@ -430,7 +430,7 @@ impl Fen {
                 king_moves |= BLACK_KINGSIDE_MOVE_TO;
             }
             
-            if !in_check && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_QUEENSIDE_SQUARES & all_pieces == 0) && (BLACK_QUEENSIDE_SQUARES & attacks == 0) {
+            if !in_check && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) && (BLACK_QUEENSIDE_SQUARES & all_pieces == 0) && (BLACK_QUEENSIDE_ATTACKS & attacks == 0) {
                 king_moves |= BLACK_QUEENSIDE_MOVE_TO;
             }
         }
@@ -494,9 +494,33 @@ impl Fen {
                 while pawn_moves != 0 {
                     let square: u32 = pawn_moves.trailing_zeros();
                     let pos: u128 = 1u128 << square;
-                    let move1: [u128; 3] = [pawn, pos, EMPTY];
-                    result[index] = move1;
-                    index += 1;
+
+                    if pos & RANK_0 != 0 {
+
+                        let to_queen: [u128; 3] = [pawn, pos, QUEEN_PROMOTION];
+                        result[index] = to_queen;
+                        index += 1;
+
+                        let to_rook: [u128; 3] = [pawn, pos, ROOK_PROMOTION];
+                        result[index] = to_rook;
+                        index += 1;
+
+                        let to_bishop: [u128; 3] = [pawn, pos, BISHOP_PROMOTION];
+                        result[index] = to_bishop;
+                        index += 1;
+
+                        let to_knight: [u128; 3] = [pawn, pos, KNIGHT_PROMOTION];
+                        result[index] = to_knight;
+                        index += 1;
+
+                    } else {
+
+                        let move1: [u128; 3] = [pawn, pos, EMPTY];
+                        result[index] = move1;
+                        index += 1;
+
+                    }
+
                     pawn_moves &= !pos;
                 }
 
@@ -548,9 +572,33 @@ impl Fen {
                 while pawn_moves != 0 {
                     let square: u32 = pawn_moves.trailing_zeros();
                     let pos: u128 = 1u128 << square;
-                    let move1: [u128; 3] = [pawn, pos, EMPTY];
-                    result[index] = move1;
-                    index += 1;
+
+                    if pos & RANK_7 != 0 {
+
+                        let to_queen: [u128; 3] = [pawn, pos, QUEEN_PROMOTION];
+                        result[index] = to_queen;
+                        index += 1;
+
+                        let to_rook: [u128; 3] = [pawn, pos, ROOK_PROMOTION];
+                        result[index] = to_rook;
+                        index += 1;
+
+                        let to_bishop: [u128; 3] = [pawn, pos, BISHOP_PROMOTION];
+                        result[index] = to_bishop;
+                        index += 1;
+
+                        let to_knight: [u128; 3] = [pawn, pos, KNIGHT_PROMOTION];
+                        result[index] = to_knight;
+                        index += 1;
+
+                    } else {
+
+                        let move1: [u128; 3] = [pawn, pos, EMPTY];
+                        result[index] = move1;
+                        index += 1;
+                        
+                    }
+
                     pawn_moves &= !pos;
                 }
 

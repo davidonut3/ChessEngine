@@ -5,12 +5,13 @@ from visual.visual import Visual
 from matches import run, bench
 
 def perft(fen_str, per_move):
-    for i in range(1,6):
+    for i in range(1,9):
         perft_check(i, fen_str, per_move)
 
 def test():
     fen = FenPy()
     fen = fen.from_str("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
+    fen = fen.from_str("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1 ")
     bot1 = BotV1Py()
     bot2 = BotV1Py()
     bot1 = bot1.from_fen(fen.to_string())
@@ -30,8 +31,10 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-# test()
+test()
 
-perft("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", True)
+# perft("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1 ", False)
 
 # move_gen_perft_py()
+
+# perft_check(2, "8/2p5/3p4/1P5r/1K5k/5p2/4P1P1/1R6 b - - 1 2", True)
