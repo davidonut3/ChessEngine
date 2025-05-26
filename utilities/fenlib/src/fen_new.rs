@@ -18,7 +18,6 @@ We will use the last u128 for the rest of the info:
 
 use crate::logic::*;
 use crate::parsing_new;
-use crate::parsing_new::move_to_lan;
 use crate::utils_new::*;
 
 
@@ -331,7 +330,8 @@ impl Fen {
                 break;
 
             } else {
-                result.push(move_to_lan(&legal_moves[i]));
+                let lan: String = parsing_new::move_to_lan(&legal_moves[i]);
+                result.push(lan);
             }
         }
 
@@ -430,7 +430,7 @@ impl Fen {
                 king_moves |= BLACK_QUEENSIDE_MOVE_TO;
             }
         }
-
+        
         while king_moves != 0 {
             let square: u32 = king_moves.trailing_zeros();
             let pos: u128 = 1u128 << square;
@@ -697,6 +697,7 @@ impl Fen {
     pub fn get_legal_moves_for_tile(&self, tile: &str) -> Vec<String> {
         let bit: u128 = parsing_new::tile_to_bit(tile);
         let moves: Vec<[u128; 3]> = self.get_legal_moves_for_bit(bit);
+
         parsing_new::moves_to_lan_list(&moves)
     }
 

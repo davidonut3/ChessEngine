@@ -567,7 +567,7 @@ pub fn white_pawn_attack(piece_info: u128) -> u128 {
     let ur: u128 = piece << 15;
 
     let board: u128 = ul | ur;
-    (board & BOARD1) >> 8
+    board & BOARD1
 }
 
 /// This function determines the squares that the black pawn attacks
@@ -577,7 +577,7 @@ pub fn black_pawn_attack(piece_info: u128) -> u128 {
     let dr: u128 = piece >> 17;
 
     let board: u128 = dl | dr;
-    (board & BOARD1) >> 8
+    board & BOARD1
 }
 
 /// This function determines the squares that the knight attacks
@@ -593,7 +593,7 @@ pub fn knight_attack(piece_info: u128) -> u128 {
     let ddl: u128 = piece >> 31;
 
     let board: u128 = ull | urr | uul | uur | drr | dll | ddr | ddl;
-    (board & BOARD1) >> 8
+    board & BOARD1
 }
 
 /// This function determines the squares that the king attacks
@@ -609,7 +609,7 @@ pub fn king_attack(piece_info: u128) -> u128 {
     let dr: u128 = piece >> 17;
 
     let board: u128 = l | r | u | d | ul | ur | dl | dr;
-    (board & BOARD1) >> 8
+    board & BOARD1
 }
 
 /// This function determines the squares that the bishop attacks
