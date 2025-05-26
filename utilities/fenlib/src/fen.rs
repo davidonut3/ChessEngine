@@ -429,7 +429,7 @@ impl Fen {
             } else {
                 "1-0".to_string()
             }
-        } else if moves == 0 || self.halfmove > 100 {
+        } else if moves == 0 || self.halfmove > 99 {
             "½-½".to_string()
         } else {
             "not ended".to_string()

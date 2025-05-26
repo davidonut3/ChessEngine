@@ -282,6 +282,25 @@ impl Fen {
         }
     }
 
+    pub fn game_ended(&self) -> String {
+        let move_count: usize = self.get_legal_moves_array().1;
+        let white_to_move: bool = self.white_to_move();
+        let in_check: bool = self.player_in_check(white_to_move);
+        let halfmove: u16 = parsing_new::compr_to_bin_halfmove(self.array[INFO]);
+    
+        if move_count == 0 && in_check {
+            if white_to_move {
+                "0-1".to_string()
+            } else {
+                "1-0".to_string()
+            }
+        } else if move_count == 0 || halfmove > 99 {
+            "½-½".to_string()
+        } else {
+            "not ended".to_string()
+        }
+    }
+
     pub fn white_to_move(&self) -> bool {
         self.array[INFO] & TURN != 0
     }
@@ -304,7 +323,7 @@ impl Fen {
 
     pub fn get_legal_moves_lan(&self) -> Vec<String> {
         let mut result: Vec<String> = Vec::new();
-        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array();
+        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array().0;
 
         for i in 0..MAX_MOVES {
             if legal_moves[i][0] == 0 {
@@ -322,7 +341,7 @@ impl Fen {
 
     pub fn get_legal_moves_vec(&self) -> Vec<[u128; 3]> {
         let mut result: Vec<[u128; 3]> = Vec::new();
-        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array();
+        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array().0;
 
         for i in 0..MAX_MOVES {
             if legal_moves[i][0] == 0 {
@@ -338,7 +357,7 @@ impl Fen {
         result
     }
 
-    pub fn get_legal_moves_array(&self) -> [[u128; 3]; MAX_MOVES] {
+    pub fn get_legal_moves_array(&self) -> ([[u128; 3]; MAX_MOVES], usize) {
 
         // This function is very large and should maybe be cut up into pieces (pun intended).
         // It relies heavily on the logic in get_pins_and_checks, which is also a massive function.
@@ -424,7 +443,7 @@ impl Fen {
 
         // If there are more than two checks, the only piece that may move is the king.
         if number_of_checks > 1 {
-            return result
+            return (result, index)
         }
 
         if white_to_move {
@@ -655,6 +674,6 @@ impl Fen {
             bishops &= !bishop;
         }
 
-        result
+        (result, index)
     }
 }
