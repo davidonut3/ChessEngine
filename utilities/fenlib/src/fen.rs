@@ -115,15 +115,15 @@ impl Fen {
         new_fen.move_to_fen(&move1);
         new_fen.white_to_move = !new_fen.white_to_move;
     
-        if !new_fen.in_check() {
+        if !new_fen.player_in_check(true) {
             return true;
         }
     
         false
     }
 
-    pub fn get_possible_moves_tile(&self, tile: &str) -> Vec<String> {
-        let moves_info: ([[u64; 3]; MAX_MOVES_PIECE], usize) = self.get_possible_moves(&parsing::tile_to_bit(tile));
+    pub fn get_legal_moves_for_tile(&self, tile: &str) -> Vec<String> {
+        let moves_info: ([[u64; 3]; MAX_MOVES_PIECE], usize) = self.get_legal_moves_for_bit(&parsing::tile_to_bit(tile));
         let moves:[[u64; 3]; MAX_MOVES_PIECE]  = moves_info.0;
         let count: usize = moves_info.1;
 
@@ -136,7 +136,7 @@ impl Fen {
         parsing::moves_to_lan_list(&vec_moves)
     }
     
-    pub fn get_possible_moves(&self, start: &u64) -> ([[u64; 3]; MAX_MOVES_PIECE], usize) {
+    pub fn get_legal_moves_for_bit(&self, start: &u64) -> ([[u64; 3]; MAX_MOVES_PIECE], usize) {
         let mut moves: [[u64; 3]; MAX_MOVES_PIECE] = [[0; 3]; MAX_MOVES_PIECE];
         let mut count: usize = 0;
 
@@ -226,7 +226,7 @@ impl Fen {
         (moves, count)
     }
     
-    pub fn in_check(&self) -> bool {
+    pub fn player_in_check(&self, player_is_white: bool) -> bool {
         let king: u64 = match self.white_to_move {
             true => self.boards[5],
             false => self.boards[11]
@@ -388,12 +388,12 @@ impl Fen {
         self.full = self.white | self.black;
     }
 
-    pub fn get_all_possible_moves_lan(&self) -> Vec<String> {
-        let moves: Vec<[u64; 3]> = self.get_all_possible_moves();
+    pub fn get_legal_moves_lan(&self) -> Vec<String> {
+        let moves: Vec<[u64; 3]> = self.get_legal_moves_vec();
         parsing::moves_to_lan_list(&moves)
     }
 
-    pub fn get_all_possible_moves(&self) -> Vec<[u64; 3]> {
+    pub fn get_legal_moves_vec(&self) -> Vec<[u64; 3]> {
 
         let mut vec_moves: Vec<[u64; 3]> = Vec::new();
     
@@ -406,7 +406,7 @@ impl Fen {
             let piece: u64 = FIRST >> i;
             
             if piece & pieces != 0 {
-                let moves_info: ([[u64; 3]; MAX_MOVES_PIECE], usize) = self.get_possible_moves(&piece);
+                let moves_info: ([[u64; 3]; MAX_MOVES_PIECE], usize) = self.get_legal_moves_for_bit(&piece);
                 let moves:[[u64; 3]; MAX_MOVES_PIECE]  = moves_info.0;
                 let count: usize = moves_info.1;
 
@@ -420,8 +420,8 @@ impl Fen {
     }
 
     pub fn game_ended(&self) -> String {
-        let moves: usize = self.get_all_possible_moves().len();
-        let in_check: bool = self.in_check();
+        let moves: usize = self.get_legal_moves_vec().len();
+        let in_check: bool = self.player_in_check(true);
     
         if moves == 0 && in_check {
             if self.white_to_move {
@@ -955,5 +955,9 @@ impl Fen {
     
         false
     
+    }
+
+    pub fn white_to_move(&self) -> bool {
+        self.white_to_move
     }
 }

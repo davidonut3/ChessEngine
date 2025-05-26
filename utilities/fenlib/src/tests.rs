@@ -10,7 +10,7 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
 
     let fen: Fen = Fen::from_str(fen_str);
 
-    let possible_moves: Vec<[u64; 3]> = fen.get_all_possible_moves();
+    let possible_moves: Vec<[u64; 3]> = fen.get_legal_moves_vec();
 
     if max_depth < 2 {
         if per_move {
@@ -39,7 +39,7 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
 }
 
 pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
-    let possible_moves: Vec<[u64; 3]> = fen.get_all_possible_moves();
+    let possible_moves: Vec<[u64; 3]> = fen.get_legal_moves_vec();
 
     if depth == 1 {
         // if we reach a depth of 1, we return the number of legal moves from the current fen
@@ -84,7 +84,7 @@ pub fn move_gen_perft() {
     let mut durations: [Duration; 1000] = [Duration::from_nanos(0); 1000];
     for i in 0..1000 {
         let time: Instant = Instant::now();
-        games[i].get_all_possible_moves();
+        games[i].get_legal_moves_vec();
         durations[i] = time.elapsed();
     }
 

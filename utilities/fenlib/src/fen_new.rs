@@ -16,7 +16,6 @@ We will use the last u128 for the rest of the info:
 
 */
 
-use crate::default::BOARDS;
 use crate::logic::*;
 use crate::parsing_new;
 use crate::parsing_new::move_to_lan;
