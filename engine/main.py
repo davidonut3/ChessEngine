@@ -18,7 +18,7 @@ def test():
     bot2 = bot2.from_fen(fen.to_string())
     # PlayerVsBotMatch(bot1, player_is_white=True, fen=fen, perspective=WHITE).run_match()
     # BotVsBotMatch(visual_debugger, bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
-    PlayerVsPlayerMatch(fen, WHITE).run_match()
+    # PlayerVsPlayerMatch(fen, WHITE).run_match()
 
 # def show_board(board):
 #     fen = FenPy().from_str(board)
@@ -31,11 +31,4 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-# test()
-
-perft("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", False)
-
-# move_gen_perft_py()
-
-# perft_check(4, "rnbqkbnr/1ppppppp/p7/8/3P4/8/PPPKPPPP/RNBQ1BNR b kq - 1 2", True) c7c5 en e7e5
-# perft_check(2, "rnbqkbnr/1p1ppppp/p7/2P5/8/8/PPPKPPPP/RNBQ1BNR b kq - 0 3", True)
+test()
