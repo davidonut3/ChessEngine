@@ -1,21 +1,3 @@
-/*
-
-The new Fen struct will work with u128 instead of u64 to efficiently check whether a piece has moved off the board.
-
-The struct will only contain one array of 8 u128:
-
-Per piece type, we will store the positions of the white pieces on the left board and the positions of the black pieces on the right board.
-We will also have a u128 which stores all white pieces on the left board and all the black pieces on the right board.
-We will use the last u128 for the rest of the info:
-
-64 bits for en passant info,
-16 bits for the number of halfmoves,
-16 bits for the number of fullmoves,
-4 bits for castling info,
-1 bit for turn info
-
-*/
-
 use crate::logic::*;
 use crate::parsing;
 use crate::utils::*;
@@ -23,7 +5,7 @@ use crate::utils::*;
 
 #[derive(Debug, Clone)]
 pub struct Fen {
-    pub array: [u128; ARRAY_SIZE],
+    pub array: Array,
 }
 
 impl Fen {
@@ -39,8 +21,9 @@ impl Fen {
             panic!("Found incorrect fen notation");
         }
 
-        let mut array: [u128; ARRAY_SIZE] = parsing::board_string_to_pieces(fen_str_split[0]);
-        array[ALL_PIECES] = get_pieces(&array);
+        let mut array: Array = parsing::board_string_to_pieces(fen_str_split[0]);
+        array[WHITE] = get_white_pieces(array);
+        array[BLACK] = get_black_pieces(array);
         array[INFO] = parsing::get_info(fen_str_split);
 
         Self {
@@ -57,11 +40,11 @@ impl Fen {
     }
 
     pub fn lan_to_fen(&mut self, lan: &str) {
-        let move1: [u128; 3] = parsing::lan_to_move(lan);
+        let move1: Move = parsing::lan_to_move(lan);
         self.move_to_fen(move1)
     }
 
-    pub fn move_to_fen(&mut self, move1: [u128; 3]) {
+    pub fn move_to_fen(&mut self, move1: Move) {
 
         // This function does not check whether the move is legal
 
@@ -263,28 +246,25 @@ impl Fen {
     }
 
     pub fn player_in_check(&self, player_is_white: bool) -> bool {
-        let (white_attacks, black_attacks): (u128, u128) = get_attacks(&self.array);
+        let king: u64;
+        let attacks: u64;
 
         if player_is_white {
-
-            // The white king is in check if it is attacked by any black piece
-            let king: u128 = self.array[KINGS] & BOARD1;
-            return king & black_attacks != 0
-
+            king = self.array[KING_W];
+            attacks = get_black_attacks(&self.array);
         } else {
-
-            // The black king is in check if it is attacked by any white piece
-            let king: u128 = (self.array[KINGS] & BOARD2) << 8;
-            return king & white_attacks != 0
-
+            king = self.array[KING_B];
+            attacks = get_white_attacks(&self.array);
         }
+
+        king & attacks != 0
     }
 
     pub fn game_ended(&self) -> &str {
         let move_count: usize = self.get_legal_moves_array().1;
         let white_to_move: bool = self.white_to_move();
         let in_check: bool = self.player_in_check(white_to_move);
-        let halfmove: u16 = parsing::compr_to_bin_halfmove(self.array[INFO]);
+        let halfmove: u64 = parsing::compr_to_bin_halfmove(self.array[INFO]);
     
         if move_count == 0 && in_check {
             if white_to_move {
@@ -304,15 +284,19 @@ impl Fen {
     }
 
     pub fn is_valid_board(&self) {
-        let white_king_count: u32 = (self.array[KINGS] & BOARD1).count_ones();
-        let black_king_count: u32 = (self.array[KINGS] & BOARD2).count_ones();
+        // This function is not complete, it is just a quick test.
+        // A board is valid if it can be reached from the starting position through legal moves only.
+        // https://www.fide.com/FIDE/handbook/LawsOfChess.pdf 
+
+        let white_king_count: u32 = self.array[KING_W].count_ones();
+        let black_king_count: u32 = self.array[KING_B].count_ones();
 
         if white_king_count != 1 || black_king_count != 1 {
             panic!("is_valid_board: This board has too many or too few kings")
         }
 
-        let white_piece_count: u32 = (self.array[ALL_PIECES] & BOARD1).count_ones();
-        let black_piece_count: u32 = (self.array[ALL_PIECES] & BOARD2).count_ones();
+        let white_piece_count: u32 = self.array[WHITE].count_ones();
+        let black_piece_count: u32 = self.array[BLACK].count_ones();
 
         if white_piece_count > 20 || black_piece_count > 20 {
             panic!("is_valid_board: This board has too many pieces")
@@ -338,7 +322,7 @@ impl Fen {
         result
     }
 
-    pub fn get_legal_moves_vec(&self) -> Vec<[u128; 3]> {
+    pub fn get_legal_moves_vec(&self) -> Vec<Move> {
         let mut result: Vec<[u128; 3]> = Vec::new();
         let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array().0;
 
@@ -356,7 +340,7 @@ impl Fen {
         result
     }
 
-    pub fn get_legal_moves_array(&self) -> ([[u128; 3]; MAX_MOVES], usize) {
+    pub fn get_legal_moves_array(&self) -> (MoveArray, usize) {
 
         // This function is very large and should maybe be cut up into pieces (pun intended).
         // It relies heavily on the logic in get_pins_and_checks, which is also a massive function.
@@ -749,7 +733,7 @@ impl Fen {
         self.is_legal_move(&move1)
     }
 
-    pub fn is_legal_move(&self, move1: &[u128; 3]) -> bool {
+    pub fn is_legal_move(&self, move1: &Move) -> bool {
         let (moves, move_count) = self.get_legal_moves_array();
         let mut result: bool = false;
 
@@ -769,7 +753,7 @@ impl Fen {
         parsing::moves_to_lan_list(&moves)
     }
 
-    pub fn get_legal_moves_for_bit(&self, bit: u128) -> Vec<[u128; 3]> {
+    pub fn get_legal_moves_for_bit(&self, bit: u64) -> Vec<Move> {
         let mut moves: Vec<[u128; 3]> = Vec::new();
         let (legal_moves, move_count) = self.get_legal_moves_array();
 

@@ -1,14 +1,5 @@
-/// The purpose of this file is to replace moves with a smarter system.
-/// 
-/// THIS DOCUMENTATION NEEDS SOME WORK
-/// 
-/// Checking if a move is legal comes down to checking:
-/// whether there is a piece of the same color on the target square,
-/// whether we are in check (using attack patterns),
-/// whether we can enpassant (only move where taking a piece != moving to that square),
-/// whether we can castle.
-
 use crate::utils::*;
+use crate::parsing::{bit_64_to_128, bit_128_to_64};
 
 /// This function determines the patterns for pins and checks by the other player, along with other information.
 pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, usize, usize, u128, u128, u128, bool) {
@@ -542,74 +533,80 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
     (attacks, check_or_pin, xray_check, is_check, may_enpassant)
 }
 
-/// This function provides the attack patterns for white and black,
-/// in the form of two u128, which both have the respective attack patterns on the left board.
-pub fn get_attacks(array: &[u128; ARRAY_SIZE]) -> (u128, u128) {
-    let all_pieces: u128 = (array[ALL_PIECES] & BOARD1) | ((array[ALL_PIECES] & BOARD2) << 8);
+/// This function provides the attack patterns for white.
+pub fn get_white_attacks(array: &Array) -> u64 {
+    let all_pieces: u128 = bit_64_to_128(array[WHITE] | array[BLACK]);
 
-    let white_pawns: u128 = array[PAWNS] & BOARD1;
-    let white_kings: u128 = array[KINGS] & BOARD1;
-    let white_knights: u128 = array[KNIGHTS] & BOARD1;
+    let pawns: u128 = bit_64_to_128(array[PAWN_W]);
+    let kings: u128 = bit_64_to_128(array[KING_W]);
+    let knights: u128 = bit_64_to_128(array[KNIGHT_W]);
 
-    let mut white_attack: u128 = white_pawn_attack(white_pawns) | knight_attack(white_knights) | king_attack(white_kings);
+    let mut attacks: u128 = white_pawn_attack(pawns) | king_attack(kings) | knight_attack(knights);
 
-    let mut white_queens: u128 = array[QUEENS] & BOARD1;
-    let mut white_bishops: u128 = array[BISHOPS] & BOARD1;
-    let mut white_rooks: u128 = array[ROOKS] & BOARD1;
+    let mut queens: u128 = bit_64_to_128(array[QUEEN_W]);
+    let mut bishops: u128 = bit_64_to_128(array[BISHOP_W]);
+    let mut rooks: u128 = bit_64_to_128(array[ROOK_W]);
 
-    while white_queens != 0 {
-        let square: u32 = white_queens.trailing_zeros();
-        let piece: u128 = 1u128 << square;
-        white_attack |= queen_attack(piece, all_pieces);
-        white_queens &= !piece;
+    while queens != 0 {
+        let square: u32 = queens.trailing_zeros();
+        let queen: u128 = 1u128 << square;
+        attacks |= queen_attack(queen, all_pieces);
+        queens &= !queen;
     }
 
-    while white_bishops != 0 {
-        let square: u32 = white_bishops.trailing_zeros();
-        let piece: u128 = 1u128 << square;
-        white_attack |= bishop_attack(piece, all_pieces);
-        white_bishops &= !piece;
+    while bishops != 0 {
+        let square: u32 = bishops.trailing_zeros();
+        let bishop: u128 = 1u128 << square;
+        attacks |= bishop_attack(bishop, all_pieces);
+        bishops &= !bishop;
     }
 
-    while white_rooks != 0 {
-        let square: u32 = white_rooks.trailing_zeros();
-        let piece: u128 = 1u128 << square;
-        white_attack |= rook_attack(piece, all_pieces);
-        white_rooks &= !piece;
+    while rooks != 0 {
+        let square: u32 = rooks.trailing_zeros();
+        let rook: u128 = 1u128 << square;
+        attacks |= rook_attack(rook, all_pieces);
+        rooks &= !rook;
     }
 
-    let black_pawns: u128 = (array[PAWNS] & BOARD2) << 8;
-    let black_kings: u128 = (array[KINGS] & BOARD2) << 8;
-    let black_knights: u128 = (array[KNIGHTS] & BOARD2) << 8;
+    bit_128_to_64(attacks)
+}
 
-    let mut black_attack: u128 = black_pawn_attack(black_pawns) | knight_attack(black_knights) | king_attack(black_kings);
+/// This function provides the attack patterns for black.
+pub fn get_black_attacks(array: &Array) -> u64 {
+    let all_pieces: u128 = bit_64_to_128(array[WHITE] | array[BLACK]);
 
-    let mut black_queens: u128 = (array[QUEENS] & BOARD2) << 8;
-    let mut black_bishops: u128 = (array[BISHOPS] & BOARD2) << 8;
-    let mut black_rooks: u128 = (array[ROOKS] & BOARD2) << 8;
+    let pawns: u128 = bit_64_to_128(array[PAWN_B]);
+    let kings: u128 = bit_64_to_128(array[KING_B]);
+    let knights: u128 = bit_64_to_128(array[KNIGHT_B]);
 
-    while black_queens != 0 {
-        let square: u32 = black_queens.trailing_zeros();
-        let piece: u128 = 1u128 << square;
-        black_attack |= queen_attack(piece, all_pieces);
-        black_queens &= !piece;
+    let mut attacks: u128 = black_pawn_attack(pawns) | king_attack(kings) | knight_attack(knights);
+
+    let mut queens: u128 = bit_64_to_128(array[QUEEN_B]);
+    let mut bishops: u128 = bit_64_to_128(array[BISHOP_B]);
+    let mut rooks: u128 = bit_64_to_128(array[ROOK_B]);
+
+    while queens != 0 {
+        let square: u32 = queens.trailing_zeros();
+        let queen: u128 = 1u128 << square;
+        attacks |= queen_attack(queen, all_pieces);
+        queens &= !queen;
     }
 
-    while black_bishops != 0 {
-        let square: u32 = black_bishops.trailing_zeros();
-        let piece: u128 = 1u128 << square;
-        black_attack |= bishop_attack(piece, all_pieces);
-        black_bishops &= !piece;
+    while bishops != 0 {
+        let square: u32 = bishops.trailing_zeros();
+        let bishop: u128 = 1u128 << square;
+        attacks |= bishop_attack(bishop, all_pieces);
+        bishops &= !bishop;
     }
 
-    while black_rooks != 0 {
-        let square: u32 = black_rooks.trailing_zeros();
-        let piece: u128 = 1u128 << square;
-        black_attack |= rook_attack(piece, all_pieces);
-        black_rooks &= !piece;
+    while rooks != 0 {
+        let square: u32 = rooks.trailing_zeros();
+        let rook: u128 = 1u128 << square;
+        attacks |= rook_attack(rook, all_pieces);
+        rooks &= !rook;
     }
 
-    (white_attack, black_attack)
+    bit_128_to_64(attacks)
 }
 
 /// This function determines the squares that the white pawn attacks

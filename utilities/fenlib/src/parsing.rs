@@ -1,6 +1,8 @@
 use crate::utils::*;
 
-// These constants are not public to prevent confusion
+// These constants are not public to prevent confusion.
+// They are meant to do binary search on the location off a bit on the board.
+// Instead of 16 &'s and two for loops, it requires 6 &'s and 6 if statements.
 
 const RANK_A: u64 =         0xFFFFFFFF00000000;
 const RANK_AA: u64 =        0xFFFF000000000000;
@@ -17,6 +19,15 @@ const FILE_AAA: u64 =       0x8080808080808080;
 const FILE_ABA: u64 =       0x2020202020202020;
 const FILE_BAA: u64 =       0x0808080808080808;
 const FILE_BBA: u64 =       0x0202020202020202;
+
+const RANK_0_128: u128 =    0xFF000000000000000000000000000000;
+const RANK_1_128: u128 =    0x0000FF00000000000000000000000000;
+const RANK_2_128: u128 =    0x00000000FF0000000000000000000000;
+const RANK_3_128: u128 =    0x000000000000FF000000000000000000;
+const RANK_4_128: u128 =    0x0000000000000000FF00000000000000;
+const RANK_5_128: u128 =    0x00000000000000000000FF0000000000;
+const RANK_6_128: u128 =    0x000000000000000000000000FF000000;
+const RANK_7_128: u128 =    0x0000000000000000000000000000FF00;
 
 /// Converts a tile in algebraic notation (e.g., "e4") to a bitboard representation.
 pub fn tile_to_bit(tile: &str) -> u64 {
@@ -59,7 +70,7 @@ pub fn tile_to_bit(tile: &str) -> u64 {
 }
 
 /// Converts a single-bit bitboard to its algebraic tile notation (e.g., 0b1 -> "h1").
-pub fn bit_to_tile(bit: &u64) -> String {
+pub fn bit_to_tile(bit: u64) -> String {
     let ones: u32 = bit.count_ones();
     if ones > 1 || ones == 0 {
         panic!("Found wrong format when attempting to parse bit")
@@ -105,7 +116,7 @@ pub fn bit_to_tile(bit: &u64) -> String {
 }
 
 /// Converts single-bit bitboard to binary search bitboard
-pub fn bit_to_compr(bit: &u64) -> u8 {
+pub fn bit_to_compr(bit: u64) -> u8 {
     let rank: u8;
     let file: u8;
     let is_empty: u8;
@@ -183,7 +194,7 @@ pub fn bit_to_compr(bit: &u64) -> u8 {
 }
 
 /// Converts binary search bitboard to single-bit bitboard
-pub fn compr_to_bit(bit: &u8) -> u64 {
+pub fn compr_to_bit(bit: u8) -> u64 {
     let rank: usize = ((bit >> 3) & 0b00000111) as usize;
     let file: usize = (bit & 0b00000111) as usize;
     let is_empty: bool = bit & 0b01000000 == 0;
@@ -193,6 +204,34 @@ pub fn compr_to_bit(bit: &u8) -> u64 {
     }
 
     RANKS[rank] | FILES[file]
+}
+
+/// Converts u64 bitboard to u128 bitboard
+pub fn bit_64_to_128(bit: u64) -> u128 {
+    let byte1: u128 = ((bit & RANK_7) as u128) << 8;
+    let byte2: u128 = ((bit & RANK_6) as u128) << 16;
+    let byte3: u128 = ((bit & RANK_5) as u128) << 24;
+    let byte4: u128 = ((bit & RANK_4) as u128) << 32;
+    let byte5: u128 = ((bit & RANK_3) as u128) << 40;
+    let byte6: u128 = ((bit & RANK_2) as u128) << 48;
+    let byte7: u128 = ((bit & RANK_1) as u128) << 56;
+    let byte8: u128 = ((bit & RANK_0) as u128) << 64;
+
+    byte1 | byte2 | byte3 | byte4 | byte5 | byte6 | byte7 | byte8
+}
+
+/// Converts u128 bitboard to u64 bitboard
+pub fn bit_128_to_64(bit: u128) -> u64 {
+    let byte1: u128 = ((bit & RANK_7_128)) >> 64;
+    let byte2: u128 = ((bit & RANK_6_128)) >> 56;
+    let byte3: u128 = ((bit & RANK_5_128)) >> 48;
+    let byte4: u128 = ((bit & RANK_4_128)) >> 40;
+    let byte5: u128 = ((bit & RANK_3_128)) >> 32;
+    let byte6: u128 = ((bit & RANK_2_128)) >> 24;
+    let byte7: u128 = ((bit & RANK_1_128)) >> 16;
+    let byte8: u128 = ((bit & RANK_0_128)) >> 8;
+
+    (byte1 | byte2 | byte3 | byte4 | byte5 | byte6 | byte7 | byte8) as u64
 }
 
 /// Converts board string into array of pieces
@@ -242,7 +281,7 @@ pub fn get_info(info: Vec<&str>) -> u64 {
 
 /// Converts enpassant string into bit represenation
 pub fn string_to_enpassant(tile: &str) -> u64 {
-    (bit_to_compr(&tile_to_bit(tile)) as u64) << 24
+    (bit_to_compr(tile_to_bit(tile)) as u64) << 24
 }
 
 /// Parses the turn string from FEN ("w" or "b").
@@ -516,7 +555,7 @@ pub fn castling_to_string(info: u64) -> String {
 pub fn enpassant_to_string(info: u64) -> String {
     let enpassant: u8 = ((info & ENPASSANT) >> 24) as u8;
 
-    bit_to_tile(&compr_to_bit(&enpassant))
+    bit_to_tile(compr_to_bit(enpassant))
 }
 
 /// Parses the promotion information from a LAN move string (e.g., "e7e8q").
@@ -538,8 +577,8 @@ pub fn string_to_promotion(lan: &str) -> u64 {
 pub fn move_to_lan(move1: &Move) -> String {
     let mut result: String = "".to_string();
 
-    result += &bit_to_tile(&move1[0]);
-    result += &bit_to_tile(&move1[1]);
+    result += &bit_to_tile(move1[0]);
+    result += &bit_to_tile(move1[1]);
 
     let promoting_to: u64 = move1[2];
 
