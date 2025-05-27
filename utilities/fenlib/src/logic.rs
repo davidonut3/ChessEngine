@@ -276,7 +276,7 @@ pub fn rook_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mov
                 if blockers & opponents != 0 {
                     // If the attack is blocked by one piece of the opposing color, we have a pin.
                     check_or_pin = ray & !opponent_king;
-                } else if can_enpassant && (enpassant_attacks & blockers != 0) {
+                } else if can_enpassant && (enpassant_attacks & blockers != 0) && (enpassant & blockers == 0) {
                     // If doing the enpassant reveals the king, we may not en passant.
                     // This can be caused by a bishop that attacks the opponent king through the piece that could be captured with en passant.
                     may_enpassant = false;
@@ -400,7 +400,7 @@ pub fn bishop_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_m
                 if blockers & opponents != 0 {
                     // If the attack is blocked by one piece of the opposing color, we have a pin.
                     check_or_pin = ray & !opponent_king;
-                } else if can_enpassant && (enpassant_attacks & blockers != 0) {
+                } else if can_enpassant && (enpassant_attacks & blockers != 0) && (enpassant & blockers == 0) {
                     // If doing the enpassant reveals the king, we may not en passant.
                     // This can be caused by a bishop that attacks the opponent king through the piece that could be captured with en passant.
                     may_enpassant = false;
@@ -524,7 +524,7 @@ pub fn queen_pins_or_checks(piece: u128, array: &[u128; ARRAY_SIZE], white_to_mo
                 if blockers & opponents != 0 {
                     // If the attack is blocked by one piece of the opposing color, we have a pin.
                     check_or_pin = ray & !opponent_king;
-                } else if can_enpassant && (enpassant_attacks & blockers != 0) {
+                } else if can_enpassant && (enpassant_attacks & blockers != 0) && (enpassant & blockers == 0) {
                     // If doing the enpassant reveals the king, we may not en passant.
                     // This can be caused by a bishop that attacks the opponent king through the piece that could be captured with en passant.
                     may_enpassant = false;

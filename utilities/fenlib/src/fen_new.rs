@@ -483,6 +483,10 @@ impl Fen {
                     pawn_moves &= checks_and_pins[0];
                 } else if number_of_checks == 1 {
                     pawn_moves &= non_sliding_checks;
+
+                    if (enpassant >> 16 & ((self.array[PAWNS] & BOARD2) << 8) & non_sliding_checks) != 0 && ((enpassant >> 15) & pawn != 0 || (enpassant >> 17) & pawn != 0) {
+                        pawn_moves |= enpassant;
+                    }
                 }
 
                 for i in number_of_sliding_checks..number_of_pins_and_checks {
@@ -561,6 +565,10 @@ impl Fen {
                     pawn_moves &= checks_and_pins[0];
                 } else if number_of_checks == 1 {
                     pawn_moves &= non_sliding_checks;
+
+                    if (enpassant << 16 & (self.array[PAWNS] & BOARD1) & non_sliding_checks) != 0 && ((enpassant << 15) & pawn != 0 || (enpassant << 17) & pawn != 0) {
+                        pawn_moves |= enpassant;
+                    }
                 }
 
                 for i in number_of_sliding_checks..number_of_pins_and_checks {
