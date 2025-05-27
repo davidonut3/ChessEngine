@@ -1,132 +1,151 @@
+/// This represents the left board of the two boards
+pub const BOARD1: u128 = 0xFF00FF00FF00FF00FF00FF00FF00FF00;
+
+/// This represents the right board of the two boards
+pub const BOARD2: u128 = 0xFF00FF00FF00FF00FF00FF00FF00FF;
+
 /// Bitboard representing an empty set (no pieces).
-pub const EMPTY: u64 = 0x0;
+pub const EMPTY: u128 = 0x0;
 
 /// Bitboard with only the top-left square (A8) set.
-pub const FIRST: u64 = 0x8000000000000000;
+pub const FIRST: u128 = 0x80000000000000000000000000000000;
 
 /// Bitboard with the top (8th) rank set.
-pub const RANK: u64 = 0xFF00000000000000;
+pub const RANK: u128 = 0xFFFF0000000000000000000000000000;
 
 /// Bitboard with the leftmost (A-file) set.
-pub const FILE: u64 = 0x8080808080808080;
+pub const FILE: u128 = 0x80008000800080008000800080008000;
 
-pub const RANK_0: u64 = RANK >> 0 * 8; // Rank 1
-pub const RANK_1: u64 = RANK >> 1 * 8; // Rank 2
-pub const RANK_2: u64 = RANK >> 2 * 8; // Rank 3
-pub const RANK_3: u64 = RANK >> 3 * 8; // Rank 4
-pub const RANK_4: u64 = RANK >> 4 * 8; // Rank 5
-pub const RANK_5: u64 = RANK >> 5 * 8; // Rank 6
-pub const RANK_6: u64 = RANK >> 6 * 8; // Rank 7
-pub const RANK_7: u64 = RANK >> 7 * 8; // Rank 8
+pub const RANK_0: u128 = RANK >> 0 * 16; // Rank 1
+pub const RANK_1: u128 = RANK >> 1 * 16; // Rank 2
+pub const RANK_2: u128 = RANK >> 2 * 16; // Rank 3
+pub const RANK_3: u128 = RANK >> 3 * 16; // Rank 4
+pub const RANK_4: u128 = RANK >> 4 * 16; // Rank 5
+pub const RANK_5: u128 = RANK >> 5 * 16; // Rank 6
+pub const RANK_6: u128 = RANK >> 6 * 16; // Rank 7
+pub const RANK_7: u128 = RANK >> 7 * 16; // Rank 8
 
-pub const FILE_0: u64 = FILE >> 0; // File a
-pub const FILE_1: u64 = FILE >> 1; // File b
-pub const FILE_2: u64 = FILE >> 2; // File c
-pub const FILE_3: u64 = FILE >> 3; // File d
-pub const FILE_4: u64 = FILE >> 4; // File e
-pub const FILE_5: u64 = FILE >> 5; // File f
-pub const FILE_6: u64 = FILE >> 6; // File g
-pub const FILE_7: u64 = FILE >> 7; // File h
+pub const FILE_0: u128 = FILE >> 0; // File a
+pub const FILE_1: u128 = FILE >> 1; // File b
+pub const FILE_2: u128 = FILE >> 2; // File c
+pub const FILE_3: u128 = FILE >> 3; // File d
+pub const FILE_4: u128 = FILE >> 4; // File e
+pub const FILE_5: u128 = FILE >> 5; // File f
+pub const FILE_6: u128 = FILE >> 6; // File g
+pub const FILE_7: u128 = FILE >> 7; // File h
 
-pub const RANKS: [u64; 8] = [RANK_0, RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7];
-pub const FILES: [u64; 8] = [FILE_0, FILE_1, FILE_2, FILE_3, FILE_4, FILE_5, FILE_6, FILE_7];
+pub const RANKS: [u128; 8] = [RANK_0, RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7];
+pub const FILES: [u128; 8] = [FILE_0, FILE_1, FILE_2, FILE_3, FILE_4, FILE_5, FILE_6, FILE_7];
+
+// -------------------- Chess Constants --------------------
+
+/// Since an array of moves in the current implementation is 16 * 3 * 218 = 10464 bytes > 10 kB,
+/// we might want to consider creating a struct for moves in u16 notation:
+/// 6 bits for the from pos, 6 bits for the to pos, 4 bits for promotion.
+pub const MAX_MOVES: usize = 218;
+
+/// Max number of sliding pieces per side, this is 13 in a legal chess game.
+/// We may want to increase it to allow for any number of sliding pieces.
+pub const MAX_SLIDERS: usize = 13;
+
+pub const WHITE_WINS: &str = "1-0";
+pub const BLACK_WINS: &str = "0-1";
+pub const DRAW: &str = "½-½";
+pub const NOT_ENDED: &str = "not ended";
+
+// -------------------- Info Index --------------------
+
+pub const PAWNS: usize = 0;
+pub const KINGS: usize = 1;
+pub const QUEENS: usize = 2;
+pub const BISHOPS: usize = 3;
+pub const KNIGHTS: usize = 4;
+pub const ROOKS: usize = 5;
+pub const ALL_PIECES: usize = 6;
+pub const INFO: usize = 7;
+
+pub const ARRAY_SIZE: usize = 8;
+
+// Information on where the respective game info is stored in the u128
+pub const TURN: u128 = 0b00000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000;
+
+pub const HALFMOVE1: u128 = 0b00000000111111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+pub const HALFMOVE2: u128 = 0b00000000000000000000000011111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+pub const FULLMOVE1: u128 = 0b00000000000000000000000000000000000000001111111100000000000000000000000000000000000000000000000000000000000000000000000000000000;
+pub const FULLMOVE2: u128 = 0b00000000000000000000000000000000000000000000000000000000111111110000000000000000000000000000000000000000000000000000000000000000;
+
+pub const CASTLING: u128 = 0b00000000000000000000000000000000000000000000000000000000000000000000000011110000000000000000000000000000000000000000000000000000;
 
 // -------------------- White Castling --------------------
 
-/// H1 (white kingside rook starting square).
-pub const WHITE_KINGSIDE_BIT: u64 = FIRST >> (7 * 8) >> 6;
+pub const WHITE_KING_POS: u128 = 0b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000;
 
-/// Squares that must be empty for white kingside castling (F1 and G1).
-pub const WHITE_KINGSIDE_CLEAR: u64 = WHITE_KINGSIDE_BIT | (WHITE_KINGSIDE_BIT << 1);
+pub const WHITE_KINGSIDE_MOVE_TO: u128 = WHITE_KING_POS >> 2;
+pub const WHITE_QUEENSIDE_MOVE_TO: u128 = WHITE_KING_POS << 2;
 
-/// E1 (white king starting square).
-pub const WHITE_KING_BIT: u64 = WHITE_KINGSIDE_BIT << 2;
-
-/// A1 (white queenside rook starting square).
-pub const WHITE_QUEENSIDE_BIT: u64 = FIRST >> (7 * 8) >> 2;
-
-/// Squares that must be empty for white queenside castling (B1, C1, D1).
-pub const WHITE_QUEENSIDE_CLEAR: u64 = WHITE_QUEENSIDE_BIT | (WHITE_QUEENSIDE_BIT >> 1) | (WHITE_QUEENSIDE_BIT << 1);
+pub const WHITE_KINGSIDE_SQUARES: u128 =  0b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011000000000;
+pub const WHITE_QUEENSIDE_SQUARES: u128 = 0b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111000000000000;
+pub const WHITE_QUEENSIDE_ATTACKS: u128 = 0b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011000000000000;
 
 // -------------------- Black Castling --------------------
 
-/// H8 (black kingside rook starting square).
-pub const BLACK_KINGSIDE_BIT: u64 = FIRST >> 6;
+pub const BLACK_KING_POS: u128 = 0b00001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
 
-/// Squares that must be empty for black kingside castling (F8 and G8).
-pub const BLACK_KINGSIDE_CLEAR: u64 = BLACK_KINGSIDE_BIT | (BLACK_KINGSIDE_BIT << 1);
+pub const BLACK_KINGSIDE_MOVE_TO: u128 = BLACK_KING_POS >> 2;
+pub const BLACK_QUEENSIDE_MOVE_TO: u128 = BLACK_KING_POS << 2;
 
-/// E8 (black king starting square).
-pub const BLACK_KING_BIT: u64 = BLACK_KINGSIDE_BIT << 2;
-
-/// A8 (black queenside rook starting square).
-pub const BLACK_QUEENSIDE_BIT: u64 = FIRST >> 2;
-
-/// Squares that must be empty for black queenside castling (B8, C8, D8).
-pub const BLACK_QUEENSIDE_CLEAR: u64 = BLACK_QUEENSIDE_BIT | (BLACK_QUEENSIDE_BIT >> 1) | (BLACK_QUEENSIDE_BIT << 1);
+pub const BLACK_KINGSIDE_SQUARES: u128 =  0b00000110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+pub const BLACK_QUEENSIDE_SQUARES: u128 = 0b01110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
+pub const BLACK_QUEENSIDE_ATTACKS: u128 = 0b00110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000;
 
 // -------------------- Castling Info Flags --------------------
 
-/// Bit flag indicating white can castle kingside.
-pub const WHITE_KINGSIDE_INFO: u8 = 1u8 << 3;
+pub const WHITE_KINGSIDE_RIGHTS: u128 =  0b00000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000;
+pub const WHITE_QUEENSIDE_RIGHTS: u128 = 0b00000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000;
+pub const BLACK_KINGSIDE_RIGHTS: u128 =  0b00000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000;
+pub const BLACK_QUEENSIDE_RIGHTS: u128 = 0b00000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000;
 
-/// Bit flag indicating white can castle queenside.
-pub const WHITE_QUEENSIDE_INFO: u8 = 1u8 << 2;
+// -------------------- Promotion Info --------------------
 
-/// Bit flag indicating black can castle kingside.
-pub const BLACK_KINGSIDE_INFO: u8 = 1u8 << 1;
-
-/// Bit flag indicating black can castle queenside.
-pub const BLACK_QUEENSIDE_INFO: u8 = 1u8;
-
-// -------------------- Promotion Flags --------------------
-
-/// Promotion to queen.
-pub const QUEEN_PROM: u64 = 1u64 << 3;
-
-/// Promotion to rook.
-pub const ROOK_PROM: u64 = 1u64 << 2;
-
-/// Promotion to bishop.
-pub const BISHOP_PROM: u64 = 1u64 << 1;
-
-/// Promotion to knight.
-pub const KNIGHT_PROM: u64 = 1u64;
-
-/// No promotion.
-pub const NO_PROM: u64 = 0u64;
+pub const QUEEN_PROMOTION: u128 = 1u128 << 0;
+pub const ROOK_PROMOTION: u128 = 1u128 << 1;
+pub const BISHOP_PROMOTION: u128 = 1u128 << 2;
+pub const KNIGHT_PROMOTION: u128 = 1u128 << 3;
+pub const NO_PROMOTION: u128 = EMPTY;
 
 // -------------------- Default Starting Position --------------------
 
 /// Standard FEN string for the initial chess position.
 pub const DEFAULT: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-// -------------------- Main constants --------------------
-
-/// Max number of moves a piece can make
-pub const MAX_MOVES_PIECE: usize = 28;
-
-/// Maximum number of legal moves in a chess position.
-/// The actually largest number is unknown, the known largest is 218.
-/// However, the max number rarely exceeds 80-100, therefore we use 120.
-pub const MAX_MOVES: usize = 120;
+/// Default array for Fen object
+pub const DEFAULT_FEN: [u128; ARRAY_SIZE] = [
+    0b00000000000000000000000011111111000000000000000000000000000000000000000000000000000000000000000011111111000000000000000000000000,
+    0b00000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000,
+    0b00000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000,
+    0b00000000001001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010010000000000,
+    0b00000000010000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100001000000000,
+    0b00000000100000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000100000000,
+    0b00000000111111110000000011111111000000000000000000000000000000000000000000000000000000000000000011111111000000001111111100000000,
+    0b00000000000000000000000000000000000000000000000000000000000000010000000011111000000000000000000000000000000000000000000000000000,
+];
 
 // ==================== Helper Functions ====================
 
-/// Combines all white pieces from the board array into a single bitboard.
-///
-/// # Arguments
-/// * `boards` - Array of 12 bitboards representing piece positions.
-///               The first 6 entries are white pieces.
-pub fn get_white(boards: &[u64; 12]) -> u64 {
-    boards[0] | boards[1] | boards[2] | boards[3] | boards[4] | boards[5]
+/// Combine all white piece positions and all black piece positions into a single bitboard.
+pub fn get_pieces(pieces: &[u128; ARRAY_SIZE]) -> u128 {
+    pieces[PAWNS] | pieces[KINGS] | pieces[QUEENS] | pieces[BISHOPS] | pieces[KNIGHTS] | pieces[ROOKS]
 }
 
-/// Combines all black pieces from the board array into a single bitboard.
-///
-/// # Arguments
-/// * `boards` - Array of 12 bitboards representing piece positions.
-///               The last 6 entries are black pieces.
-pub fn get_black(boards: &[u64; 12]) -> u64 {
-    boards[6] | boards[7] | boards[8] | boards[9] | boards[10] | boards[11]
+/// Helper function for printing u128 bitboards.
+pub fn print_bitboard(bitboard: u128) {
+    let mut result: String = "".to_string();
+    for i in 0..128 {
+        if (FIRST >> i) & bitboard != 0 {
+            result += "1";
+        } else {
+            result += "0";
+        }
+    }
+    println!("{:?}", result);
 }

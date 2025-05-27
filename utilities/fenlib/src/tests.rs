@@ -1,5 +1,5 @@
-use crate::fen_new::Fen;
-use crate::parsing_new;
+use crate::fen::Fen;
+use crate::parsing;
 use crate::games;
 
 use std::time::Instant;
@@ -15,7 +15,7 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
     if max_depth < 2 {
         if per_move {
             for i in 0..move_count {
-                println!("Move {}", parsing_new::move_to_lan(&legal_moves[i]))
+                println!("Move {}", parsing::move_to_lan(&legal_moves[i]))
             }
         }
         
@@ -31,7 +31,7 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
             let count: usize = recursive_perft_check(&new_fen, max_depth - 1);
 
             if per_move {
-                println!("Move {} lead to {:?} moves", parsing_new::move_to_lan(&move1), count);
+                println!("Move {} lead to {:?} moves", parsing::move_to_lan(&move1), count);
             }
             total += count;
         }

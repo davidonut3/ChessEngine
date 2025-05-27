@@ -9,14 +9,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
-name = "botv1"
+name = "botv1_1"
 version = "0.1.0"
 dependencies = [
- "fenlib",
+ "fenlib_old",
 ]
 
 [[package]]
 name = "fenlib"
+version = "0.1.0"
+
+[[package]]
+name = "fenlib_old"
 version = "0.1.0"
 
 [[package]]
@@ -142,7 +146,7 @@ dependencies = [
 name = "rust_utils"
 version = "0.1.0"
 dependencies = [
- "botv1",
+ "botv1_1",
  "fenlib",
  "pyo3",
 ]

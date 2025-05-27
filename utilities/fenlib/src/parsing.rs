@@ -1,15 +1,7 @@
 use crate::utils::*;
 
 /// Converts a tile in algebraic notation (e.g., "e4") to a bitboard representation.
-///
-/// `"-"` is interpreted as an empty square and returns the EMPTY bitboard.
-///
-/// # Arguments
-/// * `tile` - A string slice representing the tile.
-///
-/// # Returns
-/// * `u64` - Bitboard representation of the tile.
-pub fn tile_to_bit(tile: &str) -> u64 {
+pub fn tile_to_bit(tile: &str) -> u128 {
     if tile == "-" {
         return EMPTY;
     } 
@@ -45,17 +37,11 @@ pub fn tile_to_bit(tile: &str) -> u64 {
         _ => panic!("Found unknown char when attempting to parse tile file"),
     };
 
-    (FIRST >> (rank * 8)) >> file
+    FIRST >> (rank * 16 + file)
 }
 
 /// Converts a single-bit bitboard to its algebraic tile notation (e.g., 0b1 -> "h1").
-///
-/// # Arguments
-/// * `bit` - A reference to a bitboard with only one bit set.
-///
-/// # Returns
-/// * `String` - Tile in algebraic notation.
-pub fn bit_to_tile(bit: &u64) -> String {
+pub fn bit_to_tile(bit: &u128) -> String {
     let ones: u32 = bit.count_ones();
     if ones > 1 || ones == 0 {
         panic!("Found wrong format when attempting to parse bit")
@@ -63,13 +49,13 @@ pub fn bit_to_tile(bit: &u64) -> String {
 
     let mut rank: usize = 0;
     let mut file: usize = 0;
-    for i in 0..8 {
+    for i in 0..8 as usize{
         if bit & RANKS[i] != 0 {
-            rank = i as usize;
+            rank = i;
         }
 
         if bit & FILES[i] != 0 {
-            file = i as usize;
+            file = i;
         }
     }
 
@@ -100,108 +86,63 @@ pub fn bit_to_tile(bit: &u64) -> String {
     file.to_string() + rank
 }
 
-/// Converts a chess piece character to its corresponding index in the bitboard array.
-///
-/// Piece mappings:
-/// * P = 0, p = 6
-/// * N = 1, n = 7
-/// * B = 2, b = 8
-/// * R = 3, r = 9
-/// * Q = 4, q = 10
-/// * K = 5, k = 11
-///
-/// # Arguments
-/// * `piece` - A character representing the piece.
-///
-/// # Returns
-/// * `usize` - Index corresponding to the piece.
-pub fn piece_to_index(piece: char) -> usize {
-    match piece {
-        'P' => 0,
-        'N' => 1,
-        'B' => 2,
-        'R' => 3,
-        'Q' => 4,
-        'K' => 5,
-        'p' => 6,
-        'n' => 7,
-        'b' => 8,
-        'r' => 9,
-        'q' => 10,
-        'k' => 11,
-        _ => panic!("Found unknown char when attempting to parse piece char"),
-    }
-}
+/// Converts board string into array of pieces
+pub fn board_string_to_pieces(board: &str) -> [u128; ARRAY_SIZE] {
+    let mut pieces: [u128; ARRAY_SIZE] = [0; ARRAY_SIZE];
 
-/// Converts a bitboard index back to its corresponding piece character.
-///
-/// # Arguments
-/// * `index` - Index of the piece.
-///
-/// # Returns
-/// * `String` - Character representation of the piece.
-pub fn index_to_piece(index: usize) -> String {
-    let result = match index {
-        0 => "P",
-        1 => "N",
-        2 => "B",
-        3 => "R",
-        4 => "Q",
-        5 => "K",
-        6 => "p",
-        7 => "n",
-        8 => "b",
-        9 => "r",
-        10 => "q",
-        11 => "k",
-        _ => panic!("Found unknown index while attempting to parse piece index"),
-    };
-
-    result.to_string()
-}
-
-/// Parses a FEN-style board string into an array of bitboards (one for each piece type).
-///
-/// # Arguments
-/// * `board` - FEN board representation string.
-///
-/// # Returns
-/// * `[u64; 12]` - Array of bitboards for all pieces.
-pub fn string_to_board(board: &str) -> [u64; 12] {
-    let mut boards: [u64; 12] = [0; 12];
+    // We loop over the 8 rows of the board string
     let rows: Vec<&str> = board.split('/').collect();
-
-    for (rank, row) in rows.iter().enumerate() {
+    for (rank, char_pieces) in rows.iter().enumerate() {
         let mut file: usize = 0;
-        for ch in row.chars() {
-            if ch.is_digit(10) {
-                file += ch.to_digit(10).unwrap() as usize;
+        
+        // For each piece in each row, we check its value
+        for piece in char_pieces.chars() {
+            if piece.is_digit(10) {
+
+                // If the piece is a number, we skip that number of pieces
+                file += piece.to_digit(10).unwrap() as usize;
             } else {
-                let index: usize = piece_to_index(ch);
-                boards[index] |= FIRST >> (rank * 8 + file);
+                let bit: u128 = FIRST >> (rank * 16 + file);
+                match piece {
+                    'P' => pieces[PAWNS] |= bit,
+                    'p' => pieces[PAWNS] |= bit >> 8,
+                    'K' => pieces[KINGS] |= bit,
+                    'k' => pieces[KINGS] |= bit >> 8,
+                    'Q' => pieces[QUEENS] |= bit,
+                    'q' => pieces[QUEENS] |= bit >> 8,
+                    'B' => pieces[BISHOPS] |= bit,
+                    'b' => pieces[BISHOPS] |= bit >> 8,
+                    'N' => pieces[KNIGHTS] |= bit,
+                    'n' => pieces[KNIGHTS] |= bit >> 8,
+                    'R' => pieces[ROOKS] |= bit,
+                    'r' => pieces[ROOKS] |= bit >> 8,
+                    _ => panic!("board_string_to_pieces: Found unknown string in board string")
+                }
                 file += 1;
             }
         }
     }
-    boards
+
+    pieces
+}
+
+/// Converts string info into bit info
+pub fn get_info(info: Vec<&str>) -> u128 {
+    string_to_turn(info[1]) | string_to_castling(info[2]) | string_to_enpassant(info[3]) | string_to_compr_halfmove(info[4]) | string_to_compr_fullmove(info[5])
+}
+
+/// Converts enpassant string into bit represenation
+pub fn string_to_enpassant(tile: &str) -> u128 {
+    tile_to_bit(tile)
 }
 
 /// Parses the turn string from FEN ("w" or "b").
-///
-/// # Arguments
-/// * `turn` - "w" if white to move, "b" if black.
-///
-/// # Returns
-/// * `bool` - `true` if white to move, `false` if black.
-pub fn string_to_turn(turn: &str) -> bool {
-    let result: bool;
+pub fn string_to_turn(turn: &str) -> u128 {
     match turn {
-        "w" => result = true,
-        "b" => result = false,
+        "w" => TURN,
+        "b" => EMPTY,
         _ => panic!("Found unknown string when attempting to parse turn string")
     }
-
-    result
 }
 
 /// Parses the castling rights string from FEN format.
@@ -213,118 +154,143 @@ pub fn string_to_turn(turn: &str) -> bool {
 ///   - Q = White queenside
 ///   - k = Black kingside
 ///   - q = Black queenside
-///
-/// # Arguments
-/// * `castling` - Castling string.
-///
-/// # Returns
-/// * `u8` - Bitmask representing castling rights.
-pub fn string_to_castling(castling: &str) -> u8 {
-    let mut result: u8 = 0x0;
+pub fn string_to_castling(castling: &str) -> u128 {
+    let mut result: u128 = EMPTY;
     
     if castling.contains("K") {
-        result |= WHITE_KINGSIDE_INFO;
+        result |= WHITE_KINGSIDE_RIGHTS;
     }
 
     if castling.contains("Q") {
-        result |= WHITE_QUEENSIDE_INFO;
+        result |= WHITE_QUEENSIDE_RIGHTS;
     }
 
     if castling.contains("k") {
-        result |= BLACK_KINGSIDE_INFO;
+        result |= BLACK_KINGSIDE_RIGHTS;
     }
 
     if castling.contains("q") {
-        result |= BLACK_QUEENSIDE_INFO;
+        result |= BLACK_QUEENSIDE_RIGHTS;
     }
 
     result
 }
 
-/// Parses the en passant tile from FEN format.
-///
-/// # Arguments
-/// * `enpassant` - Tile in algebraic notation or "-" for none.
-///
-/// # Returns
-/// * `u64` - Bitboard representation of en passant square.
-pub fn string_to_enpassant(enpassant: &str) -> u64 {
-    tile_to_bit(enpassant)
-}
-
-/// Parses the promotion information from a LAN move string (e.g., "e7e8q").
-///
-/// # Arguments
-/// * `lan` - LAN string with optional promotion character at the end.
-///
-/// # Returns
-/// * `u64` - Bitboard constant representing promotion piece.
-pub fn string_to_promotion(lan: &str) -> u64 {
-    if lan.len() == 5 {
-        match &lan[4..5] {
-            "q" | "Q" => QUEEN_PROM,
-            "r" | "R" => ROOK_PROM,
-            "b" | "B" => BISHOP_PROM,
-            "n" | "N" => KNIGHT_PROM,
-            _ => panic!("Found unknown char when attempting to parse promotion info")
-        }
-    } else {
-        NO_PROM
-    }
-}
-
-/// Converts a move (start bit, end bit, promotion) to a long algebraic notation (LAN) string.
-/// 
-/// **NOTE:** this function does not check whether the move is legal
-/// 
-/// # Arguments
-/// * `start` - Bitboard with starting position.
-/// * `end` - Bitboard with ending position.
-/// * `promoting_to` - Bitboard mask for promotion piece.
-///
-/// # Returns
-/// * `String` - Move in LAN (e.g., "e7e8q").
-pub fn move_to_lan(move1: &[u64; 3]) -> String {
-
-    let mut result: String = "".to_string();
-
-    result += &bit_to_tile(&move1[0]);
-    result += &bit_to_tile(&move1[1]);
-
-    let promoting_to: u64 = move1[2];
-
-    if promoting_to & QUEEN_PROM != 0 {
-        result += "q"
-    } else if promoting_to & ROOK_PROM != 0 {
-        result += "r"
-    } else if promoting_to & BISHOP_PROM != 0 {
-        result += "b"
-    } else if promoting_to & KNIGHT_PROM != 0 {
-        result += "n"
-    }
+/// Converts halfmove string to compressed bit representation
+pub fn string_to_compr_halfmove(halfmove: &str) -> u128 {
+    let halfmove_binary: u128 = halfmove.parse().unwrap();
+    let first_part: u128 = halfmove_binary & 0xFF00;
+    let second_part: u128 = halfmove_binary & 0xFF;
     
-    result
+    (first_part << 13 * 8) | (second_part << 12 * 8)
 }
 
-/// Converts an array of 12 bitboards into a visual 8x8 board of piece strings.
-///
-/// # Arguments
-/// * `boards` - Array of bitboards representing the board state.
-///
-/// # Returns
-/// * `[[String; 8]; 8]` - 2D array visual representation of the board.
-pub fn board_to_visual(boards: &[u64; 12]) -> [[String; 8]; 8] {
+/// Converts halfmove compressed bit representation to string
+pub fn compr_to_string_halfmove(info: u128) -> String {
+    let first_part: u128 = (info & HALFMOVE1) >> 13 * 8;
+    let second_part: u128 = (info & HALFMOVE2) >> 12 * 8;
+    let halfmove_binary: u128 = first_part | second_part;
+    halfmove_binary.to_string()
+}
+
+/// Converts halfmove binary representation to compressed bit representation
+pub fn bin_to_compr_halfmove(halfmove: u16) -> u128 {
+    let first_part: u128 = (halfmove & 0xFF00) as u128;
+    let second_part: u128 = (halfmove & 0xFF) as u128;
+    
+    (first_part << 13 * 8) | (second_part << 12 * 8)
+}
+
+/// Converts halfmove compressed bit representation to binary representation
+pub fn compr_to_bin_halfmove(info: u128) -> u16 {
+    let first_part: u128 = (info & HALFMOVE1) >> 13 * 8;
+    let second_part: u128 = (info & HALFMOVE2) >> 12 * 8;
+    let halfmove_binary: u16 = (first_part | second_part) as u16;
+    halfmove_binary
+}
+
+/// Converts fullmove string to compressed bit representation
+pub fn string_to_compr_fullmove(fullmove: &str) -> u128 {
+    let fullmove_binary: u128 = fullmove.parse().unwrap();
+
+    let first_part: u128 = fullmove_binary & 0xFF00;
+    let second_part: u128 = fullmove_binary & 0xFF;
+    
+    (first_part << 9 * 8) | (second_part << 8 * 8)
+}
+
+/// Converts fullmove compressed bit representation to string
+pub fn compr_to_string_fullmove(info: u128) -> String {
+    let first_part: u128 = (info & FULLMOVE1) >> 9 * 8;
+    let second_part: u128 = (info & FULLMOVE2) >> 8 * 8;
+    let fullmove_binary: u128 = first_part | second_part;
+    fullmove_binary.to_string()
+}
+
+/// Converts fullmove binary representation to compressed bit representation
+pub fn bin_to_compr_fullmove(fullmove: u16) -> u128 {
+    let first_part: u128 = (fullmove & 0xFF00) as u128;
+    let second_part: u128 = (fullmove & 0xFF) as u128;
+    
+    (first_part << 9 * 8) | (second_part << 8 * 8)
+}
+
+/// Converts fullmove compressed bit representation to binary representation
+pub fn compr_to_bin_fullmove(info: u128) -> u16 {
+    let first_part: u128 = (info & FULLMOVE1) >> 9 * 8;
+    let second_part: u128 = (info & FULLMOVE2) >> 8 * 8;
+    let fullmove_binary: u16 = (first_part | second_part) as u16;
+    fullmove_binary
+}
+
+/// Converts array into FEN string.
+pub fn fen_to_string(array: [u128; ARRAY_SIZE]) -> String {
+    format!(
+        "{} {} {} {} {} {}",
+        board_to_string(array),
+        turn_to_string(array[INFO]),
+        castling_to_string(array[INFO]),
+        enpassant_to_string(array[INFO]),
+        compr_to_string_halfmove(array[INFO]),
+        compr_to_string_fullmove(array[INFO]),
+    )
+}
+
+/// Converts array into a visual 8x8 board of piece strings.
+pub fn board_to_visual(array: [u128; ARRAY_SIZE]) -> [[String; 8]; 8] {
     let mut board: [[String; 8]; 8] = std::array::from_fn(|_| {
         std::array::from_fn(|_| "-".to_string())
     });
 
     for rank in 0..8 {
         for file in 0..8 {
-            let bit: u64 = (FIRST >> (rank * 8)) >> file;
-            for i in 0..12 {
-                if boards[i] & bit != 0 {
-                    board[rank][file] = index_to_piece(i);
-                }
+            let white_bit: u128 = FIRST >> rank * 16 + file;
+            let black_bit: u128 = white_bit >> 8;
+
+            if array[PAWNS] & white_bit != 0 {
+                board[rank][file] = "P".to_string();
+            } else if array[PAWNS] & black_bit != 0 {
+                board[rank][file] = "p".to_string();
+            } else if array[KINGS] & white_bit != 0 {
+                board[rank][file] = "K".to_string();
+            } else if array[KINGS] & black_bit != 0 {
+                board[rank][file] = "k".to_string();
+            } else if array[QUEENS] & white_bit != 0 {
+                board[rank][file] = "Q".to_string();
+            } else if array[QUEENS] & black_bit != 0 {
+                board[rank][file] = "q".to_string();
+            } else if array[BISHOPS] & white_bit != 0 {
+                board[rank][file] = "B".to_string();
+            } else if array[BISHOPS] & black_bit != 0 {
+                board[rank][file] = "b".to_string();
+            } else if array[KNIGHTS] & white_bit != 0 {
+                board[rank][file] = "N".to_string();
+            } else if array[KNIGHTS] & black_bit != 0 {
+                board[rank][file] = "n".to_string();
+            } else if array[ROOKS] & white_bit != 0 {
+                board[rank][file] = "R".to_string();
+            } else if array[ROOKS] & black_bit != 0 {
+                board[rank][file] = "r".to_string();
             }
         }
     }
@@ -332,34 +298,88 @@ pub fn board_to_visual(boards: &[u64; 12]) -> [[String; 8]; 8] {
     board
 }
 
-/// Converts an array of 12 bitboards into a FEN-style board string.
-///
-/// # Arguments
-/// * `boards` - Array of bitboards representing the board state.
-///
-/// # Returns
-/// * `String` - FEN-format string of piece placement.
-pub fn board_to_string(boards: &[u64; 12]) -> String {
+/// Converts array into a FEN board string.
+pub fn board_to_string(array: [u128; ARRAY_SIZE]) -> String {
     let mut result: String = String::new();
         for rank in 0..8 {
             let mut empty: i32 = 0;
             for file in 0..8 {
-                let sq_index: i32 = rank * 8 + file;
-                let pos: u64 = FIRST >> sq_index;
-                let mut piece_found: bool = false;
-                for (i, &board) in boards.iter().enumerate() {
-                    if board & pos != 0 {
-                        if empty > 0 {
-                            result.push_str(&empty.to_string());
-                            empty = 0;
-                        }
-                        let symbol: String = index_to_piece(i);
-                        result += &symbol;
-                        piece_found = true;
-                        break;
+                let white_bit: u128 = FIRST >> rank * 16 + file;
+                let black_bit: u128 = white_bit >> 8;
+
+                if array[PAWNS] & white_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
                     }
-                }
-                if !piece_found {
+                    result += "P";
+                } else if array[PAWNS] & black_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "p";
+                } else if array[KINGS] & white_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "K";
+                } else if array[KINGS] & black_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "k";
+                } else if array[QUEENS] & white_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "Q";
+                } else if array[QUEENS] & black_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "q";
+                } else if array[BISHOPS] & white_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "B";
+                } else if array[BISHOPS] & black_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "b";
+                } else if array[KNIGHTS] & white_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "N";
+                } else if array[KNIGHTS] & black_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "n";
+                } else if array[ROOKS] & white_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "R";
+                } else if array[ROOKS] & black_bit != 0 {
+                    if empty > 0 {
+                        result.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    result += "r";
+                } else {
                     empty += 1;
                 }
             }
@@ -374,42 +394,30 @@ pub fn board_to_string(boards: &[u64; 12]) -> String {
 }
 
 /// Converts a boolean turn value into FEN turn string.
-///
-/// # Arguments
-/// * `white_to_move` - `true` if white to move, `false` if black to move.
-///
-/// # Returns
-/// * `String` - "w" or "b"
-pub fn turn_to_string(white_to_move: bool) -> String {
-    match white_to_move {
+pub fn turn_to_string(info: u128) -> String {
+    match info & TURN != 0 {
         true => "w".to_string(),
         false => "b".to_string(),
     }
 }
 
 /// Converts a castling rights bitmask into a FEN-style castling string.
-///
-/// # Arguments
-/// * `castling` - Bitmask representing castling rights.
-///
-/// # Returns
-/// * `String` - FEN-style castling string.
-pub fn castling_to_string(castling: &u8) -> String {
+pub fn castling_to_string(info: u128) -> String {
     let mut result: String = "".to_string();
 
-    if castling & WHITE_KINGSIDE_INFO != 0 {
+    if info & WHITE_KINGSIDE_RIGHTS != 0 {
         result += "K"
     }
 
-    if castling & WHITE_QUEENSIDE_INFO != 0 {
+    if info & WHITE_QUEENSIDE_RIGHTS != 0 {
         result += "Q"
     }
 
-    if castling & BLACK_KINGSIDE_INFO != 0 {
+    if info & BLACK_KINGSIDE_RIGHTS != 0 {
         result += "k"
     }
 
-    if castling & BLACK_QUEENSIDE_INFO != 0 {
+    if info & BLACK_QUEENSIDE_RIGHTS != 0 {
         result += "q"
     }
 
@@ -421,27 +429,63 @@ pub fn castling_to_string(castling: &u8) -> String {
 }
 
 /// Converts a bitboard en passant square into algebraic notation.
-///
-/// # Arguments
-/// * `enpassant` - Bitboard with en passant square.
-///
-/// # Returns
-/// * `String` - Tile in algebraic notation.
-pub fn enpassant_to_string(enpassant: &u64) -> String {
-    if *enpassant == EMPTY {
+pub fn enpassant_to_string(info: u128) -> String {
+    let enpassant: u128 = info & BOARD1;
+
+    if enpassant == 0 {
         "-".to_string()
     } else {
-        bit_to_tile(enpassant)
+        bit_to_tile(&enpassant)
     }
 }
 
+/// Parses the promotion information from a LAN move string (e.g., "e7e8q").
+pub fn string_to_promotion(lan: &str) -> u128 {
+    if lan.len() == 5 {
+        match &lan[4..5] {
+            "q" | "Q" => QUEEN_PROMOTION,
+            "r" | "R" => ROOK_PROMOTION,
+            "b" | "B" => BISHOP_PROMOTION,
+            "n" | "N" => KNIGHT_PROMOTION,
+            _ => panic!("Found unknown char when attempting to parse promotion info")
+        }
+    } else {
+        NO_PROMOTION
+    }
+}
+
+/// Converts binary move to LAN move string
+pub fn move_to_lan(move1: &[u128; 3]) -> String {
+    let mut result: String = "".to_string();
+
+    result += &bit_to_tile(&move1[0]);
+    result += &bit_to_tile(&move1[1]);
+
+    let promoting_to: u128 = move1[2];
+
+    if promoting_to & QUEEN_PROMOTION != 0 {
+        result += "q"
+    } else if promoting_to & ROOK_PROMOTION != 0 {
+        result += "r"
+    } else if promoting_to & BISHOP_PROMOTION != 0 {
+        result += "b"
+    } else if promoting_to & KNIGHT_PROMOTION != 0 {
+        result += "n"
+    }
+    
+    result
+}
+
+/// Converts LAN move string to binary move
+pub fn lan_to_move(lan: &str) -> [u128; 3] {
+    let start: u128 = tile_to_bit(&lan[0..2]);
+    let end: u128 = tile_to_bit(&lan[2..4]);
+    let promoting_to: u128 = string_to_promotion(lan);
+
+    [start, end, promoting_to]
+}
+
 /// Converts a vector of moves in [start, end, promotion] bitboard format into a list of LAN strings.
-///
-/// # Arguments
-/// * `moves` - Vector of moves, each represented by `start`, `end`, `promotion`.
-///
-/// # Returns
-/// * `Vec<String>` - Vector of moves in LAN format.
-pub fn moves_to_lan_list(moves: &Vec<[u64; 3]>) -> Vec<String> {
-    moves.iter().map(|move1: &[u64; 3]| move_to_lan(move1)).collect()
+pub fn moves_to_lan_list(moves: &Vec<[u128; 3]>) -> Vec<String> {
+    moves.iter().map(|move1: &[u128; 3]| move_to_lan(move1)).collect()
 }

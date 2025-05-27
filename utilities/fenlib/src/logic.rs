@@ -8,7 +8,7 @@
 /// whether we can enpassant (only move where taking a piece != moving to that square),
 /// whether we can castle.
 
-use crate::utils_new::*;
+use crate::utils::*;
 
 /// This function determines the patterns for pins and checks by the other player, along with other information.
 pub fn get_pins_and_checks(array: &[u128; ARRAY_SIZE], white_to_move: bool) -> ([u128; MAX_SLIDERS], usize, usize, usize, u128, u128, u128, bool) {

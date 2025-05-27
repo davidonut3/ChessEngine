@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
-use fenlib::fen_new::*;
+use fenlib::fen::*;
 use fenlib::tests;
-use botv1::BotV1;
+use botv1_1;
 
 /// A Python-exposed wrapper for the `Fen` struct from fenlib, representing a chess position.
 /// Code by David van den Beukel, documentation by ChatGPT.
@@ -100,21 +100,21 @@ impl FenPy {
 
 #[pyclass]
 #[derive(Debug, Clone)]
-pub struct BotV1Py {
-    botv1: BotV1,
+pub struct BotV1_1Py {
+    botv1: botv1_1::Bot,
 }
 
 #[pymethods]
-impl BotV1Py {
+impl BotV1_1Py {
     #[new]
     pub fn new() -> Self {
-        let botv1: BotV1 = BotV1::new();
+        let botv1: botv1_1::Bot = botv1_1::Bot::new();
         Self { botv1 }
     }
 
     #[staticmethod]
     pub fn from_fen(fen_str: &str) -> Self {
-        let botv1: BotV1 = BotV1::from_fen(fen_str);
+        let botv1: botv1_1::Bot = botv1_1::Bot::from_fen(fen_str);
         Self { botv1 }
     }
 
@@ -143,7 +143,7 @@ pub fn move_gen_perft_py() {
 #[pymodule]
 fn rust_utils(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FenPy>()?;
-    m.add_class::<BotV1Py>()?;
+    m.add_class::<BotV1_1Py>()?;
     m.add_function(wrap_pyfunction!(move_gen_perft_py, m)?)?;
     m.add_function(wrap_pyfunction!(perft_check, m)?)?;
     Ok(())

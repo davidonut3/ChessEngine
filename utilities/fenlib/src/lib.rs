@@ -1,11 +1,6 @@
-pub mod parsing;
-pub mod moves;
-pub mod utils;
-pub mod fen;
 pub mod tests;
-pub mod default;
 pub mod logic;
 pub mod games;
-pub mod fen_new;
-pub mod parsing_new;
-pub mod utils_new;
+pub mod fen;
+pub mod parsing;
+pub mod utils;
