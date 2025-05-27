@@ -22,8 +22,8 @@ impl Fen {
         }
 
         let mut array: Array = parsing::board_string_to_pieces(fen_str_split[0]);
-        array[WHITE] = get_white_pieces(array);
-        array[BLACK] = get_black_pieces(array);
+        array[WHITE] = get_white_pieces(&array);
+        array[BLACK] = get_black_pieces(&array);
         array[INFO] = parsing::get_info(fen_str_split);
 
         Self {
@@ -46,202 +46,191 @@ impl Fen {
 
     pub fn move_to_fen(&mut self, move1: Move) {
 
-        // This function does not check whether the move is legal
+        // NOTE: This function does not check whether the move is legal
 
         let white_to_move: bool = self.white_to_move();
+        let enpassant: u64 = parsing::compr_to_bin_enpassant(self.array[INFO]);
 
-        let white_from: u128 = move1[0];
-        let white_to: u128 = move1[1];
+        let all_pieces: u64 = self.array[WHITE] | self.array[BLACK];
 
-        let black_from: u128 = white_from >> 8;
-        let black_to: u128 = white_to >> 8;
+        let from: u64 = move1[0];
+        let to: u64 = move1[1];
+        let prom: u64 = move1[2];
 
-        let prom_to: u128 = move1[2];
-
-        // A lot of the computation relies on which color is making the move.
-        // Depending on the color, we move the start and end positions to the corresponding board.
-        // Namely: left for white and right for black.
-        // I am not sure if this is the best way to do this.
         if white_to_move {
 
-            // In case of castling, we move the respective rook, since the king is the piece that is moved in the move
-            let king_to_move: bool = white_from & self.array[KINGS] != 0;
+            // In case of castling, the respective rook must be moved, since the king is the only piece specified in the move
+            
+            let king_to_castle: bool = from & self.array[KING_W] & WHITE_KING_POS != 0;
 
-            if king_to_move && (white_to & WHITE_KINGSIDE_MOVE_TO != 0) && (white_from & WHITE_KING_POS != 0) && (WHITE_KINGSIDE_RIGHTS & self.array[INFO] != 0) {
+            if king_to_castle && (to & WHITE_KINGSIDE_MOVE_TO != 0) && (WHITE_KINGSIDE_RIGHTS & self.array[INFO] != 0) {
 
-                // In case the king wants to move to the kingside castle square, we remove the rook to the right of the king,
-                // and place it to the left of the king.
-                self.array[ROOKS] &= !(WHITE_KINGSIDE_MOVE_TO >> 1);
-                self.array[ROOKS] |= WHITE_KINGSIDE_MOVE_TO << 1;
+                // In case of kingside castle, we move the rook in the corner to the correct square
+                self.array[ROOK_W] &= !(WHITE_KINGSIDE_MOVE_TO >> 1);
+                self.array[ROOK_W] |= WHITE_KINGSIDE_MOVE_TO << 1;
 
-            } else if king_to_move && (white_to & WHITE_QUEENSIDE_MOVE_TO != 0) && (white_from & WHITE_KING_POS != 0) && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
+            } else if king_to_castle && (to & WHITE_QUEENSIDE_MOVE_TO != 0) && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
 
-                // In case the king wants to move to the queenside castle square, we remove the rook to the left of the king,
-                // and place it to the right of the king.
-                self.array[ROOKS] &= !(WHITE_QUEENSIDE_MOVE_TO << 2);
-                self.array[ROOKS] |= WHITE_QUEENSIDE_MOVE_TO >> 1;
+                // In case of queenside castle, we move the rook in the corner to the correct square
+                self.array[ROOK_W] &= !(WHITE_QUEENSIDE_MOVE_TO >> 1);
+                self.array[ROOK_W] |= WHITE_QUEENSIDE_MOVE_TO << 1;
 
             }
 
-            // In case of en passant, we remove the piece that is captured.
-            if self.array[INFO] & white_to != 0 && self.array[PAWNS] & white_from != 0 {
-                self.array[PAWNS] &= !(white_to >> 24);
+            // In case of enpassant, we remove the pawn that is captured
+            if (enpassant & to != 0) && (self.array[PAWN_W] & from != 0) {
+                self.array[PAWN_B] &= !(to >> 8);
             }
 
-            // In case a pawn has moved two squares forward, we update the enpassant flag accordingly.
-            self.array[INFO] &= !BOARD1;
+            // We set the enpassant flag to 0, since one can only do this move right after an opposing pawn is moved two squares forward
+            self.array[INFO] &= !ENPASSANT;
 
-            if (white_to & RANK_4 != 0) && (white_from & self.array[PAWNS] & RANK_6 != 0) {
-                self.array[INFO] |= white_from << 16;
+            // In case a pawn has moved two squares forward, we update the enpassant flag accordingly
+            if (to & RANK_4 != 0) && (from & self.array[PAWN_W] & RANK_6 != 0) {
+                self.array[INFO] |= parsing::bin_to_compr_enpassant(from << 8);
             }
 
         } else {
 
-            // In case of castling, we move the respective rook, since the king is the piece that is moved in the move
-            let king_to_move: bool = black_from & self.array[KINGS] != 0;
+            // In case of castling, the respective rook must be moved, since the king is the only piece specified in the move
+            
+            let king_to_castle: bool = from & self.array[KING_B] & BLACK_KING_POS != 0;
 
-            if king_to_move && (black_to & (BLACK_KINGSIDE_MOVE_TO >> 8) != 0) && (white_from & BLACK_KING_POS != 0) && (BLACK_KINGSIDE_RIGHTS & self.array[INFO] != 0) {
+            if king_to_castle && (to & BLACK_KINGSIDE_MOVE_TO != 0) && (BLACK_KINGSIDE_RIGHTS & self.array[INFO] != 0) {
 
-                // In case the king wants to move to the kingside castle square, we remove the rook to the right of the king,
-                // and place it to the left of the king.
-                self.array[ROOKS] &= !(BLACK_KINGSIDE_MOVE_TO >> 9);
-                self.array[ROOKS] |= BLACK_KINGSIDE_MOVE_TO >> 7;
+                // In case of kingside castle, we move the rook in the corner to the correct square
+                self.array[ROOK_B] &= !(BLACK_KINGSIDE_MOVE_TO >> 1);
+                self.array[ROOK_B] |= BLACK_KINGSIDE_MOVE_TO << 1;
 
-            } else if king_to_move && (black_to & (BLACK_QUEENSIDE_MOVE_TO >> 8) != 0) && (white_from & BLACK_KING_POS != 0) && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
+            } else if king_to_castle && (to & BLACK_QUEENSIDE_MOVE_TO != 0) && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
 
-                // In case the king wants to move to the queenside castle square, we remove the rook to the left of the king,
-                // and place it to the right of the king.
-                self.array[ROOKS] &= !(BLACK_QUEENSIDE_MOVE_TO >> 6);
-                self.array[ROOKS] |= BLACK_QUEENSIDE_MOVE_TO >> 9;
+                // In case of queenside castle, we move the rook in the corner to the correct square
+                self.array[ROOK_B] &= !(BLACK_QUEENSIDE_MOVE_TO >> 1);
+                self.array[ROOK_B] |= BLACK_QUEENSIDE_MOVE_TO << 1;
 
             }
 
-            // In case of en passant, we remove the piece that is captured.
-            if (self.array[INFO] >> 8) & black_to != 0 && self.array[PAWNS] & black_from != 0 {
-                self.array[PAWNS] &= !(black_to << 24);
+            // In case of enpassant, we remove the pawn that is captured
+            if (enpassant & to != 0) && (self.array[PAWN_B] & from != 0) {
+                self.array[PAWN_W] &= !(to << 8);
             }
 
-            // In case a pawn has moved two squares forward, we update the enpassant flag accordingly.
-            self.array[INFO] &= !BOARD1;
+            // We set the enpassant flag to 0, since one can only do this move right after an opposing pawn is moved two squares forward
+            self.array[INFO] &= !ENPASSANT;
 
-            if (black_to & RANK_3 != 0) && (black_from & self.array[PAWNS] & RANK_1 != 0) {
-                self.array[INFO] |= black_from >> 8;
+            // In case a pawn has moved two squares forward, we update the enpassant flag accordingly
+            if (to & RANK_5 != 0) && (from & self.array[PAWN_B] & RANK_1 != 0) {
+                self.array[INFO] |= parsing::bin_to_compr_enpassant(from >> 8);
             }
 
         }
 
-        // If no pawn is moved and no piece is captured, we increase the halfmove, else we set it to 0.
-        let mut halfmove: u16 = parsing::compr_to_bin_halfmove(self.array[INFO]);
-        let all_pieces: u128 = (self.array[ALL_PIECES] & BOARD1) | ((self.array[ALL_PIECES] & BOARD2) << 8);
+        // If no pawn is moved and no piece is captured, we increase the halfmove, else we set it to 0
+        let mut halfmove: u64 = parsing::compr_to_bin_halfmove(self.array[INFO]);
 
-        if (white_to & all_pieces == 0) && (white_from & self.array[PAWNS] == 0) && (black_from & self.array[PAWNS] == 0) {
+        if (to & all_pieces == 0) && (from & (self.array[PAWN_W] | self.array[PAWN_B]) == 0) {
             halfmove += 1;
         } else {
             halfmove = 0;
         }
 
-        self.array[INFO] &= !(HALFMOVE1 | HALFMOVE2);
-        self.array[INFO] |= parsing::bin_to_compr_halfmove(halfmove);
+        self.array[INFO] &= !HALFMOVE;
+        self.array[INFO] |= parsing::compr_to_bin_halfmove(halfmove);
 
-        // If black is to move, we increase the fullmove by 1.
-        let mut fullmove: u16 = parsing::compr_to_bin_fullmove(self.array[INFO]);
-
+        // The fullmove counter is only increased when black is to move
         if !white_to_move {
+            let mut fullmove: u64 = parsing::compr_to_bin_fullmove(self.array[INFO]);
             fullmove += 1;
+            self.array[INFO] &= !FULLMOVE;
+            self.array[INFO] |= parsing::bin_to_compr_fullmove(fullmove);
         }
 
-        self.array[INFO] &= !(FULLMOVE1 | FULLMOVE2);
-        self.array[INFO] |= parsing::bin_to_compr_fullmove(fullmove);
-
-        // If the move is a capture, we remove the taken piece from the board.
-        for i in 0..6 {
-            if self.array[i] & white_to != 0 {
-                self.array[i] &= !white_to;
-                break;
-            } else if self.array[i] & black_to != 0 {
-                self.array[i] &= !black_to;
+        // If the move is a capture, we remove the captured piece from the board
+        for i in 0..PIECE_SIZE {
+            if self.array[i] & to != 0 {
+                self.array[i] &= !to;
                 break;
             }
         }
 
-        // We apply the move to the board.
-        for i in 0..6 {
-            if self.array[i] & white_from != 0 {
-                self.array[i] &= !white_from;
-                self.array[i] |= white_to;
-                break;
-            } else if self.array[i] & black_from != 0 {
-                self.array[i] &= !black_from;
-                self.array[i] |= black_to;
+        // We move the piece on the board
+        for i in 0..PIECE_SIZE {
+            if self.array[i] & from != 0 {
+                self.array[i] &= !from;
+                self.array[i] |= to;
                 break;
             }
         }
 
-        // In case of promotion, we change the pieces according to the promotion info
-        let promoting: bool = prom_to != NO_PROMOTION;
+        // In case of promotion, we change the pieces according to the given info
+        let promoting: bool = prom != NO_PROMOTION;
 
         if promoting && white_to_move {
-            self.array[PAWNS] &= !white_to;
-            if prom_to & QUEEN_PROMOTION != 0 {
-                self.array[QUEENS] |= white_to;
-            } else if prom_to & ROOK_PROMOTION != 0 {
-                self.array[ROOKS] |= white_to;
-            } else if prom_to & BISHOP_PROMOTION != 0 {
-                self.array[BISHOPS] |= white_to;
-            } else if prom_to & KNIGHT_PROMOTION != 0 {
-                self.array[KNIGHTS] |= white_to;
+            self.array[PAWN_W] &= !to;
+
+            if prom & QUEEN_PROMOTION != 0 {
+                self.array[QUEEN_W] |= to;
+            } else if prom & ROOK_PROMOTION != 0 {
+                self.array[ROOK_W] |= to;
+            } else if prom & BISHOP_PROMOTION != 0 {
+                self.array[BISHOP_W] |= to;
+            } else if prom & KNIGHT_PROMOTION != 0 {
+                self.array[KNIGHT_W] |= to;
             } else {
                 panic!("move_to_fen: Found unknown flag for promotion")
             }
         } else if promoting {
-            self.array[PAWNS] &= !black_to;
-            if prom_to & QUEEN_PROMOTION != 0 {
-                self.array[QUEENS] |= black_to;
-            } else if prom_to & ROOK_PROMOTION != 0 {
-                self.array[ROOKS] |= black_to;
-            } else if prom_to & BISHOP_PROMOTION != 0 {
-                self.array[BISHOPS] |= black_to;
-            } else if prom_to & KNIGHT_PROMOTION != 0 {
-                self.array[KNIGHTS] |= black_to;
+            self.array[PAWN_B] &= !to;
+
+            if prom & QUEEN_PROMOTION != 0 {
+                self.array[QUEEN_B] |= to;
+            } else if prom & ROOK_PROMOTION != 0 {
+                self.array[ROOK_B] |= to;
+            } else if prom & BISHOP_PROMOTION != 0 {
+                self.array[BISHOP_B] |= to;
+            } else if prom & KNIGHT_PROMOTION != 0 {
+                self.array[KNIGHT_B] |= to;
             } else {
                 panic!("move_to_fen: Found unknown flag for promotion")
             }
         }
 
-        // We update the castling rights based on whether the rooks have moved or have been captured and whether the king has moved.
-        if self.array[KINGS] & WHITE_KING_POS == 0 {
+        // The castling rights are updated if the rooks have moved or been captured and if the king moved
+        if self.array[KING_W] & WHITE_KING_POS == 0 {
             self.array[INFO] &= !(WHITE_KINGSIDE_RIGHTS | WHITE_QUEENSIDE_RIGHTS);
         }
 
-        if (self.array[KINGS] << 8) & BLACK_KING_POS == 0 {
+        if self.array[KING_B] & BLACK_KING_POS == 0 {
             self.array[INFO] &= !(BLACK_KINGSIDE_RIGHTS | BLACK_QUEENSIDE_RIGHTS);
         }
 
-        if self.array[ROOKS] & (WHITE_KING_POS >> 3) == 0 {
+        if self.array[ROOK_W] & (WHITE_KING_POS >> 3) == 0 {
             self.array[INFO] &= !WHITE_KINGSIDE_RIGHTS;
         }
 
-        if self.array[ROOKS] & (WHITE_KING_POS << 4) == 0 {
+        if self.array[ROOK_W] & (WHITE_KING_POS << 4) == 0 {
             self.array[INFO] &= !WHITE_QUEENSIDE_RIGHTS;
         }
 
-        if (self.array[ROOKS] << 8) & (BLACK_KING_POS >> 3) == 0 {
+        if self.array[ROOK_B] & (BLACK_KING_POS >> 3) == 0 {
             self.array[INFO] &= !BLACK_KINGSIDE_RIGHTS;
         }
 
-        if (self.array[ROOKS] << 8) & (BLACK_KING_POS << 4) == 0 {
+        if self.array[ROOK_B] & (BLACK_KING_POS << 4) == 0 {
             self.array[INFO] &= !BLACK_QUEENSIDE_RIGHTS;
         }
 
-        // We switch turn info.
+
+        // We switch the turn info
         if white_to_move {
             self.array[INFO] &= !TURN;
         } else {
             self.array[INFO] |= TURN;
         }
 
-        // We update the positions of the pieces in ALL_PIECES
-        self.array[ALL_PIECES] = get_pieces(&self.array);
+        // We update the positions of the pieces
+        self.array[WHITE] = get_white_pieces(&self.array);
+        self.array[BLACK] = get_black_pieces(&self.array);
 
     }
 
@@ -305,7 +294,7 @@ impl Fen {
 
     pub fn get_legal_moves_lan(&self) -> Vec<String> {
         let mut result: Vec<String> = Vec::new();
-        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array().0;
+        let legal_moves: MoveArray = self.get_legal_moves_array().0;
 
         for i in 0..MAX_MOVES {
             if legal_moves[i][0] == 0 {
@@ -323,8 +312,8 @@ impl Fen {
     }
 
     pub fn get_legal_moves_vec(&self) -> Vec<Move> {
-        let mut result: Vec<[u128; 3]> = Vec::new();
-        let legal_moves: [[u128; 3]; MAX_MOVES] = self.get_legal_moves_array().0;
+        let mut result: Vec<Move> = Vec::new();
+        let legal_moves: MoveArray = self.get_legal_moves_array().0;
 
         for i in 0..MAX_MOVES {
             if legal_moves[i][0] == 0 {
@@ -729,7 +718,7 @@ impl Fen {
     }
 
     pub fn is_legal_move_lan(&self, lan: &str) -> bool {
-        let move1: [u128; 3] = parsing::lan_to_move(lan);
+        let move1: Move = parsing::lan_to_move(lan);
         self.is_legal_move(&move1)
     }
 
@@ -747,14 +736,14 @@ impl Fen {
     }
 
     pub fn get_legal_moves_for_tile(&self, tile: &str) -> Vec<String> {
-        let bit: u128 = parsing::tile_to_bit(tile);
-        let moves: Vec<[u128; 3]> = self.get_legal_moves_for_bit(bit);
+        let bit: u64 = parsing::tile_to_bit(tile);
+        let moves: Vec<Move> = self.get_legal_moves_for_bit(bit);
 
         parsing::moves_to_lan_list(&moves)
     }
 
     pub fn get_legal_moves_for_bit(&self, bit: u64) -> Vec<Move> {
-        let mut moves: Vec<[u128; 3]> = Vec::new();
+        let mut moves: Vec<Move> = Vec::new();
         let (legal_moves, move_count) = self.get_legal_moves_array();
 
         for i in 0..move_count {

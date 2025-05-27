@@ -74,6 +74,7 @@ pub const WHITE: usize = 12;
 pub const BLACK: usize = 13;
 pub const INFO: usize = 14;
 
+pub const PIECE_SIZE: usize = 12;
 pub const ARRAY_SIZE: usize = 15;
 
 pub type Array = [u64; ARRAY_SIZE];
@@ -153,11 +154,11 @@ pub const FIRST_128: u128 = 0x80000000000000000000000000000000;
 
 // ==================== Helper Functions ====================
 
-pub fn get_white_pieces(pieces: Array) -> u64 {
+pub fn get_white_pieces(pieces: &Array) -> u64 {
     pieces[PAWN_W] | pieces[KING_W] | pieces[QUEEN_W] | pieces[BISHOP_W] | pieces[KNIGHT_W] | pieces[ROOK_W]
 }
 
-pub fn get_black_pieces(pieces: Array) -> u64 {
+pub fn get_black_pieces(pieces: &Array) -> u64 {
     pieces[PAWN_B] | pieces[KING_B] | pieces[QUEEN_B] | pieces[BISHOP_B] | pieces[KNIGHT_B] | pieces[ROOK_B]
 }
 

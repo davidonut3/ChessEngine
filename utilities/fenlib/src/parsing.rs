@@ -203,7 +203,7 @@ pub fn compr_to_bit(bit: u8) -> u64 {
         return EMPTY
     }
 
-    RANKS[rank] | FILES[file]
+    RANKS[rank] & FILES[file]
 }
 
 /// Converts u64 bitboard to u128 bitboard
@@ -272,154 +272,6 @@ pub fn board_string_to_pieces(board: &str) -> Array {
     }
 
     pieces
-}
-
-/// Converts string info into bit info
-pub fn get_info(info: Vec<&str>) -> u64 {
-    string_to_turn(info[1]) | string_to_castling(info[2]) | string_to_enpassant(info[3]) | string_to_compr_halfmove(info[4]) | string_to_compr_fullmove(info[5])
-}
-
-/// Converts enpassant string into bit represenation
-pub fn string_to_enpassant(tile: &str) -> u64 {
-    (bit_to_compr(tile_to_bit(tile)) as u64) << 24
-}
-
-/// Parses the turn string from FEN ("w" or "b").
-pub fn string_to_turn(turn: &str) -> u64 {
-    match turn {
-        "w" => TURN,
-        "b" => EMPTY,
-        _ => panic!("Found unknown string when attempting to parse turn string")
-    }
-}
-
-/// Parses the castling rights string from FEN format.
-///
-/// Possible values:
-/// * "-" means no castling rights.
-/// * "KQkq" format where:
-///   - K = White kingside
-///   - Q = White queenside
-///   - k = Black kingside
-///   - q = Black queenside
-pub fn string_to_castling(castling: &str) -> u64 {
-    let mut result: u64 = EMPTY;
-    
-    if castling.contains("K") {
-        result |= WHITE_KINGSIDE_RIGHTS;
-    }
-
-    if castling.contains("Q") {
-        result |= WHITE_QUEENSIDE_RIGHTS;
-    }
-
-    if castling.contains("k") {
-        result |= BLACK_KINGSIDE_RIGHTS;
-    }
-
-    if castling.contains("q") {
-        result |= BLACK_QUEENSIDE_RIGHTS;
-    }
-
-    result
-}
-
-/// Converts halfmove string to compressed bit representation
-pub fn string_to_compr_halfmove(halfmove: &str) -> u64 {
-    let bit: u64 = halfmove.parse().unwrap();
-    bit << 48
-}
-
-/// Converts halfmove compressed bit representation to string
-pub fn compr_to_string_halfmove(info: u64) -> String {
-    let halfmove: u64 = (info & HALFMOVE) >> 48;
-    halfmove.to_string()
-}
-
-/// Converts halfmove binary representation to compressed bit representation
-pub fn bin_to_compr_halfmove(halfmove: u64) -> u64 {
-    halfmove << 48
-}
-
-/// Converts halfmove compressed bit representation to binary representation
-pub fn compr_to_bin_halfmove(info: u64) -> u64 {
-    (info & HALFMOVE) >> 48
-}
-
-/// Converts fullmove string to compressed bit representation
-pub fn string_to_compr_fullmove(fullmove: &str) -> u64 {
-    let bit: u64 = fullmove.parse().unwrap();
-    bit << 32
-}
-
-/// Converts fullmove compressed bit representation to string
-pub fn compr_to_string_fullmove(info: u64) -> String {
-    let fullmove: u64 = (info & FULLMOVE) >> 32;
-    fullmove.to_string()
-}
-
-/// Converts fullmove binary representation to compressed bit representation
-pub fn bin_to_compr_fullmove(fullmove: u64) -> u64 {
-    fullmove << 32
-}
-
-/// Converts fullmove compressed bit representation to binary representation
-pub fn compr_to_bin_fullmove(info: u64) -> u64 {
-    (info & FULLMOVE) >> 32
-}
-
-/// Converts array into FEN string.
-pub fn fen_to_string(array: Array) -> String {
-    format!(
-        "{} {} {} {} {} {}",
-        board_to_string(array),
-        turn_to_string(array[INFO]),
-        castling_to_string(array[INFO]),
-        enpassant_to_string(array[INFO]),
-        compr_to_string_halfmove(array[INFO]),
-        compr_to_string_fullmove(array[INFO]),
-    )
-}
-
-/// Converts array into a visual 8x8 board of piece strings.
-pub fn board_to_visual(array: Array) -> [[String; 8]; 8] {
-    let mut board: [[String; 8]; 8] = std::array::from_fn(|_| {
-        std::array::from_fn(|_| "-".to_string())
-    });
-
-    for rank in 0..8 {
-        for file in 0..8 {
-            let bit: u64 = FIRST >> rank * 8 + file;
-
-            if array[PAWN_W] & bit != 0 {
-                board[rank][file] = "P".to_string();
-            } else if array[PAWN_B] & bit != 0 {
-                board[rank][file] = "p".to_string();
-            } else if array[KING_W] & bit != 0 {
-                board[rank][file] = "K".to_string();
-            } else if array[KING_B] & bit != 0 {
-                board[rank][file] = "k".to_string();
-            } else if array[QUEEN_W] & bit != 0 {
-                board[rank][file] = "Q".to_string();
-            } else if array[QUEEN_B] & bit != 0 {
-                board[rank][file] = "q".to_string();
-            } else if array[BISHOP_W] & bit != 0 {
-                board[rank][file] = "B".to_string();
-            } else if array[BISHOP_B] & bit != 0 {
-                board[rank][file] = "b".to_string();
-            } else if array[KNIGHT_W] & bit != 0 {
-                board[rank][file] = "N".to_string();
-            } else if array[KNIGHT_B] & bit != 0 {
-                board[rank][file] = "n".to_string();
-            } else if array[ROOK_W] & bit != 0 {
-                board[rank][file] = "R".to_string();
-            } else if array[ROOK_B] & bit != 0 {
-                board[rank][file] = "r".to_string();
-            }
-        }
-    }
-
-    board
 }
 
 /// Converts array into a FEN board string.
@@ -516,12 +368,81 @@ pub fn board_to_string(array: Array) -> String {
         result
 }
 
+/// Converts string info into bit info
+pub fn get_info(info: Vec<&str>) -> u64 {
+    string_to_turn(info[1]) | string_to_castling(info[2]) | string_to_compr_enpassant(info[3]) | string_to_compr_halfmove(info[4]) | string_to_compr_fullmove(info[5])
+}
+
+/// Converts enpassant string to compressed bit representation
+pub fn string_to_compr_enpassant(enpassant: &str) -> u64 {
+    (bit_to_compr(tile_to_bit(enpassant)) as u64) << 24
+}
+
+/// Converts enpassant compressed bit representation to string
+pub fn compr_to_string_enpassant(info: u64) -> String {
+    let enpassant: u8 = ((info & ENPASSANT) >> 24) as u8;
+
+    bit_to_tile(compr_to_bit(enpassant))
+}
+
+/// Converts enpassant binary represenation to compressed bit representation
+pub fn bin_to_compr_enpassant(enpassant: u64) -> u64 {
+    (bit_to_compr(enpassant) as u64) << 24
+}
+
+/// Converts enpassant compressed bit representation to binary representation
+pub fn compr_to_bin_enpassant(info: u64) -> u64 {
+    let enpassant: u8 = ((info & ENPASSANT) >> 24) as u8;
+
+    compr_to_bit(enpassant)
+}
+
+/// Parses the turn string from FEN ("w" or "b").
+pub fn string_to_turn(turn: &str) -> u64 {
+    match turn {
+        "w" => TURN,
+        "b" => EMPTY,
+        _ => panic!("Found unknown string when attempting to parse turn string")
+    }
+}
+
 /// Converts a boolean turn value into FEN turn string.
 pub fn turn_to_string(info: u64) -> String {
     match info & TURN != 0 {
         true => "w".to_string(),
         false => "b".to_string(),
     }
+}
+
+/// Parses the castling rights string from FEN format.
+///
+/// Possible values:
+/// * "-" means no castling rights.
+/// * "KQkq" format where:
+///   - K = White kingside
+///   - Q = White queenside
+///   - k = Black kingside
+///   - q = Black queenside
+pub fn string_to_castling(castling: &str) -> u64 {
+    let mut result: u64 = EMPTY;
+    
+    if castling.contains("K") {
+        result |= WHITE_KINGSIDE_RIGHTS;
+    }
+
+    if castling.contains("Q") {
+        result |= WHITE_QUEENSIDE_RIGHTS;
+    }
+
+    if castling.contains("k") {
+        result |= BLACK_KINGSIDE_RIGHTS;
+    }
+
+    if castling.contains("q") {
+        result |= BLACK_QUEENSIDE_RIGHTS;
+    }
+
+    result
 }
 
 /// Converts a castling rights bitmask into a FEN-style castling string.
@@ -551,11 +472,102 @@ pub fn castling_to_string(info: u64) -> String {
     result
 }
 
-/// Converts a bitboard en passant square into algebraic notation.
-pub fn enpassant_to_string(info: u64) -> String {
-    let enpassant: u8 = ((info & ENPASSANT) >> 24) as u8;
+/// Converts halfmove string to compressed bit representation
+pub fn string_to_compr_halfmove(halfmove: &str) -> u64 {
+    let bit: u64 = halfmove.parse().unwrap();
+    bit << 48
+}
 
-    bit_to_tile(compr_to_bit(enpassant))
+/// Converts halfmove compressed bit representation to string
+pub fn compr_to_string_halfmove(info: u64) -> String {
+    let halfmove: u64 = (info & HALFMOVE) >> 48;
+    halfmove.to_string()
+}
+
+/// Converts halfmove binary representation to compressed bit representation
+pub fn bin_to_compr_halfmove(halfmove: u64) -> u64 {
+    halfmove << 48
+}
+
+/// Converts halfmove compressed bit representation to binary representation
+pub fn compr_to_bin_halfmove(info: u64) -> u64 {
+    (info & HALFMOVE) >> 48
+}
+
+/// Converts fullmove string to compressed bit representation
+pub fn string_to_compr_fullmove(fullmove: &str) -> u64 {
+    let bit: u64 = fullmove.parse().unwrap();
+    bit << 32
+}
+
+/// Converts fullmove compressed bit representation to string
+pub fn compr_to_string_fullmove(info: u64) -> String {
+    let fullmove: u64 = (info & FULLMOVE) >> 32;
+    fullmove.to_string()
+}
+
+/// Converts fullmove binary representation to compressed bit representation
+pub fn bin_to_compr_fullmove(fullmove: u64) -> u64 {
+    fullmove << 32
+}
+
+/// Converts fullmove compressed bit representation to binary representation
+pub fn compr_to_bin_fullmove(info: u64) -> u64 {
+    (info & FULLMOVE) >> 32
+}
+
+/// Converts array into FEN string.
+pub fn fen_to_string(array: Array) -> String {
+    format!(
+        "{} {} {} {} {} {}",
+        board_to_string(array),
+        turn_to_string(array[INFO]),
+        castling_to_string(array[INFO]),
+        compr_to_string_enpassant(array[INFO]),
+        compr_to_string_halfmove(array[INFO]),
+        compr_to_string_fullmove(array[INFO]),
+    )
+}
+
+/// Converts array into a visual 8x8 board of piece strings.
+pub fn board_to_visual(array: Array) -> [[String; 8]; 8] {
+    let mut board: [[String; 8]; 8] = std::array::from_fn(|_| {
+        std::array::from_fn(|_| "-".to_string())
+    });
+
+    for rank in 0..8 {
+        for file in 0..8 {
+            let bit: u64 = FIRST >> rank * 8 + file;
+
+            if array[PAWN_W] & bit != 0 {
+                board[rank][file] = "P".to_string();
+            } else if array[PAWN_B] & bit != 0 {
+                board[rank][file] = "p".to_string();
+            } else if array[KING_W] & bit != 0 {
+                board[rank][file] = "K".to_string();
+            } else if array[KING_B] & bit != 0 {
+                board[rank][file] = "k".to_string();
+            } else if array[QUEEN_W] & bit != 0 {
+                board[rank][file] = "Q".to_string();
+            } else if array[QUEEN_B] & bit != 0 {
+                board[rank][file] = "q".to_string();
+            } else if array[BISHOP_W] & bit != 0 {
+                board[rank][file] = "B".to_string();
+            } else if array[BISHOP_B] & bit != 0 {
+                board[rank][file] = "b".to_string();
+            } else if array[KNIGHT_W] & bit != 0 {
+                board[rank][file] = "N".to_string();
+            } else if array[KNIGHT_B] & bit != 0 {
+                board[rank][file] = "n".to_string();
+            } else if array[ROOK_W] & bit != 0 {
+                board[rank][file] = "R".to_string();
+            } else if array[ROOK_B] & bit != 0 {
+                board[rank][file] = "r".to_string();
+            }
+        }
+    }
+
+    board
 }
 
 /// Parses the promotion information from a LAN move string (e.g., "e7e8q").
