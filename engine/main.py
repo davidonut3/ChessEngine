@@ -30,4 +30,7 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-test()
+# test()
+
+for _ in range(10):
+    move_gen_perft_py()

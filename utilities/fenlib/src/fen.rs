@@ -401,7 +401,7 @@ impl Fen {
         let opponent_bishops: u64;
         let mut opponent_knights: u64;
         let mut opponent_pawns: u64;
-        let opponent_pawn_attack: fn(u128) -> u128;
+        let opponent_pawn_attack: fn(u64) -> u64;
 
         // There is precisely one active king and precisely one opponent king, else self.is_valid_board(); would panic
         let active_king: u64;
@@ -452,7 +452,7 @@ impl Fen {
             pawns = self.array[PAWN_B];
         }
 
-        attacks |= parsing::bit_128_to_64(king_attack(parsing::bit_64_to_128(opponent_king)));
+        attacks |= king_attack(opponent_king);
         allow_enpassant = can_enpassant;
 
         let mut sliders: [u64; 3] = [opponent_queens, opponent_rooks, opponent_bishops];
@@ -576,7 +576,7 @@ impl Fen {
             let square: u32 = opponent_knights.trailing_zeros();
             let piece: u64 = 1u64 << square;
 
-            let attack: u64 = parsing::bit_128_to_64(knight_attack(parsing::bit_64_to_128(piece)));
+            let attack: u64 = knight_attack(piece);
             if attack & active_king != 0 {
                 non_sliding_checks |= piece;
                 number_of_checks += 1;
@@ -589,7 +589,7 @@ impl Fen {
             let square: u32 = opponent_pawns.trailing_zeros();
             let piece: u64 = 1u64 << square;
 
-            let attack: u64 = parsing::bit_128_to_64(opponent_pawn_attack(parsing::bit_64_to_128(piece)));
+            let attack: u64 = opponent_pawn_attack(piece);
             if attack & active_king != 0 {
                 non_sliding_checks |= piece;
                 number_of_checks += 1;
@@ -600,7 +600,7 @@ impl Fen {
 
         // Now we start generating moves
         let in_check: bool = active_king & attacks != 0;
-        let king_attacks: u64 = parsing::bit_128_to_64(king_attack(parsing::bit_64_to_128(active_king)));
+        let king_attacks: u64 = king_attack(active_king);
         let mut king_moves: u64 = king_attacks & !attacks & !team & !xray_checks;
         
         let mut knights: u64;
@@ -827,7 +827,7 @@ impl Fen {
             let square: u32 = knights.trailing_zeros();
             let knight: u64 = 1u64 << square;
 
-            let mut knight_moves: u64 = parsing::bit_128_to_64(knight_attack(parsing::bit_64_to_128(knight))) & !team;
+            let mut knight_moves: u64 = knight_attack(knight) & !team;
 
             if number_of_sliding_checks == 1 {
                 knight_moves &= sliding_checks[0];

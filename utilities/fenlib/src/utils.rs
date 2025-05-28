@@ -81,6 +81,8 @@ pub type PinArray = [u64; MAX_PINS];
 pub type Move = [u64; 3];
 pub type MoveArray = [[u64; 3]; MAX_MOVES];
 
+pub type OccupancyArray = [u64; 64];
+
 // -------------------- Info Position --------------------
 
 pub const HALFMOVE: u64 =                   0b1111111111111111000000000000000000000000000000000000000000000000;
@@ -189,4 +191,40 @@ pub fn print_bitboard_128(bitboard: u128) {
         }
     }
     println!("{:?}", result);
+}
+
+pub fn up(piece: u64, index: usize) -> u64 {
+    piece << 8 * index
+}
+
+pub fn down(piece: u64, index: usize) -> u64 {
+    piece >> 8 * index
+}
+
+pub fn left(piece: u64, index: usize) -> u64 {
+    piece << 1 * index
+}
+
+pub fn right(piece: u64, index: usize) -> u64 {
+    piece >> 1 * index
+}
+
+pub fn upleft(piece: u64, index: usize) -> u64 {
+    piece << 9 * index
+}
+
+pub fn upright(piece: u64, index: usize) -> u64 {
+    piece << 7 * index
+}
+
+pub fn downleft(piece: u64, index: usize) -> u64 {
+    piece >> 7 * index
+}
+
+pub fn downright(piece: u64, index: usize) -> u64 {
+    piece >> 9 * index
+}
+
+pub fn none(piece: u64, index: usize) -> u64 {
+    (piece << index) >> index
 }
