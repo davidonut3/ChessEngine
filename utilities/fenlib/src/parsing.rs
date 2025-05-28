@@ -123,7 +123,7 @@ pub fn bit_to_compr(bit: u64) -> u8 {
 
     let ones: u32 = bit.count_ones();
     if ones > 1 {
-        panic!("Found wrong format when attempting to parse bit")
+        panic!("bit_to_compr: Found wrong format when attempting to parse bit")
     } else if ones == 0 {
         is_empty = 0
     } else {
@@ -222,14 +222,14 @@ pub fn bit_64_to_128(bit: u64) -> u128 {
 
 /// Converts u128 bitboard to u64 bitboard
 pub fn bit_128_to_64(bit: u128) -> u64 {
-    let byte1: u128 = ((bit & RANK_7_128)) >> 64;
-    let byte2: u128 = ((bit & RANK_6_128)) >> 56;
-    let byte3: u128 = ((bit & RANK_5_128)) >> 48;
-    let byte4: u128 = ((bit & RANK_4_128)) >> 40;
-    let byte5: u128 = ((bit & RANK_3_128)) >> 32;
-    let byte6: u128 = ((bit & RANK_2_128)) >> 24;
-    let byte7: u128 = ((bit & RANK_1_128)) >> 16;
-    let byte8: u128 = ((bit & RANK_0_128)) >> 8;
+    let byte1: u128 = ((bit & RANK_7_128)) >> 8;
+    let byte2: u128 = ((bit & RANK_6_128)) >> 16;
+    let byte3: u128 = ((bit & RANK_5_128)) >> 24;
+    let byte4: u128 = ((bit & RANK_4_128)) >> 32;
+    let byte5: u128 = ((bit & RANK_3_128)) >> 40;
+    let byte6: u128 = ((bit & RANK_2_128)) >> 48;
+    let byte7: u128 = ((bit & RANK_1_128)) >> 56;
+    let byte8: u128 = ((bit & RANK_0_128)) >> 64;
 
     (byte1 | byte2 | byte3 | byte4 | byte5 | byte6 | byte7 | byte8) as u64
 }
@@ -382,7 +382,11 @@ pub fn string_to_compr_enpassant(enpassant: &str) -> u64 {
 pub fn compr_to_string_enpassant(info: u64) -> String {
     let enpassant: u8 = ((info & ENPASSANT) >> 24) as u8;
 
-    bit_to_tile(compr_to_bit(enpassant))
+    if (enpassant & 0b01000000) == 0 {
+        return "-".to_string()
+    } else {
+        return bit_to_tile(compr_to_bit(enpassant))
+    }
 }
 
 /// Converts enpassant binary represenation to compressed bit representation

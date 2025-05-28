@@ -1,6 +1,7 @@
 use crate::fen::Fen;
 use crate::parsing;
 use crate::games;
+use crate::utils::*;
 
 use std::time::Instant;
 use std::time::Duration;
@@ -24,14 +25,18 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
         let mut total: usize = 0;
 
         for i in 0..move_count {
-            let move1: [u128; 3] = legal_moves[i];
+            let move1: Move = legal_moves[i];
+
+            if per_move {
+                println!("{} | leads to: ", parsing::move_to_lan(&move1));
+            }
 
             let mut new_fen: Fen = fen.clone();
             new_fen.move_to_fen(move1);
             let count: usize = recursive_perft_check(&new_fen, max_depth - 1);
 
             if per_move {
-                println!("Move {} lead to {:?} moves", parsing::move_to_lan(&move1), count);
+                println!("{:?}", count);
             }
             total += count;
         }
@@ -50,7 +55,7 @@ pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
         // if we are not at a depth of 1, we recursively call the function to determine the number of legal moves after `depth` moves
         let mut total: usize = 0;
         for i in 0..move_count {
-            let move1: [u128; 3] = legal_moves[i];
+            let move1: Move = legal_moves[i];
 
             let mut new_fen: Fen = fen.clone();
             new_fen.move_to_fen(move1);

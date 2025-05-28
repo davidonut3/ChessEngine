@@ -72,8 +72,8 @@ impl Fen {
             } else if king_to_castle && (to & WHITE_QUEENSIDE_MOVE_TO != 0) && (WHITE_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
 
                 // In case of queenside castle, we move the rook in the corner to the correct square
-                self.array[ROOK_W] &= !(WHITE_QUEENSIDE_MOVE_TO >> 1);
-                self.array[ROOK_W] |= WHITE_QUEENSIDE_MOVE_TO << 1;
+                self.array[ROOK_W] &= !(WHITE_QUEENSIDE_MOVE_TO << 2);
+                self.array[ROOK_W] |= WHITE_QUEENSIDE_MOVE_TO >> 1;
 
             }
 
@@ -105,8 +105,8 @@ impl Fen {
             } else if king_to_castle && (to & BLACK_QUEENSIDE_MOVE_TO != 0) && (BLACK_QUEENSIDE_RIGHTS & self.array[INFO] != 0) {
 
                 // In case of queenside castle, we move the rook in the corner to the correct square
-                self.array[ROOK_B] &= !(BLACK_QUEENSIDE_MOVE_TO >> 1);
-                self.array[ROOK_B] |= BLACK_QUEENSIDE_MOVE_TO << 1;
+                self.array[ROOK_B] &= !(BLACK_QUEENSIDE_MOVE_TO << 2);
+                self.array[ROOK_B] |= BLACK_QUEENSIDE_MOVE_TO >> 1;
 
             }
 
@@ -119,7 +119,7 @@ impl Fen {
             self.array[INFO] &= !ENPASSANT;
 
             // In case a pawn has moved two squares forward, we update the enpassant flag accordingly
-            if (to & RANK_5 != 0) && (from & self.array[PAWN_B] & RANK_1 != 0) {
+            if (to & RANK_3 != 0) && (from & self.array[PAWN_B] & RANK_1 != 0) {
                 self.array[INFO] |= parsing::bin_to_compr_enpassant(from >> 8);
             }
 
@@ -411,6 +411,7 @@ impl Fen {
         let opponents: u64;
         let can_enpassant: bool;
         let enpassant_attacks: u64;
+        let mut pawns: u64;
 
         if white_to_move {
             opponent_queens = self.array[QUEEN_B];
@@ -429,6 +430,7 @@ impl Fen {
             // We check if the enpassant flag is non-empty, and if there is a pawn that could do the en passant move
             enpassant_attacks = enpassant >> 8;
             can_enpassant = (enpassant != 0) && ((((enpassant >> 7) & !FILE_7) | ((enpassant >> 9) & !FILE_0)) & self.array[PAWN_W] != 0);
+            pawns = self.array[PAWN_W];
 
         } else {
             opponent_queens = self.array[QUEEN_W];
@@ -446,13 +448,14 @@ impl Fen {
 
             // We check if the enpassant flag is non-empty, and if there is a pawn that could do the en passant move
             enpassant_attacks = enpassant << 8;
-            can_enpassant = (enpassant != 0) && ((((enpassant << 7) & !FILE_0) | ((enpassant >> 9) & !FILE_7)) & self.array[PAWN_B] != 0);
+            can_enpassant = (enpassant != 0) && ((((enpassant << 7) & !FILE_0) | ((enpassant << 9) & !FILE_7)) & self.array[PAWN_B] != 0);
+            pawns = self.array[PAWN_B];
         }
 
         attacks |= parsing::bit_128_to_64(king_attack(parsing::bit_64_to_128(opponent_king)));
         allow_enpassant = can_enpassant;
 
-        let mut sliders: [u64; 3] = [opponent_queens, opponent_bishops, opponent_rooks];
+        let mut sliders: [u64; 3] = [opponent_queens, opponent_rooks, opponent_bishops];
         let slider_function_sizes: [usize; 3] = [8, 4, 4];
         
         let slider_functions: [[fn(u64, usize) -> u64; 8]; 3] = [
@@ -460,10 +463,10 @@ impl Fen {
             [up, down, left, right, none, none, none, none],
             [upleft, upright, downleft, downright, none, none, none, none],
         ];
-        let slider_blockers: [[u64; 8]; 3] = [
-            [RANK_0, RANK_7, FILE_0, FILE_7, RANK_0 | FILE_0, RANK_0 | FILE_7, RANK_7 | FILE_0, RANK_7 | FILE_7],
-            [RANK_0, RANK_7, FILE_0, FILE_7, EMPTY, EMPTY, EMPTY, EMPTY],
-            [RANK_0 | FILE_0, RANK_0 | FILE_7, RANK_7 | FILE_0, RANK_7 | FILE_7, EMPTY, EMPTY, EMPTY, EMPTY],
+        let slider_wrap_around: [[u64; 8]; 3] = [
+            [EMPTY, EMPTY, FILE_7, FILE_0, FILE_7, FILE_0, FILE_7, FILE_0],
+            [EMPTY, EMPTY, FILE_7, FILE_0, EMPTY, EMPTY, EMPTY, EMPTY],
+            [FILE_7, FILE_0, FILE_7, FILE_0, EMPTY, EMPTY, EMPTY, EMPTY],
         ];
         
         // We now go through each sliding piece to determine it pins, checks, etc
@@ -483,8 +486,13 @@ impl Fen {
                     let mut xray_blocked: bool = false;
                     let mut found_king: bool = false;
 
-                    for i in 0..8 {
+                    for i in 1..8 {
                         let pos: u64 = slider_functions[slider_index][dir_index](piece, i);
+
+                        if pos == 0 || (pos & slider_wrap_around[slider_index][dir_index] != 0) {
+                            // If we reach the end of the board, we stop the ray
+                            break
+                        }
 
                         if !found_king {
                             ray |= pos;
@@ -496,7 +504,7 @@ impl Fen {
                             }
                         }
 
-                        if pos & opponent_king != 0 {
+                        if pos & active_king != 0 {
                             found_king = true;
 
                             if blocked {
@@ -512,15 +520,10 @@ impl Fen {
                                 // If we find a piece we are blocked
                                 blocked = true;
                                 
-                                if pos & opponent_king == 0 {
+                                if pos & active_king == 0 {
                                     xray_blocked = true;
                                 }
                             }
-                        }
-
-                        if pos & slider_blockers[slider_index][dir_index] != 0 {
-                            // If we reach the end of the board, we stop the ray
-                            break
                         }
                     }
 
@@ -528,25 +531,25 @@ impl Fen {
                     if found_king {
 
                         let number_of_blockers: u32 = (ray & all_pieces).count_ones() - 2;
-                        let blockers: u64 = ray & !(piece | opponent_king);
+                        let blockers: u64 = ray & !(piece | active_king);
 
                         if number_of_blockers == 0 {
 
-                            // If the only pieces in the ray are the piece itself and the opponent king, we have a check.
+                            // If the only pieces in the ray are the piece itself and the opponent king, we have a check
                             is_check = true;
-                            check_or_pin = ray & !opponent_king;
+                            check_or_pin = ray & !active_king;
 
                         } else if number_of_blockers == 1 {
 
-                            if blockers & opponents != 0 {
-                                // If the attack is blocked by one piece of the opposing color, we have a pin.
-                                check_or_pin = ray & !opponent_king;
+                            if blockers & team != 0 {
+                                // If the attack is blocked by a piece of the current color, we have a pin
+                                check_or_pin = ray & !active_king;
                             } else if can_enpassant && (enpassant_attacks & blockers != 0) && (enpassant & blockers == 0) {
                                 // We prevent enpassant in a case like 8/8/K7/1pP5/8/8/4b3/7k w - - 0 1
                                 allow_enpassant = false;
                             }
 
-                        } else if number_of_blockers == 2 && can_enpassant && (enpassant_attacks & blockers != 0) && ((((enpassant_attacks >> 1) & !FILE_0) & opponent_pawns & blockers != 0) || (((enpassant_attacks << 1) & !FILE_7) & opponent_pawns & blockers != 0)) {
+                        } else if number_of_blockers == 2 && can_enpassant && (enpassant_attacks & blockers != 0) && ((((enpassant_attacks >> 1) & !FILE_0) & pawns & blockers != 0) || (((enpassant_attacks << 1) & !FILE_7) & pawns & blockers != 0)) {
                             // We prevent enpassant in a case like 8/8/8/KpP4r/8/8/8/7k w - - 0 1
                             allow_enpassant = false;
                         }
@@ -600,7 +603,6 @@ impl Fen {
         let king_attacks: u64 = parsing::bit_128_to_64(king_attack(parsing::bit_64_to_128(active_king)));
         let mut king_moves: u64 = king_attacks & !attacks & !team & !xray_checks;
         
-        let mut pawns: u64;
         let mut knights: u64;
         let queens: u64;
         let rooks: u64;
@@ -608,7 +610,6 @@ impl Fen {
 
         if white_to_move {
 
-            pawns = self.array[PAWN_W];
             queens = self.array[QUEEN_W];
             knights = self.array[KNIGHT_W];
             rooks = self.array[ROOK_W];
@@ -626,7 +627,6 @@ impl Fen {
 
         } else {
 
-            pawns = self.array[PAWN_B];
             queens = self.array[QUEEN_B];
             knights = self.array[KNIGHT_B];
             rooks = self.array[ROOK_B];
@@ -757,8 +757,8 @@ impl Fen {
                     }
                 }
 
-                let downleft: u64 = (pawn >> 9) & !FILE_0;
-                let downright: u64 = (pawn >> 7) & !FILE_7;
+                let downleft: u64 = (pawn >> 7) & !FILE_7;
+                let downright: u64 = (pawn >> 9) & !FILE_0;
 
                 if (downleft & opponents != 0) || (allow_enpassant && (downleft & enpassant != 0)) {
                     pawn_moves |= downleft;
@@ -889,8 +889,9 @@ impl Fen {
             }
         }
 
+        // println!("Total: {:?} moves", index);
         // for i in 0..index {
-        //     print!("{:?} ", parsing_new::move_to_lan(&result[i]))
+        //     print!("{:?} ", parsing::move_to_lan(&result[i]))
         // }
         // print!("\n");
 
