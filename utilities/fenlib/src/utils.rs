@@ -46,15 +46,12 @@ pub const MAX_MOVES: usize = 218;
 
 /// Max number of sliding pieces per side, this is 13 in a legal chess game.
 /// We may want to increase it to allow for any number of sliding pieces.
-pub const MAX_SLIDERS: usize = 13;
+pub const MAX_PINS: usize = 8;
 
 pub const WHITE_WINS: &str = "1-0";
 pub const BLACK_WINS: &str = "0-1";
 pub const DRAW: &str = "½-½";
 pub const NOT_ENDED: &str = "not ended";
-
-pub type Move = [u64; 3];
-pub type MoveArray = [[u64; 3]; MAX_MOVES];
 
 // -------------------- Array Index --------------------
 
@@ -78,6 +75,11 @@ pub const PIECE_SIZE: usize = 12;
 pub const ARRAY_SIZE: usize = 15;
 
 pub type Array = [u64; ARRAY_SIZE];
+
+pub type PinArray = [u64; MAX_PINS];
+
+pub type Move = [u64; 3];
+pub type MoveArray = [[u64; 3]; MAX_MOVES];
 
 // -------------------- Info Position --------------------
 
@@ -151,6 +153,7 @@ pub const DEFAULT_FEN: [u64; ARRAY_SIZE] = [
 // -------------------- u128 constants --------------------
 
 pub const FIRST_128: u128 = 0x80000000000000000000000000000000;
+pub const EMPTY_128: u128 = 0x0;
 
 // ==================== Helper Functions ====================
 
