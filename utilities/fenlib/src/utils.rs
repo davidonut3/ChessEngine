@@ -55,6 +55,19 @@ pub const NOT_ENDED: &str = "not ended";
 
 // -------------------- Array Index --------------------
 
+pub const UP: usize = 0;
+pub const DOWN:usize = 1;
+pub const LEFT: usize = 2;
+pub const RIGHT: usize = 3;
+pub const UPLEFT: usize = 4;
+pub const UPRIGHT: usize = 5;
+pub const DOWNLEFT: usize = 6;
+pub const DOWNRIGHT: usize = 7;
+
+pub const ROOK_DIRS: [usize; 4] = [UP, DOWN, LEFT, RIGHT];
+pub const BISHOP_DIRS: [usize; 4] = [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT];
+pub const QUEEN_DIRS: [usize; 8] = [UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT];
+
 pub const PAWN_W: usize = 0;
 pub const PAWN_B: usize = 1;
 pub const KING_W: usize = 2;

@@ -1,4 +1,4 @@
-use crate::logic::*;
+use crate::attacks::*;
 use crate::parsing;
 use crate::utils::*;
 
@@ -855,14 +855,14 @@ impl Fen {
 
         // We generate the moves for the sliding pieces
         let mut other_pieces: [u64; 3] = [queens, rooks, bishops];
-        let other_pieces_attacks: [fn(u128, u128) -> u128; 3] = [queen_attack, rook_attack, bishop_attack];
+        let other_pieces_attacks: [fn(u64, u64) -> u64; 3] = [queen_attack, rook_attack, bishop_attack];
         
         for i in 0..3 {
             while other_pieces[i] != 0 {
                 let square: u32 = other_pieces[i].trailing_zeros();
                 let piece: u64 = 1u64 << square;
 
-                let mut moves: u64 = parsing::bit_128_to_64(other_pieces_attacks[i](parsing::bit_64_to_128(piece), parsing::bit_64_to_128(all_pieces))) & !team;
+                let mut moves: u64 = other_pieces_attacks[i](piece, all_pieces) & !team;
 
                 if number_of_sliding_checks == 1 {
                     moves &= sliding_checks[0];

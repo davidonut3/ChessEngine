@@ -30,7 +30,14 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-# test()
+test()
 
-for _ in range(10):
-    move_gen_perft_py()
+# perft("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", False)
+
+fen = FenPy()
+# fen.lan_to_fen('a2a3')
+# fen.lan_to_fen('f7f5')
+# fen.lan_to_fen('a1a2')
+# fen.lan_to_fen('e8f7')
+
+# perft_check(6, fen.to_string(), True)
