@@ -34,7 +34,7 @@ def test():
 
 # perft("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", False)
 
-fen = FenPy()
+# fen = FenPy()
 # fen.lan_to_fen('a2a3')
 # fen.lan_to_fen('f7f5')
 # fen.lan_to_fen('a1a2')

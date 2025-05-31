@@ -456,17 +456,11 @@ impl Fen {
         allow_enpassant = can_enpassant;
 
         let mut sliders: [u64; 3] = [opponent_queens, opponent_rooks, opponent_bishops];
-        let slider_function_sizes: [usize; 3] = [8, 4, 4];
-        
-        let slider_functions: [[fn(u64, usize) -> u64; 8]; 3] = [
-            [up, down, left, right, upleft, upright, downleft, downright],
-            [up, down, left, right, none, none, none, none],
-            [upleft, upright, downleft, downright, none, none, none, none],
-        ];
-        let slider_wrap_around: [[u64; 8]; 3] = [
-            [EMPTY, EMPTY, FILE_7, FILE_0, FILE_7, FILE_0, FILE_7, FILE_0],
-            [EMPTY, EMPTY, FILE_7, FILE_0, EMPTY, EMPTY, EMPTY, EMPTY],
-            [FILE_7, FILE_0, FILE_7, FILE_0, EMPTY, EMPTY, EMPTY, EMPTY],
+        let slider_direction_counts: [usize; 3] = [8, 4, 4];
+        let slider_directions: [[usize; 8]; 3] = [
+            [UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT],
+            [UP, DOWN, LEFT, RIGHT, NO_DIR, NO_DIR, NO_DIR, NO_DIR],
+            [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, NO_DIR, NO_DIR, NO_DIR, NO_DIR],
         ];
         
         // We now go through each sliding piece to determine it pins, checks, etc
@@ -474,76 +468,42 @@ impl Fen {
             while sliders[slider_index] != 0 {
                 let square: u32 = sliders[slider_index].trailing_zeros();
                 let piece: u64 = 1u64 << square;
+                let index: usize = piece.leading_zeros() as usize;
 
                 let mut check_or_pin: u64 = EMPTY;
                 let mut is_check: bool = false;
 
-                for dir_index in 0..slider_function_sizes[slider_index] {
+                for i in 0..slider_direction_counts[slider_index] {
 
-                    // We shoot a ray in the given direction, until it finds the end of the board
-                    let mut ray: u64 = piece;
-                    let mut blocked: bool = false;
-                    let mut xray_blocked: bool = false;
-                    let mut found_king: bool = false;
-
-                    for i in 1..8 {
-                        let pos: u64 = slider_functions[slider_index][dir_index](piece, i);
-
-                        if pos == 0 || (pos & slider_wrap_around[slider_index][dir_index] != 0) {
-                            // If we reach the end of the board, we stop the ray
-                            break
-                        }
-
-                        if !found_king {
-                            ray |= pos;
-                        } else if !xray_blocked {
-                            xray_checks |= pos;
-
-                            if pos & all_pieces != 0 {
-                                xray_blocked = true;
-                            }
-                        }
-
-                        if pos & active_king != 0 {
-                            found_king = true;
-
-                            if blocked {
-                                xray_blocked = true;
-                            }
-                        }
-
-                        if !blocked {
-                            // If we have not been blocked yet, we add the position to the attacks
-                            attacks |= pos;
-
-                            if pos & all_pieces != 0 {
-                                // If we find a piece we are blocked
-                                blocked = true;
-                                
-                                if pos & active_king == 0 {
-                                    xray_blocked = true;
-                                }
-                            }
-                        }
+                    let dir: usize = slider_directions[slider_index][i];
+                    let ray: u64 = RAY_OCC[dir][index];
+                    let blockers: u64 = ray & all_pieces;
+                    
+                    if blockers == 0 {
+                        attacks |= ray;
+                    } else {
+                        attacks |= slider_attack(piece, blockers, dir);
                     }
 
+                    if ray & active_king != 0 {
+                        let check_ray: u64 = check_ray(piece, opponent_king, dir);
 
-                    if found_king {
-
-                        let number_of_blockers: u32 = (ray & all_pieces).count_ones() - 2;
+                        let number_of_blockers: u32 = (check_ray & all_pieces).count_ones() - 2;
                         let blockers: u64 = ray & !(piece | active_king);
 
                         if number_of_blockers == 0 {
 
                             // If the only pieces in the ray are the piece itself and the opponent king, we have a check
                             is_check = true;
-                            check_or_pin = ray & !active_king;
+                            check_or_pin = check_ray & !active_king;
+
+                            xray_checks |= check_xray(active_king, dir);
 
                         } else if number_of_blockers == 1 {
 
                             if blockers & team != 0 {
                                 // If the attack is blocked by a piece of the current color, we have a pin
-                                check_or_pin = ray & !active_king;
+                                check_or_pin = check_ray & !active_king;
                             } else if can_enpassant && (enpassant_attacks & blockers != 0) && (enpassant & blockers == 0) {
                                 // We prevent enpassant in a case like 8/8/K7/1pP5/8/8/4b3/7k w - - 0 1
                                 allow_enpassant = false;

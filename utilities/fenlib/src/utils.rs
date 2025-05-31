@@ -63,6 +63,7 @@ pub const UPLEFT: usize = 4;
 pub const UPRIGHT: usize = 5;
 pub const DOWNLEFT: usize = 6;
 pub const DOWNRIGHT: usize = 7;
+pub const NO_DIR: usize = 8;
 
 pub const ROOK_DIRS: [usize; 4] = [UP, DOWN, LEFT, RIGHT];
 pub const BISHOP_DIRS: [usize; 4] = [UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT];
@@ -204,40 +205,4 @@ pub fn print_bitboard_128(bitboard: u128) {
         }
     }
     println!("{:?}", result);
-}
-
-pub fn up(piece: u64, index: usize) -> u64 {
-    piece << 8 * index
-}
-
-pub fn down(piece: u64, index: usize) -> u64 {
-    piece >> 8 * index
-}
-
-pub fn left(piece: u64, index: usize) -> u64 {
-    piece << 1 * index
-}
-
-pub fn right(piece: u64, index: usize) -> u64 {
-    piece >> 1 * index
-}
-
-pub fn upleft(piece: u64, index: usize) -> u64 {
-    piece << 9 * index
-}
-
-pub fn upright(piece: u64, index: usize) -> u64 {
-    piece << 7 * index
-}
-
-pub fn downleft(piece: u64, index: usize) -> u64 {
-    piece >> 7 * index
-}
-
-pub fn downright(piece: u64, index: usize) -> u64 {
-    piece >> 9 * index
-}
-
-pub fn none(piece: u64, index: usize) -> u64 {
-    (piece << index) >> index
 }
