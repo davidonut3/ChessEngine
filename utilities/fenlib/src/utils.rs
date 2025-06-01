@@ -191,7 +191,7 @@ pub fn print_bitboard(bitboard: u64) {
             result += "0";
         }
     }
-    println!("{:?}", result);
+    println!("{}", result);
 }
 
 /// Helper function for printing u128 bitboards.
@@ -204,5 +204,5 @@ pub fn print_bitboard_128(bitboard: u128) {
             result += "0";
         }
     }
-    println!("{:?}", result);
+    println!("{}", result);
 }

@@ -486,10 +486,10 @@ impl Fen {
                     }
 
                     if ray & active_king != 0 {
-                        let check_ray: u64 = check_ray(piece, opponent_king, dir);
+                        let check_ray: u64 = check_ray(piece, active_king, dir);
 
-                        let number_of_blockers: u32 = (check_ray & all_pieces).count_ones() - 2;
-                        let blockers: u64 = ray & !(piece | active_king);
+                        let blockers: u64 = check_ray & !piece;
+                        let number_of_blockers: u32 = (blockers & all_pieces).count_ones();
 
                         if number_of_blockers == 0 {
 

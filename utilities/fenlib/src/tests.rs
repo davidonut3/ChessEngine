@@ -27,16 +27,12 @@ pub fn perft(max_depth: usize, fen_str: &str, per_move: bool) -> usize {
         for i in 0..move_count {
             let move1: Move = legal_moves[i];
 
-            if per_move {
-                println!("{} | leads to: ", parsing::move_to_lan(&move1));
-            }
-
             let mut new_fen: Fen = fen.clone();
             new_fen.move_to_fen(move1);
             let count: usize = recursive_perft_check(&new_fen, max_depth - 1);
 
             if per_move {
-                println!("{:?}", count);
+                println!("{}: {:?}", parsing::move_to_lan(&move1), count);
             }
             total += count;
         }

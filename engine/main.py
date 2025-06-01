@@ -19,27 +19,9 @@ def test():
     # BotVsBotMatch(visual_debugger, bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
     PlayerVsPlayerMatch(fen, WHITE).run_match()
 
-# def show_board(board):
-#     fen = FenPy().from_str(board)
-#     visual = Visual(fen, WHITE)
-#     visual.setup()
-#     visual.show_board()
-
-# show_board('8/B5R1/8/2p2P2/2P5/p5pb/1kq2b2/4K3 w - - 14 99')
-
 # if __name__ == "__main__":
 #     bench()
 
 # test()
 
-# perft("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", False)
-
-# fen = FenPy()
-# fen.lan_to_fen('a2a3')
-# fen.lan_to_fen('f7f5')
-# fen.lan_to_fen('a1a2')
-# fen.lan_to_fen('e8f7')
-
-# perft_check(6, fen.to_string(), True)
-
-perft(DEFAULT, False)
+move_gen_perft_py()

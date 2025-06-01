@@ -328,9 +328,9 @@ pub const CHECK_RAY_BLOCKER_BEFORE_PIECE: OccupancyArray = [
     EMPTY,
     EMPTY,
     EMPTY,
-    0b0000000000000000001000000001000000001000000001000000001000000001,
+    0b0000000001000000001000000001000000001000000001000000001000000001,
     EMPTY,
-    0b0000000000000010000001000000100000010000001000000100000010000001,
+    0b0000000000000001000000010000000100000001000000010000000100000001,
     EMPTY,
     EMPTY,
     EMPTY,
@@ -1256,7 +1256,7 @@ pub fn check_ray(piece: u64, king: u64, dir: usize) -> u64 {
 
             let piece_index: usize = piece.trailing_zeros() as usize;
             let block_index: usize = king.trailing_zeros() as usize;
-            let distance: usize = (piece_index - block_index) as usize;
+            let distance: usize = (block_index - piece_index) as usize;
 
             if distance == 7 && dir == UPRIGHT {
                 return piece
@@ -1269,7 +1269,6 @@ pub fn check_ray(piece: u64, king: u64, dir: usize) -> u64 {
 
             let piece_index: usize = piece.leading_zeros() as usize;
             let block_index: usize = king.leading_zeros() as usize;
-            println!("{:?} {:?}", piece_index, block_index);
             let distance: usize = (block_index - piece_index) as usize;
 
             if distance == 7 && dir == DOWNLEFT {
