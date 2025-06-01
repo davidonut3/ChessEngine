@@ -8,3 +8,4 @@ name = "botv1_2"
 
 [dependencies]
 fenlib = { path = "../../utilities/fenlib" }
+rand = "0.9"

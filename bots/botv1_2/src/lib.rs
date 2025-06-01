@@ -1,8 +1,10 @@
 use fenlib::fen::*;
 use fenlib::utils::*;
 use fenlib::parsing;
+use rand::Rng;
 use std::time::Instant;
 use std::time::Duration;
+use rand;
 
 /*
 BotV1_2 implements:
@@ -27,7 +29,7 @@ const EQUAL: u32 = 0x80000000;
 const INFINITY: u32 = u32::max_value();
 const MAX_TIME_MILI: u64 = 0x3E8; //1000 miliseconds per move
 
-pub fn eval(fen: Fen) -> u32 {
+pub fn eval(fen: &Fen) -> u32 {
     let mut score: u32 = EQUAL;
 
     score += PAWN_VAL * fen.array[PAWN_W].count_ones();
@@ -71,19 +73,20 @@ pub fn get_better_move(white_to_move: bool, old: u32, new: u32) -> u32 {
 #[derive(Debug, Clone)]
 pub struct Bot {
     fen: Fen,
+    prev_moves: [Move; 2],
 }
 
 impl Bot {
     pub fn new() -> Self {
         let fen: Fen = Fen::new();
 
-        Self { fen, }
+        Self { fen, prev_moves: [[0; 3]; 2] }
     }
 
     pub fn from_fen(fen_str: &str) -> Self {
         let fen: Fen = Fen::from_str(fen_str);
 
-        Self { fen, }
+        Self { fen, prev_moves: [[0; 3]; 2] }
     }
 
     pub fn minimax(&self, fen: Fen, depth: u32, start_time: Instant, max_time: Duration) -> Option<u32> {
@@ -93,7 +96,7 @@ impl Bot {
         }
         
         if depth == 0 {
-            return Some(eval(fen))
+            return Some(eval(&fen))
         }
 
         let white_to_move: bool = fen.white_to_move();
@@ -144,14 +147,21 @@ impl Bot {
 
                 } else {
 
-                    if best_score > best_prev_score {
-                        self.fen.move_to_fen(best_move);
-                        return parsing::move_to_lan(&best_move)
-                    } else {
-                        self.fen.move_to_fen(best_prev_move);
-                        return parsing::move_to_lan(&best_prev_move)
+                    if best_score < best_prev_score {
+                        best_move = best_prev_move
                     }
 
+                    if best_move == self.prev_moves[1] {
+                        let mut rng = rand::rng();
+                        let index: usize = rng.random_range(0..move_count);
+                        best_move = moves[index];
+                    }
+
+                    self.prev_moves[1] = self.prev_moves[0];
+                    self.prev_moves[0] = best_move;
+
+                    self.fen.move_to_fen(best_move);
+                    return parsing::move_to_lan(&best_move)
                 }
             }
 
