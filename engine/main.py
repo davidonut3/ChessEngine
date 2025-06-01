@@ -11,13 +11,13 @@ def perft(fen_str, per_move):
 def test():
     fen = FenPy()
     # fen = fen.from_str("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1")
-    bot1 = BotV1_1Py()
+    bot1 = BotV1_2Py()
     bot2 = BotV1_1Py()
     bot1 = bot1.from_fen(fen.to_string())
     bot2 = bot2.from_fen(fen.to_string())
-    # PlayerVsBotMatch(bot1, player_is_white=True, fen=fen, perspective=WHITE).run_match()
-    # BotVsBotMatch(visual_debugger, bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
-    PlayerVsPlayerMatch(fen, WHITE).run_match()
+    # PlayerVsBotMatch(bot1, player_is_white=True, fen=fen, perspective=BLACK).run_match()
+    BotVsBotMatch(bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
+    # PlayerVsPlayerMatch(fen, WHITE).run_match()
 
 # if __name__ == "__main__":
 #     bench()

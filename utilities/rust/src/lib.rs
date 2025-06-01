@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 use fenlib::fen::*;
 use fenlib::tests;
 use botv1_1;
+use botv1_2;
 
 /// A Python-exposed wrapper for the `Fen` struct from fenlib, representing a chess position.
 /// Code by David van den Beukel, documentation by ChatGPT.
@@ -127,6 +128,37 @@ impl BotV1_1Py {
     }
 }
 
+
+#[pyclass]
+#[derive(Debug, Clone)]
+pub struct BotV1_2Py {
+    botv1: botv1_2::Bot,
+}
+
+#[pymethods]
+impl BotV1_2Py {
+    #[new]
+    pub fn new() -> Self {
+        let botv1: botv1_2::Bot = botv1_2::Bot::new();
+        Self { botv1 }
+    }
+
+    #[staticmethod]
+    pub fn from_fen(fen_str: &str) -> Self {
+        let botv1: botv1_2::Bot = botv1_2::Bot::from_fen(fen_str);
+        Self { botv1 }
+    }
+
+    pub fn get_move(&mut self) -> String {
+        self.botv1.get_move()
+    }
+
+    pub fn receive_move(&mut self, lan: &str) {
+        self.botv1.receive_move(lan);
+    }
+}
+
+
 #[pyfunction]
 pub fn perft_check(max_depth: usize, fen_str: &str, per_move: bool) {
     let count: usize = tests::perft(max_depth, fen_str, per_move);
@@ -149,6 +181,7 @@ pub fn moves_per_second_perft_py() {
 fn rust_utils(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FenPy>()?;
     m.add_class::<BotV1_1Py>()?;
+    m.add_class::<BotV1_2Py>()?;
     m.add_function(wrap_pyfunction!(move_gen_perft_py, m)?)?;
     m.add_function(wrap_pyfunction!(perft_check, m)?)?;
     m.add_function(wrap_pyfunction!(moves_per_second_perft_py, m)?)?;

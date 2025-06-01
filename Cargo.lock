@@ -154,6 +154,7 @@ name = "rust_utils"
 version = "0.1.0"
 dependencies = [
  "botv1_1",
+ "botv1_2",
  "fenlib",
  "pyo3",
 ]
