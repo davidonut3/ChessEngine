@@ -62,44 +62,58 @@ pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
     }
 }
 
-fn analyze_durations(durations: &[Duration; 1000]) -> (Duration, Duration, Duration) {
-    let mut total_nanos: u128 = 0;
-    let mut min: Duration = durations[0];
-    let mut max: Duration = durations[0];
-
-    for &d in durations {
-        total_nanos += d.as_nanos();
-        if d < min {
-            min = d;
-        }
-        if d > max {
-            max = d;
-        }
-    }
-
-    let avg: Duration = Duration::from_nanos((total_nanos / durations.len() as u128) as u64);
-    (min, max, avg)
-}
-
 pub fn move_gen_perft() {
     let global_time: Instant = Instant::now();
     println!("Starting performance test for move generation");
     let games: [Fen; 1000] = games::get_random_games();
     println!("Creating Fens took {:?}", global_time.elapsed());
 
+    // We call the function once before testing since the first one is always significantly slower than the rest
+    games[0].get_legal_moves_array();
+
     let mut durations: [Duration; 1000] = [Duration::from_nanos(0); 1000];
     for i in 0..1000 {
         let time: Instant = Instant::now();
-        games[i].get_legal_moves_vec();
+        games[i].get_legal_moves_array();
         durations[i] = time.elapsed();
     }
 
-    let info: (Duration, Duration, Duration) = analyze_durations(&durations);
-    let min: Duration = info.0;
-    let max: Duration = info.1;
-    let average: Duration = info.2;
+    let mut total_nanos: u128 = 0;
+    let mut min: Duration = durations[0];
+    let mut max: Duration = durations[0];
 
-    println!("Min duration {:?}", min);
-    println!("Max duration {:?}", max);
-    println!("Average duration {:?}", average);
+    let mut worst_fen: String = games[0].to_string();
+    let mut best_fen: String = games[0].to_string();
+
+    for i in 0..1000 {
+        let duration: Duration = durations[i];
+        println!("{:?} at {}", duration, games[i].to_string());
+        total_nanos += duration.as_nanos();
+
+        if duration < min {
+            min = duration;
+            best_fen = games[i].to_string();
+        }
+
+        if duration > max {
+            max = duration;
+            worst_fen = games[i].to_string();
+        }
+    }
+
+    let avg: Duration = Duration::from_nanos((total_nanos / durations.len() as u128) as u64);
+
+    println!("Min duration {:?} at {}", min, best_fen);
+    println!("Max duration {:?} at {}", max, worst_fen);
+    println!("Average duration {:?}", avg);
+}
+
+pub fn moves_per_second_perft() {
+    let time: Instant = Instant::now();
+
+    let count = perft(7, DEFAULT, false);
+    
+    let duration = time.elapsed();
+
+    println!("Getting {:?} moves took {:?}", count, duration)
 }

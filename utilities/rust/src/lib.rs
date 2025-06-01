@@ -138,6 +138,11 @@ pub fn move_gen_perft_py() {
     tests::move_gen_perft();
 }
 
+#[pyfunction]
+pub fn moves_per_second_perft_py() {
+    tests::moves_per_second_perft();
+}
+
 
 /// The Python module entry point for the `rust_utils` package.
 #[pymodule]
@@ -146,5 +151,6 @@ fn rust_utils(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<BotV1_1Py>()?;
     m.add_function(wrap_pyfunction!(move_gen_perft_py, m)?)?;
     m.add_function(wrap_pyfunction!(perft_check, m)?)?;
+    m.add_function(wrap_pyfunction!(moves_per_second_perft_py, m)?)?;
     Ok(())
 }

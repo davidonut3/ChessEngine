@@ -22,6 +22,4 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-# test()
-
-move_gen_perft_py()
+test()
