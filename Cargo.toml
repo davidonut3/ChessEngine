@@ -7,5 +7,7 @@ resolver = "3"
 members = [
     "utilities/fenlib",
     "utilities/rust",
-    "bots/botv1_1", "fenlib_old",
+    "bots/botv1_1",
+    "fenlib_old",
+    "bots/botv1_2",
 ]

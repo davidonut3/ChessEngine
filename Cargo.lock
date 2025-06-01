@@ -16,6 +16,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "botv1_2"
+version = "0.1.0"
+dependencies = [
+ "fenlib",
+]
+
+[[package]]
 name = "fenlib"
 version = "0.1.0"
 

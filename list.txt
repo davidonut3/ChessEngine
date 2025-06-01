@@ -1,19 +1,10 @@
 Others:
 
+- Evaluate positions or moves?
 - load images before running, instead of reloading them during running
-- optimise fenlib (most String -> u64 have been done, but we can still always optimise)
 - make custom LargeMove ([u128; 3], good for speed, bad for memory) and SmallMove (u16, bad for speed, good for memory) structs in fenlib
 
 Possible optimizations for bots and fenlib:
 
 - Switch eval system to bits instead of 'regular' computation
 - Remove promotion flag from move to save space
-- Switch back to u64 to see performance differences
-- Switch to lookup table for attack patterns instead of functions
-
-Code quality:
-
-
-
-Currently:
-
