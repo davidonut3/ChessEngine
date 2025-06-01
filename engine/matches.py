@@ -15,12 +15,22 @@ def run_match_worker(games):
         fen = FenPy()
         fen = fen.from_str(game)
 
-        bot1 = BotV1Py().from_fen(fen.to_string())
-        bot2 = BotV1Py().from_fen(fen.to_string())
+        bot1 = BotV1_1Py().from_fen(fen.to_string())
+        bot2 = BotV1_2Py().from_fen(fen.to_string())
         
-        match = BotVsBotMatch(None, bot1, bot2, delay=0, fen=fen, is_visual=False, perspective=WHITE)
-        result = match.run_match()
-        results.append(result)
+        match = BotVsBotMatch(bot1, bot2, delay=0, fen=fen, is_visual=False, perspective=WHITE)
+        result1 = match.run_match()
+
+        fen = FenPy()
+        fen = fen.from_str(game)
+
+        bot1 = BotV1_1Py().from_fen(fen.to_string())
+        bot2 = BotV1_2Py().from_fen(fen.to_string())
+        
+        match = BotVsBotMatch(bot2, bot1, delay=0, fen=fen, is_visual=False, perspective=WHITE)
+        result2 = match.run_match()
+
+        results.append([result1, result2])
 
     return results
 
@@ -37,11 +47,20 @@ def run():
 
     for result_list in all_results:
         for result in result_list:
-            if result == '1-0':
+            if result[0] == '1-0':
                 bot1_wins += 1
-            elif result == '0-1':
+            elif result[0] == '0-1':
                 bot2_wins += 1
-            elif result == '½-½' or result == '1/2-1/2':
+            elif result[0] == '½-½' or result[0] == '1/2-1/2':
+                draws += 1
+            else:
+                print(f"Unknown result: {result}")
+
+            if result[1] == '1-0':
+                bot2_wins += 1
+            elif result[1] == '0-1':
+                bot1_wins += 1
+            elif result[1] == '½-½' or result[1] == '1/2-1/2':
                 draws += 1
             else:
                 print(f"Unknown result: {result}")

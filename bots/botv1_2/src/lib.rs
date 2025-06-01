@@ -1,10 +1,8 @@
 use fenlib::fen::*;
 use fenlib::utils::*;
 use fenlib::parsing;
-use rand::Rng;
 use std::time::Instant;
 use std::time::Duration;
-use rand;
 
 /*
 BotV1_2 implements:
@@ -13,6 +11,7 @@ BotV1_2 implements:
 - eval function based on material score
 - time constraint for searching tree
 - iterative deepening
+- repetition prevention
 
 */
 
@@ -27,7 +26,8 @@ const KING_VAL: u32 = 20000;
 const EQUAL: u32 = 0x80000000;
 
 const INFINITY: u32 = u32::max_value();
-const MAX_TIME_MILI: u64 = 0x3E8; //1000 miliseconds per move
+const MAX_TIME_MILI: u64 = 1000;
+const EPSILON: u32 = 110;
 
 pub fn eval(fen: &Fen) -> u32 {
     let mut score: u32 = EQUAL;
@@ -73,20 +73,20 @@ pub fn get_better_move(white_to_move: bool, old: u32, new: u32) -> u32 {
 #[derive(Debug, Clone)]
 pub struct Bot {
     fen: Fen,
-    prev_moves: [Move; 2],
+    prev_moves: Vec<Move>,
 }
 
 impl Bot {
     pub fn new() -> Self {
         let fen: Fen = Fen::new();
 
-        Self { fen, prev_moves: [[0; 3]; 2] }
+        Self { fen, prev_moves: Vec::new() }
     }
 
     pub fn from_fen(fen_str: &str) -> Self {
         let fen: Fen = Fen::from_str(fen_str);
 
-        Self { fen, prev_moves: [[0; 3]; 2] }
+        Self { fen, prev_moves: Vec::new() }
     }
 
     pub fn minimax(&self, fen: Fen, depth: u32, start_time: Instant, max_time: Duration) -> Option<u32> {
@@ -151,14 +151,37 @@ impl Bot {
                         best_move = best_prev_move
                     }
 
-                    if best_move == self.prev_moves[1] {
-                        let mut rng = rand::rng();
-                        let index: usize = rng.random_range(0..move_count);
-                        best_move = moves[index];
+                    let mut is_prev_move: bool = false;
+
+                    for prev_move in &self.prev_moves {
+                        if &best_move == prev_move {
+                            is_prev_move = true;
+                        }
                     }
 
-                    self.prev_moves[1] = self.prev_moves[0];
-                    self.prev_moves[0] = best_move;
+                    if is_prev_move {
+                        for move1 in moves {
+                            
+                            let mut new_fen = self.fen.clone();
+                            new_fen.move_to_fen(move1);
+                            let new_score = eval(&new_fen);
+
+                            let mut is_prev_move: bool = false;
+
+                            for prev_move in &self.prev_moves {
+                                if &move1 == prev_move {
+                                    is_prev_move = true;
+                                }
+                            }
+
+                            if !is_prev_move && best_score - new_score < EPSILON {
+                                best_move = move1;
+                                break;
+                            }
+                        }
+                    }
+
+                    self.prev_moves.push(best_move);
 
                     self.fen.move_to_fen(best_move);
                     return parsing::move_to_lan(&best_move)

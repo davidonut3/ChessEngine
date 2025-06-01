@@ -54,12 +54,19 @@ class BotVsBotMatch:
                 if not self.visual.run_static(self):
                     running = False
             else:
-                self.get_move()
+                running = self.get_move()
 
             game_ended = self.fen.game_ended()
             if game_ended == '1-0' or game_ended == '0-1' or game_ended == '½-½':
+
+                winner = None
+                if game_ended == '1-0':
+                    winner = self.white
+                if game_ended == '0-1':
+                    winner = self.black
+
                 win = game_ended
-                print(WIN[win])
+                print(f"{WIN[win]} by {winner} in {self.fen.to_string()}")
                 running = False
         
         if self.is_visual:
@@ -71,10 +78,18 @@ class BotVsBotMatch:
         time.sleep(self.delay)
         if self.fen.white_to_move():
             move = self.white.get_move()
+
+            if not self.fen.is_legal_move_lan(move):
+                return False
+
             self.fen.lan_to_fen(move)
             self.black.receive_move(move)
         else:
             move = self.black.get_move()
+
+            if not self.fen.is_legal_move_lan(move):
+                return False
+
             self.fen.lan_to_fen(move)
             self.white.receive_move(move)
 
