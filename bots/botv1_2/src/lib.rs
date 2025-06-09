@@ -26,7 +26,7 @@ const KING_VAL: u32 = 20000;
 const EQUAL: u32 = 0x80000000;
 
 const INFINITY: u32 = u32::max_value();
-const MAX_TIME_MILI: u64 = 1000;
+const MAX_TIME_MILI: u64 = 10000;
 const EPSILON: u32 = 110;
 
 pub fn eval(fen: &Fen) -> u32 {
@@ -91,6 +91,8 @@ impl Bot {
 
     pub fn minimax(&self, fen: Fen, depth: u32, start_time: Instant, max_time: Duration) -> Option<u32> {
 
+        println!("{:?}", depth);
+
         if start_time.elapsed() >= max_time {
             return None
         }
@@ -101,12 +103,20 @@ impl Bot {
 
         let white_to_move: bool = fen.white_to_move();
         let mut value: u32 = get_worst_eval(white_to_move);
+
+        println!("Getting moves");
+        println!("{}", fen.to_string());
         let (moves, move_count) = fen.get_legal_moves_array();
+        println!("Got moves");
 
         for i in 0..move_count {
 
             let mut new_fen: Fen = fen.clone();
             new_fen.move_to_fen(moves[i]);
+
+            println!("{} {}", fen.to_string(), new_fen.to_string());
+            print_bitboard(moves[i][0]);
+            print_bitboard(moves[i][1]);
 
             if let Some(new_value) = self.minimax(new_fen, depth - 1, start_time, max_time) {
                 value = get_better_move(white_to_move, value, new_value);
@@ -124,6 +134,11 @@ impl Bot {
         let white_to_move: bool = self.fen.white_to_move();
 
         let (moves, move_count) = self.fen.get_legal_moves_array();
+
+        if move_count == 0 {
+            panic!("get_move: No moves available")
+        }
+
         let mut best_move: Move = moves[0];
         let mut best_score: u32 = get_worst_eval(white_to_move);
         let mut depth: u32 = 1;
@@ -160,22 +175,24 @@ impl Bot {
                     }
 
                     if is_prev_move {
-                        for move1 in moves {
+                        for j in 0..move_count {
+
+                            let move2 = moves[j];
                             
                             let mut new_fen = self.fen.clone();
-                            new_fen.move_to_fen(move1);
+                            new_fen.move_to_fen(move2);
                             let new_score = eval(&new_fen);
 
                             let mut is_prev_move: bool = false;
 
                             for prev_move in &self.prev_moves {
-                                if &move1 == prev_move {
+                                if &move2 == prev_move {
                                     is_prev_move = true;
                                 }
                             }
 
                             if !is_prev_move && best_score - new_score < EPSILON {
-                                best_move = move1;
+                                best_move = move2;
                                 break;
                             }
                         }

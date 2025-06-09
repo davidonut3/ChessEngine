@@ -477,19 +477,19 @@ impl Fen {
 
                     let dir: usize = slider_directions[slider_index][i];
                     let ray: u64 = RAY_OCC[dir][index];
-                    let blockers: u64 = ray & all_pieces;
+                    let attack_blockers: u64 = ray & all_pieces;
                     
-                    if blockers == 0 {
+                    if attack_blockers == 0 {
                         attacks |= ray;
                     } else {
-                        attacks |= slider_attack(piece, blockers, dir);
+                        attacks |= slider_attack(piece, attack_blockers, dir);
                     }
 
                     if ray & active_king != 0 {
                         let check_ray: u64 = check_ray(piece, active_king, dir);
 
-                        let blockers: u64 = check_ray & !piece;
-                        let number_of_blockers: u32 = (blockers & all_pieces).count_ones();
+                        let check_blockers: u64 = check_ray & !piece;
+                        let number_of_blockers: u32 = (check_blockers & all_pieces).count_ones();
 
                         if number_of_blockers == 0 {
 
@@ -501,15 +501,15 @@ impl Fen {
 
                         } else if number_of_blockers == 1 {
 
-                            if blockers & team != 0 {
+                            if check_blockers & team != 0 {
                                 // If the attack is blocked by a piece of the current color, we have a pin
                                 check_or_pin = check_ray & !active_king;
-                            } else if can_enpassant && (enpassant_attacks & blockers != 0) && (enpassant & blockers == 0) {
+                            } else if can_enpassant && (enpassant_attacks & check_blockers != 0) && (enpassant & check_blockers == 0) {
                                 // We prevent enpassant in a case like 8/8/K7/1pP5/8/8/4b3/7k w - - 0 1
                                 allow_enpassant = false;
                             }
 
-                        } else if number_of_blockers == 2 && can_enpassant && (enpassant_attacks & blockers != 0) && ((((enpassant_attacks >> 1) & !FILE_0) & pawns & blockers != 0) || (((enpassant_attacks << 1) & !FILE_7) & pawns & blockers != 0)) {
+                        } else if number_of_blockers == 2 && can_enpassant && (enpassant_attacks & check_blockers != 0) && ((((enpassant_attacks >> 1) & !FILE_0) & pawns & check_blockers != 0) || (((enpassant_attacks << 1) & !FILE_7) & pawns & check_blockers != 0)) {
                             // We prevent enpassant in a case like 8/8/8/KpP4r/8/8/8/7k w - - 0 1
                             allow_enpassant = false;
                         }

@@ -25,8 +25,8 @@ BLACK = 'b'
 NO_PIECE = 0
 
 # BATCH_SIZE * 2 * time per player: the number of minutes running matches will take at least
-GAMES = 480
-BATCH_SIZE = 8
+GAMES = 100
+BATCH_SIZE = 10
 
 WIN = {
     '1-0': 'white wins',
