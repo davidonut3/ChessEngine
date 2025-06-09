@@ -23,6 +23,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "botv2_1"
+version = "0.1.0"
+dependencies = [
+ "fenlib",
+]
+
+[[package]]
 name = "fenlib"
 version = "0.1.0"
 
@@ -155,6 +162,7 @@ version = "0.1.0"
 dependencies = [
  "botv1_1",
  "botv1_2",
+ "botv2_1",
  "fenlib",
  "pyo3",
 ]

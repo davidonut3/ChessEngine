@@ -12,3 +12,4 @@ pyo3 = { version = "0.25.0", features = ["extension-module"] }
 fenlib = { path = "../fenlib" }
 botv1_1 = { path = "../../bots/botv1_1" }
 botv1_2 = { path = "../../bots/botv1_2" }
+botv2_1 = { path = "../../bots/botv2_1" }
