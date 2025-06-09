@@ -211,6 +211,8 @@ impl Bot {
 
                     self.prev_moves.push(best_move);
 
+                    println!("{:?}", depth);
+
                     self.fen.move_to_fen(best_move);
                     return parsing::move_to_lan(&best_move)
                 }

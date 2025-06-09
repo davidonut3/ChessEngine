@@ -159,6 +159,36 @@ impl BotV1_2Py {
 }
 
 
+#[pyclass]
+#[derive(Debug, Clone)]
+pub struct BotV2_1Py {
+    botv1: botv2_1::Bot,
+}
+
+#[pymethods]
+impl BotV2_1Py {
+    #[new]
+    pub fn new() -> Self {
+        let botv1: botv2_1::Bot = botv2_1::Bot::new();
+        Self { botv1 }
+    }
+
+    #[staticmethod]
+    pub fn from_fen(fen_str: &str) -> Self {
+        let botv1: botv2_1::Bot = botv2_1::Bot::from_fen(fen_str);
+        Self { botv1 }
+    }
+
+    pub fn get_move(&mut self) -> String {
+        self.botv1.get_move()
+    }
+
+    pub fn receive_move(&mut self, lan: &str) {
+        self.botv1.receive_move(lan);
+    }
+}
+
+
 #[pyfunction]
 pub fn perft_check(max_depth: usize, fen_str: &str, per_move: bool) {
     let count: usize = tests::perft(max_depth, fen_str, per_move);
@@ -182,6 +212,7 @@ fn rust_utils(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FenPy>()?;
     m.add_class::<BotV1_1Py>()?;
     m.add_class::<BotV1_2Py>()?;
+    m.add_class::<BotV2_1Py>()?;
     m.add_function(wrap_pyfunction!(move_gen_perft_py, m)?)?;
     m.add_function(wrap_pyfunction!(perft_check, m)?)?;
     m.add_function(wrap_pyfunction!(moves_per_second_perft_py, m)?)?;
