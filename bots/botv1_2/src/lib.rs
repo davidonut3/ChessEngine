@@ -26,7 +26,7 @@ const KING_VAL: u32 = 20000;
 const EQUAL: u32 = 0x80000000;
 
 const INFINITY: u32 = u32::max_value();
-const MAX_TIME_MILI: u64 = 10000;
+const MAX_TIME_MILI: u64 = 1000;
 const EPSILON: u32 = 110;
 
 pub fn eval(fen: &Fen) -> u32 {
@@ -91,8 +91,6 @@ impl Bot {
 
     pub fn minimax(&self, fen: Fen, depth: u32, start_time: Instant, max_time: Duration) -> Option<u32> {
 
-        println!("{:?}", depth);
-
         if start_time.elapsed() >= max_time {
             return None
         }
@@ -104,19 +102,12 @@ impl Bot {
         let white_to_move: bool = fen.white_to_move();
         let mut value: u32 = get_worst_eval(white_to_move);
 
-        println!("Getting moves");
-        println!("{}", fen.to_string());
         let (moves, move_count) = fen.get_legal_moves_array();
-        println!("Got moves");
 
         for i in 0..move_count {
 
             let mut new_fen: Fen = fen.clone();
             new_fen.move_to_fen(moves[i]);
-
-            println!("{} {}", fen.to_string(), new_fen.to_string());
-            print_bitboard(moves[i][0]);
-            print_bitboard(moves[i][1]);
 
             if let Some(new_value) = self.minimax(new_fen, depth - 1, start_time, max_time) {
                 value = get_better_move(white_to_move, value, new_value);

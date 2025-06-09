@@ -135,7 +135,7 @@ impl Fen {
         }
 
         self.array[INFO] &= !HALFMOVE;
-        self.array[INFO] |= parsing::compr_to_bin_halfmove(halfmove);
+        self.array[INFO] |= parsing::bin_to_compr_halfmove(halfmove);
 
         // The fullmove counter is only increased when black is to move
         if !white_to_move {
