@@ -13,3 +13,4 @@ fenlib = { path = "../fenlib" }
 botv1_1 = { path = "../../bots/botv1_1" }
 botv1_2 = { path = "../../bots/botv1_2" }
 botv2_1 = { path = "../../bots/botv2_1" }
+botv2_2 = { path = "../../bots/botv2_2" }

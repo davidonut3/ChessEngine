@@ -15,8 +15,8 @@ def run_match_worker(games):
         fen = FenPy()
         fen = fen.from_str(game)
 
-        bot1 = BotV2_1Py().from_fen(fen.to_string())
-        bot2 = BotV1_2Py().from_fen(fen.to_string())
+        bot1 = BotV2_2Py().from_fen(fen.to_string())
+        bot2 = BotV2_1Py().from_fen(fen.to_string())
         
         match = BotVsBotMatch(bot1, bot2, delay=0, fen=fen, is_visual=False, perspective=WHITE)
         result1 = match.run_match()
@@ -24,8 +24,8 @@ def run_match_worker(games):
         fen = FenPy()
         fen = fen.from_str(game)
 
-        bot1 = BotV2_1Py().from_fen(fen.to_string())
-        bot2 = BotV1_2Py().from_fen(fen.to_string())
+        bot1 = BotV2_2Py().from_fen(fen.to_string())
+        bot2 = BotV2_1Py().from_fen(fen.to_string())
         
         match = BotVsBotMatch(bot2, bot1, delay=0, fen=fen, is_visual=False, perspective=WHITE)
         result2 = match.run_match()
