@@ -19,7 +19,7 @@ def test():
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
     BotVsBotMatch(bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
-# if __name__ == "__main__":
-#     bench()
+if __name__ == "__main__":
+    bench()
 
-test()
+# test()
