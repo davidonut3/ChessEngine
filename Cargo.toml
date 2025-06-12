@@ -12,4 +12,5 @@ members = [
     "bots/botv1_2",
     "bots/botv2_1",
     "bots/botv2_2",
+    "bots/bot",
 ]
