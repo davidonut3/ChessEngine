@@ -1,0 +1,135 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[hmargin=1.5cm,vmargin=1.5cm]{geometry}
+\usepackage[dutch]{babel}
+\usepackage{parskip}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{amssymb,amsmath,amsthm,dsfont}
+\usepackage{listings}
+\usepackage{enumitem}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\P}{\weirdP}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\K}{\mathbb{K}}
+\renewcommand{\P}{\mathbb{P}}
+
+\newcommand{\PP}{\mathcal{P}}
+\newcommand{\TT}{\mathcal{T}}
+\newcommand{\BB}{\mathcal{B}}
+\newcommand{\CC}{\mathcal{C}}
+\newcommand{\UU}{\mathcal{U}}
+\newcommand{\VV}{\mathcal{V}}
+\newcommand{\OO}{\mathcal{O}}
+\newcommand{\NN}{\mathcal{N}}
+\renewcommand{\SS}{\mathcal{S}}
+
+\renewcommand{\|}{\hspace{0.2cm}|\hspace{0.2cm}}
+\newcommand{\subto}{\mathrel{\vcenter{\hbox{\boldmath{\scalebox{0.6}{$\supset$}}}}\kern-.4em\to}}
+\newcommand{\sub}{\subset}
+\newcommand{\subneq}{\subsetneq}
+\newcommand{\subeq}{\subseteq}
+
+\newcommand{\inlinedus}{\text{,\hspace{0.3cm}dus\hspace{0.3cm}}}
+\newcommand{\inlineals}{\text{,\hspace{0.3cm}als\hspace{0.3cm}}}
+\newcommand{\inlineand}{\text{,\hspace{0.3cm}and\hspace{0.3cm}}}
+\newcommand{\inlineen}{\text{,\hspace{0.3cm}en\hspace{0.3cm}}}
+\newcommand{\als}{\text{\hspace{0.3cm}als\hspace{0.3cm}}}
+\newcommand{\Ker}{\text{\hspace{0.3cm}Ker}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\renewcommand{\theenumi}{\alph{enumi}}
+\renewcommand{\theenumii}{\roman{enumii}}
+\newcommand{\ndiv}{\mathrel{\!\not|}}
+\renewcommand{\epsilon}{\varepsilon}
+\renewcommand{\phi}{\varphi}
+
+% \begin{figure}[htp]
+%     \centering
+%     \includegraphics[width=8cm]{Figure1.png}
+% \end{figure}
+
+% Disjoint Union
+\makeatletter
+\def\moverlay{\mathpalette\mov@rlay}
+\def\mov@rlay#1#2{\leavevmode\vtop{%
+   \baselineskip\z@skip \lineskiplimit-\maxdimen
+   \ialign{\hfil$\m@th#1##$\hfil\cr#2\crcr}}}
+\newcommand{\charfusion}[3][\mathord]{
+    #1{\ifx#1\mathop\vphantom{#2}\fi
+        \mathpalette\mov@rlay{#2\cr#3}
+      }
+    \ifx#1\mathop\expandafter\displaylimits\fi}
+\makeatother
+
+\newcommand{\cupdot}{\charfusion[\mathbin]{\cup}{\cdot}}
+\newcommand{\bigcupdot}{\charfusion[\mathop]{\bigcup}{\cdot}}
+
+% Commands below are compied from Overleaf: https://www.overleaf.com/learn/latex/Code_listing
+\usepackage{xcolor}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor= teal,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
+
+\begin{document}
+\section*{\begin{center}How to build a chess bot\\David van den Beukel\end{center}}
+\vspace{-\baselineskip}\noindent \rule{\textwidth}{0.025cm}\vspace{\parskip}
+
+\section{Introduction}
+
+In this document, I will teach you how to build your own chess bot. We will discuss how to represent a chess position, how to calculate the legal moves in a given position, and how to determine which move is the best option. To achieve optimal results, we will give up some simplicity for efficiency.
+
+I will be using \texttt{C\#} syntax for the code snippets, but I will not use any language specific functionalities. Which language you use is up to you, but I recommend a fast, compiled language, like \texttt{C\#}, \texttt{C/C++} or \texttt{Rust}. Personally, I used Rust for the backend, and Python for the UI.
+
+\begin{lstlisting}[language=C]
+    
+\end{lstlisting}
+
+\section{Chess representation}
+
+Check out the \href{https://www.chessprogramming.org/Board_Representation}{wiki page}.
+
+\end{document}
