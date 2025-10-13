@@ -12,6 +12,22 @@ const KING: usize = 5;
 
 const MIDGAME_VALUES: [u32; 6] = [ 82, 337, 365, 477, 1025, 20000 ];
 const ENDGAME_VALUES: [u32; 6] = [ 94, 281, 297, 512, 936, 20000 ];
+const GAME_PHASE_VALUES: [u32; 4] = [1, 1, 2, 4];
+
+pub fn game_phase(fen: &Fen) -> u32 {
+    let mut game_phase: u32 = 0;
+
+    game_phase += GAME_PHASE_VALUES[KNIGHT] * fen.array[KNIGHT_W].count_ones();
+    game_phase += GAME_PHASE_VALUES[KNIGHT] * fen.array[KNIGHT_B].count_ones();
+    game_phase += GAME_PHASE_VALUES[BISHOP] * fen.array[BISHOP_W].count_ones();
+    game_phase += GAME_PHASE_VALUES[BISHOP] * fen.array[BISHOP_B].count_ones();
+    game_phase += GAME_PHASE_VALUES[ROOK] * fen.array[ROOK_W].count_ones();
+    game_phase += GAME_PHASE_VALUES[ROOK] * fen.array[ROOK_B].count_ones();
+    game_phase += GAME_PHASE_VALUES[QUEEN] * fen.array[QUEEN_W].count_ones();
+    game_phase += GAME_PHASE_VALUES[QUEEN] * fen.array[QUEEN_B].count_ones();
+
+    game_phase
+}
 
 pub fn midgame_material_score(fen: &Fen) -> i32 {
     let mut white_material_score: u32 = 0;
@@ -62,5 +78,13 @@ pub fn endgame_material_score(fen: &Fen) -> i32 {
 }
 
 pub fn eval(fen: &Fen) -> i32 {
-    
+    let midgame_score: i32 = midgame_material_score(fen);
+    let endgame_score: i32 = endgame_material_score(fen);
+
+    let gamephase: u32 = game_phase(fen);
+
+    let midgame_phase: u32 = u32::max(gamephase, 24);
+    let endgame_phase: u32 = 24 - midgame_phase;
+
+    return (midgame_score * midgame_phase as i32 + endgame_score * endgame_phase as i32) / 24;
 }
