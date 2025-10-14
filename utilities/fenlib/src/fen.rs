@@ -1,6 +1,7 @@
 use crate::attacks::*;
 use crate::parsing;
 use crate::utils::*;
+use crate::zobrist::*;
 
 
 #[derive(Debug, Clone)]
@@ -232,6 +233,47 @@ impl Fen {
         self.array[WHITE] = get_white_pieces(&self.array);
         self.array[BLACK] = get_black_pieces(&self.array);
 
+    }
+
+    pub fn get_zobrist(&self) -> u64 {
+        let mut hash: u64 = 0;
+
+        for piece in 0..12 {
+            let mut squares: u64 = self.array[piece];
+            while squares != 0 {
+                let square: usize = squares.leading_zeros() as usize;
+                hash ^= ZOBRIST_PIECE_SQUARE_RANDOMS[piece][square];
+                squares &= !(1u64 << square);
+            }
+        }
+
+        if self.array[INFO] & WHITE_KINGSIDE_RIGHTS != 0 {
+            hash ^= ZOBRIST_CASTLE_RANDOMS[0]
+        }
+
+        if self.array[INFO] & WHITE_QUEENSIDE_RIGHTS != 0 {
+            hash ^= ZOBRIST_CASTLE_RANDOMS[1]
+        }
+
+        if self.array[INFO] & BLACK_KINGSIDE_RIGHTS != 0 {
+            hash ^= ZOBRIST_CASTLE_RANDOMS[2]
+        }
+
+        if self.array[INFO] & BLACK_QUEENSIDE_RIGHTS != 0 {
+            hash ^= ZOBRIST_CASTLE_RANDOMS[3]
+        }
+
+        let enpassant: u8 = ((self.array[INFO] & ENPASSANT) >> 24) as u8;
+        if enpassant & 0b01000000 != 0 {
+            let file: usize = (enpassant & 0b00000111) as usize;
+            hash ^= ZOBRIST_ENPASSANT_RANDOMS[file]
+        }
+
+        if self.array[INFO] & TURN != 0 {
+            hash ^= ZOBRIST_TURN_RANDOM
+        }
+
+        hash
     }
 
     pub fn player_in_check(&self, player_is_white: bool) -> bool {

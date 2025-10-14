@@ -1,10 +1,7 @@
 Others:
 
-- Evaluate positions or moves?
-- load images before running, instead of reloading them during running
-- make custom LargeMove ([u128; 3], good for speed, bad for memory) and SmallMove (u16, bad for speed, good for memory) structs in fenlib
-
-Possible optimizations for bots and fenlib:
-
+- For enpassant we only have to store file, since file + turn give us the position -> more space in array[INFO]
+- Load images before running, instead of reloading them during running
+- Make custom LargeMove ([u128; 3], good for speed, bad for memory) and SmallMove (u16, bad for speed, good for memory) structs in fenlib
 - Switch eval system to bits instead of 'regular' computation
-- Remove promotion flag from move to save space
+- Remove promotion flag from move to save space and solve this how???
