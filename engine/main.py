@@ -15,11 +15,11 @@ def test():
     bot2 = BotV2_1Py()
     bot1 = bot1.from_fen(fen.to_string())
     bot2 = bot2.from_fen(fen.to_string())
-    # PlayerVsBotMatch(bot1, player_is_white=True, fen=fen, perspective=BLACK).run_match()
+    PlayerVsBotMatch(bot1, player_is_white=True, fen=fen, perspective=WHITE).run_match()
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
-    BotVsBotMatch(bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
+    # BotVsBotMatch(bot1, bot2, delay=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
-if __name__ == "__main__":
-    bench()
+# if __name__ == "__main__":
+#     bench()
 
-# test()
+test()

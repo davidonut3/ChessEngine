@@ -12,7 +12,7 @@ const KING: usize = 5;
 
 const MIDGAME_VALUES: [u32; 6] = [ 82, 337, 365, 477, 1025, 20000 ];
 const ENDGAME_VALUES: [u32; 6] = [ 94, 281, 297, 512, 936, 20000 ];
-const GAME_PHASE_VALUES: [u32; 4] = [1, 1, 2, 4];
+const GAME_PHASE_VALUES: [u32; 5] = [0, 1, 1, 2, 4];
 
 pub fn game_phase(fen: &Fen) -> u32 {
     let mut game_phase: u32 = 0;
