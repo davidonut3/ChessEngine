@@ -23,7 +23,3 @@ def test():
 #     bench()
 
 # test()
-
-move_gen_perft_py()
-
-moves_per_second_perft_py()
