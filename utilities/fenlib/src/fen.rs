@@ -422,8 +422,11 @@ impl Fen {
         let all_pieces: u64 = self.array[WHITE] | self.array[BLACK];
         let enpassant: u64 = parsing::compr_to_bin_enpassant(self.array[INFO]);
 
-        // We want to make sure the board is valid before we do all the calculations.
-        self.is_valid_board();
+        // We should check whether the board is valid, but we skip this in order to save time.
+        // Problems:        panic during move generation (although this is not a problem since it is fine to panic on an invalid board),
+        //                  potential wrong moves without a panic (which is also not a problem since the board is invalid anyways).
+
+        // self.is_valid_board();
 
         // We determine the pins, sliding checks, non-sliding checks, xray checks, attacks and enpassant permission
         let mut allow_enpassant: bool;

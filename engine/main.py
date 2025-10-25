@@ -22,4 +22,8 @@ def test():
 # if __name__ == "__main__":
 #     bench()
 
-test()
+# test()
+
+move_gen_perft_py()
+
+moves_per_second_perft_py()
