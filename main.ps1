@@ -1,3 +1,3 @@
-cd .\engine\
+cd .\gui\
 python main.py
 cd ..
