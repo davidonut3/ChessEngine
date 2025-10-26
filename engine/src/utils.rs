@@ -48,10 +48,30 @@ pub const MAX_MOVES: usize = 218;
 /// We may want to increase it to allow for any number of sliding pieces.
 pub const MAX_PINS: usize = 8;
 
-pub const WHITE_WINS: &str = "1-0";
-pub const BLACK_WINS: &str = "0-1";
-pub const DRAW: &str = "½-½";
-pub const NOT_ENDED: &str = "not ended";
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum GameOutcome {
+    WhiteWins,
+    BlackWins,
+    Draw,
+    Ongoing,
+    MaxPliesReached,
+    Error,
+}
+
+impl GameOutcome {
+    pub fn to_string(&self) -> String {
+        let outcome: &str = match self {
+            GameOutcome::WhiteWins => "1-0",
+            GameOutcome::BlackWins => "0-1",
+            GameOutcome::Draw => "½-½",
+            GameOutcome::Ongoing => "not ended",
+            GameOutcome::MaxPliesReached => "max plies reached",
+            GameOutcome::Error => "Error"
+        };
+
+        outcome.to_string()
+    }
+}
 
 // -------------------- Array Index --------------------
 

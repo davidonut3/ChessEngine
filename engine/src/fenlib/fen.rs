@@ -1,6 +1,6 @@
 use crate::fenlib::attacks::*;
-use crate::fenlib::parsing;
-use crate::fenlib::utils::*;
+use crate::parsing;
+use crate::utils::*;
 use crate::fenlib::zobrist::*;
 
 
@@ -291,7 +291,11 @@ impl Fen {
         king & attacks != 0
     }
 
-    pub fn game_ended(&self) -> &str {
+    pub fn game_outcome_str(&self) -> String {
+        self.game_outcome().to_string()
+    }
+
+    pub fn game_outcome(&self) -> GameOutcome {
         let move_count: usize = self.get_legal_moves_array().1;
         let white_to_move: bool = self.white_to_move();
         let in_check: bool = self.player_in_check(white_to_move);
@@ -299,14 +303,14 @@ impl Fen {
     
         if move_count == 0 && in_check {
             if white_to_move {
-                BLACK_WINS
+                GameOutcome::BlackWins
             } else {
-                WHITE_WINS
+                GameOutcome::WhiteWins
             }
         } else if move_count == 0 || halfmove > 99 {
-            DRAW
+            GameOutcome::Draw
         } else {
-            NOT_ENDED
+            GameOutcome::Ongoing
         }
     }
 

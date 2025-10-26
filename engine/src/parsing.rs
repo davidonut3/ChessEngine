@@ -1,4 +1,4 @@
-use crate::fenlib::utils::*;
+use crate::utils::*;
 
 // These constants are not public to prevent confusion.
 // They are meant to do binary search on the location off a bit on the board.

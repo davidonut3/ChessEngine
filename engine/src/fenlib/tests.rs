@@ -1,7 +1,7 @@
 use crate::fenlib::fen::Fen;
-use crate::fenlib::parsing;
-use crate::fenlib::games;
-use crate::fenlib::utils::*;
+use crate::parsing;
+use crate::games;
+use crate::utils::*;
 
 use std::time::Instant;
 use std::time::Duration;
@@ -65,7 +65,7 @@ pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
 pub fn move_gen_perft() {
     let global_time: Instant = Instant::now();
     println!("Starting performance test for move generation");
-    let games: [Fen; 1000] = games::get_random_games();
+    let games: [Fen; 1000] = games::get_random_fens();
     println!("Creating Fens took {:?}", global_time.elapsed());
 
     // We call the function once before testing since the first one is always significantly slower than the rest

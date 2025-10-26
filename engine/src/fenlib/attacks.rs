@@ -1,4 +1,4 @@
-use crate::fenlib::utils::*;
+use crate::utils::*;
 
 /// Indexed by the number of leading zeros of a white pawn, this array stores the squares attacked by the piece
 pub const WHITE_PAWN_OCC: OccupancyArray = [
