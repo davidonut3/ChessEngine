@@ -292,33 +292,93 @@ impl Fen {
     }
 
     pub fn game_outcome_str(&self) -> String {
-        self.game_outcome().to_string()
+        self.game_outcome(None).to_string()
     }
 
-    pub fn game_outcome(&self) -> GameOutcome {
+    pub fn game_outcome(&self, max_plies_option: Option<i32>) -> GameOutcome {
+        // I do not recommend using this function in a bot, since it is relatively slow
+        // Note that we do not check for a threefold position repetition, as this is pretty much impossible to do
+
         let move_count: usize = self.get_legal_moves_array().1;
         let white_to_move: bool = self.white_to_move();
         let in_check: bool = self.player_in_check(white_to_move);
         let halfmove: u64 = parsing::compr_to_bin_halfmove(self.array[INFO]);
-    
-        if move_count == 0 && in_check {
-            if white_to_move {
-                GameOutcome::BlackWins
+        let fullmove: u64 = parsing::compr_to_bin_fullmove(self.array[INFO]);
+
+        // In case there are no legal moves, the game is either a checkmate or a stalemate
+        if move_count == 0 {
+            if in_check {
+                return if white_to_move { GameOutcome::BlackWins } else { GameOutcome::WhiteWins }
             } else {
-                GameOutcome::WhiteWins
+                return GameOutcome::Draw
             }
-        } else if move_count == 0 || halfmove > 99 {
-            GameOutcome::Draw
-        } else {
-            GameOutcome::Ongoing
         }
+
+        // In case the halfmove counter is 100 or more, we force a draw, in contrary to the official rules
+        if halfmove >= 100 {
+            return GameOutcome::Draw
+        }
+
+        // In case we reach the maximum number of moves, the game is ended by a 'MaxPliesReached'
+        if let Some(max_plies) = max_plies_option {
+            let fullmove_double = fullmove as i32 * 2;
+            let ply_count = if white_to_move { fullmove_double + 1 } else { fullmove_double };
+            if ply_count > max_plies {
+                return GameOutcome::MaxPliesReached
+            }
+        }
+
+        // https://www.chessprogramming.org/Draw_Evaluation
+        let white_king_count: u32 = self.array[KING_W].count_ones();
+        let black_king_count: u32 = self.array[KING_B].count_ones();
+
+        // In case any player has more or less than one king, the game is invalid
+        if white_king_count != 1 || black_king_count != 1 {
+            return GameOutcome::Error
+        }
+
+        let white_piece_count: u32 = self.array[WHITE].count_ones();
+        let black_piece_count: u32 = self.array[BLACK].count_ones();
+
+        // In case both players have one king, the game is a draw
+        if white_piece_count == 1 && black_piece_count == 1 {
+            return GameOutcome::Draw
+        }
+
+        let white_bishop_count = self.array[BISHOP_W].count_ones();
+        let black_bishop_count = self.array[BISHOP_B].count_ones();
+        let white_knight_count = self.array[KNIGHT_W].count_ones();
+        let black_knight_count = self.array[KNIGHT_B].count_ones();
+
+        // In case white has only a king and black has a king and a minor piece, the game is a draw
+        if white_piece_count == 1 && black_piece_count == 2 {
+            if black_knight_count != 0 || black_bishop_count != 0 {
+                return GameOutcome::Draw
+            }
+        }
+
+        // In case black has only a king and white has a king and a minor piece, the game is a draw
+        if white_piece_count == 2 && black_piece_count == 1 {
+            if white_knight_count != 0 || white_bishop_count != 0 {
+                return GameOutcome::Draw
+            }
+        }
+
+        // In case both players have one king and one bishops, and the bishops are on the same color, the game is a draw
+        if white_piece_count == 2 && black_piece_count == 2 && white_bishop_count == 1 && black_bishop_count == 1 {
+            if ((self.array[BISHOP_W] | self.array[BISHOP_B]) & LIGHT_SQUARES).count_ones() != 1 {
+                return GameOutcome::Draw
+            }
+        }
+    
+        return GameOutcome::Ongoing
     }
 
     pub fn white_to_move(&self) -> bool {
         self.array[INFO] & TURN != 0
     }
 
-    pub fn is_valid_board(&self) {
+    pub fn is_valid_board(&self) -> bool {
         // This function is not complete, it is just a quick test.
         // A board is valid if it can be reached from the starting position through legal moves only.
         // https://www.fide.com/FIDE/handbook/LawsOfChess.pdf 
@@ -327,15 +387,17 @@ impl Fen {
         let black_king_count: u32 = self.array[KING_B].count_ones();
 
         if white_king_count != 1 || black_king_count != 1 {
-            panic!("is_valid_board: This board has too many or too few kings")
+            return false
         }
 
         let white_piece_count: u32 = self.array[WHITE].count_ones();
         let black_piece_count: u32 = self.array[BLACK].count_ones();
 
         if white_piece_count > 20 || black_piece_count > 20 {
-            panic!("is_valid_board: This board has too many pieces")
+            return false
         }
+
+        return true
     }
 
     pub fn get_legal_moves_lan(&self) -> Vec<String> {
@@ -452,7 +514,6 @@ impl Fen {
         let mut opponent_pawns: u64;
         let opponent_pawn_attack: fn(u64) -> u64;
 
-        // There is precisely one active king and precisely one opponent king, else self.is_valid_board(); would panic
         let active_king: u64;
         let opponent_king: u64;
 
