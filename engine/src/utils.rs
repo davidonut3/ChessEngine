@@ -64,11 +64,11 @@ pub enum GameOutcome {
 impl GameOutcome {
     pub fn to_string(&self) -> String {
         let outcome: &str = match self {
-            GameOutcome::WhiteWins => "1-0",
-            GameOutcome::BlackWins => "0-1",
-            GameOutcome::Draw => "½-½",
-            GameOutcome::Ongoing => "not ended",
-            GameOutcome::MaxPliesReached => "max plies reached",
+            GameOutcome::WhiteWins => "WhiteWins",
+            GameOutcome::BlackWins => "BlackWins",
+            GameOutcome::Draw => "Draw",
+            GameOutcome::Ongoing => "NotEnded",
+            GameOutcome::MaxPliesReached => "MaxPliesReached",
             GameOutcome::Error => "Error"
         };
 

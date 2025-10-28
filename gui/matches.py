@@ -47,20 +47,20 @@ def run():
 
     for result_list in all_results:
         for result in result_list:
-            if result[0] == '1-0':
+            if result[0] == WHITE_WINS:
                 bot1_wins += 1
-            elif result[0] == '0-1':
+            elif result[0] == BLACK_WINS:
                 bot2_wins += 1
-            elif result[0] == '½-½' or result[0] == '1/2-1/2':
+            elif result[0] == DRAW:
                 draws += 1
             else:
                 print(f"Unknown result: {result}")
 
-            if result[1] == '1-0':
+            if result[1] == WHITE_WINS:
                 bot2_wins += 1
-            elif result[1] == '0-1':
+            elif result[1] == BLACK_WINS:
                 bot1_wins += 1
-            elif result[1] == '½-½' or result[1] == '1/2-1/2':
+            elif result[1] == DRAW:
                 draws += 1
             else:
                 print(f"Unknown result: {result}")

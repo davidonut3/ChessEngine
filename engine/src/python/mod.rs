@@ -78,12 +78,6 @@ impl FenPy {
     }
 
     /// Checks if the game has ended, and returns the result.
-    ///
-    /// Return values:
-    /// * "1-0" if white wins
-    /// * "0-1" if black wins
-    /// * "½-½" if draw
-    /// * "not ended" if the game is still ongoing
     pub fn game_ended(&mut self) -> String {
         self.fen.game_outcome_str()
     }

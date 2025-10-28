@@ -25,8 +25,8 @@ class PlayerVsPlayerMatch:
                 self.fen.lan_to_fen(move)
 
             game_ended = self.fen.game_ended()
-            if game_ended == '1-0' or game_ended == '0-1' or game_ended == '½-½':
-                print(WIN[game_ended])
+            if game_ended == WHITE_WINS or game_ended == BLACK_WINS or game_ended == DRAW:
+                print(game_ended)
                 running = False
 
         pygame.quit()
@@ -57,16 +57,15 @@ class BotVsBotMatch:
                 running = self.get_move()
 
             game_ended = self.fen.game_ended()
-            if game_ended == '1-0' or game_ended == '0-1' or game_ended == '½-½':
+            if game_ended == WHITE_WINS or game_ended == BLACK_WINS or game_ended == DRAW:
 
                 winner = None
-                if game_ended == '1-0':
+                if game_ended == WHITE_WINS:
                     winner = self.white
-                if game_ended == '0-1':
+                if game_ended == BLACK_WINS:
                     winner = self.black
 
-                win = game_ended
-                print(f"{WIN[win]} by {winner} in {self.fen.to_string()}")
+                print(f"{game_ended} by {winner} in {self.fen.to_string()}")
                 running = False
         
         if self.is_visual:
@@ -132,9 +131,9 @@ class PlayerVsBotMatch:
                 self.bot.receive_move(move)
 
             game_ended = self.fen.game_ended()
-            if game_ended == '1-0' or game_ended == '0-1' or game_ended == '½-½':
+            if game_ended == WHITE_WINS or game_ended == BLACK_WINS or game_ended == DRAW:
                 print(self.fen.to_string())
-                print(WIN[game_ended])
+                print(game_ended)
                 running = False
 
         pygame.quit()

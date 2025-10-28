@@ -28,11 +28,9 @@ NO_PIECE = 0
 GAMES = 100
 BATCH_SIZE = 10
 
-WIN = {
-    '1-0': 'white wins',
-    '0-1': 'black wins',
-    '½-½': 'draw',
-}
+WHITE_WINS = 'WhiteWins'
+BLACK_WINS = 'BlackWins'
+DRAW = 'Draw'
 
 USER = 'user'
 
