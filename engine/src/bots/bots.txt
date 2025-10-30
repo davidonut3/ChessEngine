@@ -1,0 +1,3 @@
+bot 0: DumbEngine: Pick first legal move
+bot 1: RandomEngine: Pick random legal move
+bot 2: SimpleEngine: negamax + alpha beta + material score

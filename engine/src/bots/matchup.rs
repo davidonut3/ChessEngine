@@ -17,6 +17,7 @@ pub enum Side {
 pub struct GameResult {
     pub white_is_engine1: bool,
     pub start_fen: String,
+    pub end_fen: String,
     pub moves: Vec<Move>,
     pub outcome: GameOutcome,
     pub time_per_move: Duration,
@@ -28,8 +29,9 @@ impl GameResult {
         let lan_string: String = lan_vec.join(" ");
 
         println!(
-            "Fen: {}\nOutcome: {}\nWhiteIsEngine1: {}\nTime: {:?}\nMoves: {}\n----------",
+            "StartFen: {}\nEndFen: {}\nOutcome: {}\nWhiteIsEngine1: {}\nTime: {:?}\nMoves: {}\n----------",
             self.start_fen,
+            self.end_fen,
             self.outcome.to_string(),
             self.white_is_engine1,
             self.time_per_move,
@@ -76,9 +78,10 @@ pub trait Engine {
     fn apply_move(&mut self, move1: Move);
 }
 
-pub fn run_game<E: Engine>(fen_str: &str, time_per_move: Duration, engine1: fn(&str) -> E, engine2: fn(&str) -> E, white_is_engine1: bool) -> GameResult {
-    let mut white: E = if white_is_engine1 { engine1(fen_str) } else { engine2(fen_str) };
-    let mut black: E = if white_is_engine1 { engine2(fen_str) } else { engine1(fen_str) };
+pub fn run_game<E1: Engine, E2: Engine>(fen_str: &str, time_per_move: Duration, engine1_constr: fn(&str) -> E1, engine2_constr: fn(&str) -> E2, white_is_engine1: bool) -> GameResult {
+    let mut engine1 = engine1_constr(fen_str);
+    let mut engine2 = engine2_constr(fen_str);
+
     let mut fen: Fen = Fen::from_str(fen_str);
     let mut moves: Vec<Move> = Vec::new();
     let mut outcome: GameOutcome = GameOutcome::Ongoing;
@@ -86,18 +89,12 @@ pub fn run_game<E: Engine>(fen_str: &str, time_per_move: Duration, engine1: fn(&
 
     for _ply in 0..MAX_NUMBER_OF_PLIES {
         let move1: Move = match side {
-            Side::White => {
-                let move1: Move = white.select_move(time_per_move);
-                move1
-            }
-            Side::Black => {
-                let move1: Move = black.select_move(time_per_move);
-                move1
-            }
+            Side::White => { if white_is_engine1 { engine1.select_move(time_per_move) } else { engine2.select_move(time_per_move) } }
+            Side::Black => { if white_is_engine1 { engine2.select_move(time_per_move) } else { engine1.select_move(time_per_move) } }
         };
 
-        white.apply_move(move1);
-        black.apply_move(move1);
+        engine1.apply_move(move1);
+        engine2.apply_move(move1);
 
         // We update our fen and add the move to the list of moves
         fen.move_to_fen(move1);
@@ -116,13 +113,14 @@ pub fn run_game<E: Engine>(fen_str: &str, time_per_move: Duration, engine1: fn(&
     GameResult {
         white_is_engine1: white_is_engine1,
         start_fen: fen_str.to_string(),
+        end_fen: fen.to_string(),
         moves: moves,
         outcome: outcome,
         time_per_move: time_per_move
     }
 }
 
-pub fn run_games<E: Engine>(fen_strs: &[String], time_per_move: Duration, engine1: fn(&str) -> E, engine2: fn(&str) -> E) -> MatchResult {
+pub fn run_games<E1: Engine, E2: Engine>(fen_strs: &[String], time_per_move: Duration, engine1: fn(&str) -> E1, engine2: fn(&str) -> E2) -> MatchResult {
     
     // Each bot plays each fen as both black and white, so we have twice as many games as fen_strs
     let mut all_games: Vec<(&str, bool)> = Vec::new();

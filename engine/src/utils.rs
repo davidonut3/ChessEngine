@@ -76,6 +76,10 @@ impl GameOutcome {
     }
 }
 
+// -------------------- Bot Constants --------------------
+
+pub const TIME_PER_MOVE_MILI: u64 = 100;
+
 // -------------------- Array Index --------------------
 
 pub const UP: usize = 0;
