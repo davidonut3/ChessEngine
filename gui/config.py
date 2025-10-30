@@ -16,7 +16,7 @@ import random
 import multiprocessing
 from math import floor, sqrt
 from os import getcwd
-from engine import FenPy, move_gen_perft_py, perft_check, moves_per_second_perft_py
+from engine import FenPy, move_gen_perft_py, perft_check, moves_per_second_perft_py, run_matchup_py
 
 MAIN_LOCATION = getcwd()
 

@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 use crate::fenlib::fen::*;
 use crate::fenlib::tests;
+use crate::bots::run_matchup;
 
 #[pyclass]
 #[derive(Debug, Clone)]
@@ -105,6 +106,10 @@ pub fn moves_per_second_perft_py() {
     tests::moves_per_second_perft();
 }
 
+#[pyfunction]
+pub fn run_matchup_py() {
+    run_matchup();
+}
 
 /// The Python module entry point for the `engine` package.
 #[pymodule]
@@ -113,5 +118,6 @@ fn engine(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(move_gen_perft_py, m)?)?;
     m.add_function(wrap_pyfunction!(perft_check, m)?)?;
     m.add_function(wrap_pyfunction!(moves_per_second_perft_py, m)?)?;
+    m.add_function(wrap_pyfunction!(run_matchup_py, m)?)?;
     Ok(())
 }

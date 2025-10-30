@@ -24,4 +24,4 @@ def test():
 
 # test()
 
-move_gen_perft_py()
+run_matchup_py()
