@@ -110,8 +110,8 @@ impl DumbEnginePy {
         Self { engine: DumbEngine::new_game(fen_str) }
     }
 
-    pub fn select_move(&mut self, time_per_move_mili: u64) -> String {
-        let time_per_move = Duration::from_millis(time_per_move_mili);
+    pub fn select_move(&mut self, time_per_move_milli: u64) -> String {
+        let time_per_move = Duration::from_millis(time_per_move_milli);
         let move1: Move = self.engine.select_move(time_per_move);
 
         parsing::move_to_lan(&move1)
@@ -136,8 +136,8 @@ impl RandomEnginePy {
         Self { engine: RandomEngine::new_game(fen_str) }
     }
 
-    pub fn select_move(&mut self, time_per_move_mili: u64) -> String {
-        let time_per_move = Duration::from_millis(time_per_move_mili);
+    pub fn select_move(&mut self, time_per_move_milli: u64) -> String {
+        let time_per_move = Duration::from_millis(time_per_move_milli);
         let move1: Move = self.engine.select_move(time_per_move);
 
         parsing::move_to_lan(&move1)
@@ -167,8 +167,9 @@ pub fn moves_per_second_perft_py() {
 }
 
 #[pyfunction]
-pub fn run_matchup_py() {
-    run_matchup();
+pub fn run_matchup_py(print_matches: bool, time_per_move_milli: u64, number_of_games: usize) {
+    let time_per_move: Duration = Duration::from_millis(time_per_move_milli);
+    run_matchup(print_matches, time_per_move, number_of_games);
 }
 
 /// The Python module entry point for the `engine` package.

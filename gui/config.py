@@ -16,7 +16,9 @@ import random
 import multiprocessing
 from math import floor, sqrt
 from os import getcwd
-from engine import FenPy, move_gen_perft_py, perft_check, moves_per_second_perft_py, run_matchup_py
+from engine import FenPy
+from engine import move_gen_perft_py, perft_check, moves_per_second_perft_py, run_matchup_py
+from engine import DumbEnginePy, RandomEnginePy
 
 MAIN_LOCATION = getcwd()
 
@@ -31,7 +33,10 @@ BATCH_SIZE = 10
 WHITE_WINS = 'WhiteWins'
 BLACK_WINS = 'BlackWins'
 DRAW = 'Draw'
+NOT_ENDED = 'NotEnded'
 
 USER = 'user'
 
 DEFAULT = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+TIME_PER_MOVE_MILLI = 100

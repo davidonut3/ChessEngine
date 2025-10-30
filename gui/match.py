@@ -43,7 +43,7 @@ class BotVsBotMatch:
         self.visual = Visual(self.fen, self.perspective)
 
     def run_match(self):
-        win = 'not ended'
+        win = NOT_ENDED
 
         if self.is_visual:
             self.visual.setup()
@@ -76,25 +76,20 @@ class BotVsBotMatch:
     def get_move(self):
         time.sleep(self.delay)
         if self.fen.white_to_move():
-            move = self.white.get_move()
+            move = self.white.select_move(TIME_PER_MOVE_MILLI)
 
             if not self.fen.is_legal_move_lan(move):
                 return False
-
-            self.fen.lan_to_fen(move)
-            self.black.receive_move(move)
-
-            # print(f"Fen to {self.fen.to_string()} by move {move}")
         else:
-            move = self.black.get_move()
+            move = self.black.select_move(TIME_PER_MOVE_MILLI)
 
             if not self.fen.is_legal_move_lan(move):
                 return False
 
-            self.fen.lan_to_fen(move)
-            self.white.receive_move(move)
-
-            # print(f"Fen to {self.fen.to_string()} by move {move}")
+        self.fen.lan_to_fen(move)
+        self.white.apply_move(move)
+        self.black.apply_move(move)
+        print(f"Fen to {self.fen.to_string()} by move {move}")
 
         if self.is_visual:
             self.visual.place_piece(*lan_to_move(move), True)
@@ -128,7 +123,7 @@ class PlayerVsBotMatch:
             elif move != 1:
                 print(f"Fen to {self.fen.to_string()} by move {move}")
                 self.fen.lan_to_fen(move)
-                self.bot.receive_move(move)
+                self.bot.apply_move(move)
 
             game_ended = self.fen.game_ended()
             if game_ended == WHITE_WINS or game_ended == BLACK_WINS or game_ended == DRAW:
@@ -139,7 +134,8 @@ class PlayerVsBotMatch:
         pygame.quit()
     
     def get_move(self):
-        move = self.bot.get_move()
+        move = self.bot.select_move()
+        self.bot.apply_move(move)
         self.fen.lan_to_fen(move)
         print(f"Fen to {self.fen.to_string()} by move {move}")
         self.visual.place_piece(*lan_to_move(move), True)

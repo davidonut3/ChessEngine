@@ -6,18 +6,16 @@ pub mod randomengine;
 
 use crate::bots::matchup::{Engine, run_games};
 use crate::games::get_random_games;
-use crate::utils::*;
 
 use crate::bots::dumbengine::DumbEngine;
 use crate::bots::randomengine::RandomEngine;
 
-pub fn run_matchup() {
+pub fn run_matchup(print_matches: bool, time_per_move: Duration, number_of_games: usize) {
     let engine1: fn(&str) -> DumbEngine = DumbEngine::new_game;
     let engine2: fn(&str) -> RandomEngine = RandomEngine::new_game;
 
-    let time_per_move = Duration::from_millis(TIME_PER_MOVE_MILI);
-    let fen_strs: &[String] = &get_random_games()[0..500];
+    let fen_strs: &[String] = &get_random_games()[0..number_of_games];
 
     let result: matchup::MatchResult = run_games(fen_strs, time_per_move, engine1, engine2);
-    result.print_match(false);
+    result.print_match(print_matches);
 }

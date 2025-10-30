@@ -14,7 +14,9 @@ impl Engine for DumbEngine {
         DumbEngine { fen: Fen::from_str(fen_str) }
     }
 
-    fn select_move(&mut self, _t: Duration) -> Move {
+    fn select_move(&mut self, t: Duration) -> Move {
+        std::thread::sleep(t);
+
         let (moves, _move_count) = self.fen.get_legal_moves_array();
 
         moves[0]
