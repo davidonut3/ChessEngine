@@ -126,30 +126,28 @@ class Visual:
                     if not self.current_tile_active:
                         self.select_piece(turn)
                 if event.type == pygame.MOUSEBUTTONUP:
-                    print('a')
                     self.mouse_down = False
                     self.mouse_down = False
                     if self.current_tile_active:
-                        print('b')
                         self.board_mouse = set_in_bounds(self.board_mouse)
                         start = self.current_tile
                         end = self.board[(self.board_mouse[1], self.board_mouse[0])]
                         move = move_to_lan(start.rankfile, end.rankfile)
-                        legal = self.fen.is_legal_move_lan(move)
+
+                        # We ignore the last character of the legal moves, which is used for promotion,
+                        # since our move does not know what to promote to (it is a7a8 instead of a7a8q)
+                        legal_moves = self.fen.get_all_possible_moves_lan()
+                        legal_moves = [move[:4] for move in legal_moves]
+                        legal = move in legal_moves
+
                         self.place_piece(start.rankfile, end.rankfile, legal)
-                        print(move)
-                        print(self.fen.get_all_possible_moves_lan())
                         if legal:
-                            print('c')
                             if start.piece.name == 'PAWN':
-                                print('d')
                                 if (turn == WHITE and end.rankfile[0] == 0) or (turn == BLACK and end.rankfile[0] == 7):
-                                    print('e')
                                     promotion = self.get_promotion()
                                     if not promotion:
                                         return False
                                     else:
-                                        print('f')
                                         move += promotion
                             return move
 
