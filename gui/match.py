@@ -134,7 +134,7 @@ class PlayerVsBotMatch:
         pygame.quit()
     
     def get_move(self):
-        move = self.bot.select_move()
+        move = self.bot.select_move(TIME_PER_MOVE_MILLI)
         self.bot.apply_move(move)
         self.fen.lan_to_fen(move)
         print(f"Fen to {self.fen.to_string()} by move {move}")
