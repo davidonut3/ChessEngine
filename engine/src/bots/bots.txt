@@ -1,3 +1,84 @@
 bot 0: DumbEngine: Pick first legal move
 bot 1: RandomEngine: Pick random legal move
-bot 2: SimpleEngine: negamax + alpha beta + material score
+bot 2: SimpleEngine:
+
+Search:             Negamax with iterative deepening
+Eval:               Material score
+Other:              Cut off when time is up
+
+bot 3: AlphaEngine:
+
+Search:             Previous + alpha-beta-pruning
+Eval:               Previous + mid/endgame specific values
+Other:              Previous + ???
+
+bot 4: TableEngine:
+
+Search:             Previous + transposition table
+Eval:               Previous + piece-square-table
+Other:              Previous + endgame tables
+
+bot 5: QuietEngine:
+
+Search:             Previous + quiescence search
+Eval:               Previous + pawn structure
+Other:              Previous + dynamic time management
+
+bot 6: SafeEngine:
+
+Search:             Previous + rough move ordering
+Eval:               Previous + mobility and safety scores
+Other:              Previous + opening book
+
+bot ?: KillerEngine:
+
+Killer moves
+Aspiration windows
+Principle variation
+Late move reduction
+Etc
+
+bot ?: GreedyEngine:
+
+Parameter optimisation
+
+bot n-1: GrandmasterEngine:
+
+Best bot possible with:
+- somewhat limited time
+- no thinking while opponent is playing
+- single thread search
+- modest amount of memory
+
+bot n: FinalEngine:
+
+Best bot possible with:
+- generous time limit
+- thinking continuously
+- multi thread search
+- lots of memory
+
+Note: There are a lot of parameters that we choose somewhat arbitrarily, so we will use the following greedy algorithm to find the best parameters:
+First, we make a guess for each parameter, and implement all the ideas above with those parameters. Then, when we have a strong bot,
+we check many values for each parameter to see which is the best. We then combine the best results in our chess bot.
+
+Search:
+transposition table
+quiescence search
+rough move ordering
+aspiration windows
+killer moves
+principle variation table
+late move reduction
+
+Eval:
+mid-endgame piece values
+mid-endgame piece square tables
+pawn structure
+piece mobility and safety
+
+Other:
+time management
+parallel search
+opening book
+endgame tables

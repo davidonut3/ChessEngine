@@ -3,6 +3,7 @@ use std::time::Duration;
 pub mod matchup;
 pub mod dumbengine;
 pub mod randomengine;
+pub mod simpleengine;
 
 use crate::bots::matchup::{Engine, run_games};
 use crate::games::get_random_games;
