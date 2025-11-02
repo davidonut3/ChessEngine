@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 use crate::bots::dumbengine::DumbEngine;
 use crate::bots::randomengine::RandomEngine;
 
+use crate::bots::simpleengine::SimpleEngine;
 use crate::fenlib::fen::*;
 use crate::fenlib::tests;
 use crate::bots::run_matchup;
@@ -149,6 +150,31 @@ impl RandomEnginePy {
     }
 }
 
+#[pyclass]
+#[derive(Debug, Clone)]
+pub struct SimpleEnginePy {
+    engine: SimpleEngine
+}
+
+#[pymethods]
+impl SimpleEnginePy {
+    #[staticmethod]
+    pub fn new_game(fen_str: &str) -> Self {
+        Self { engine: SimpleEngine::new_game(fen_str) }
+    }
+
+    pub fn select_move(&mut self, time_per_move_milli: u64) -> String {
+        let time_per_move = Duration::from_millis(time_per_move_milli);
+        let move1: Move = self.engine.select_move(time_per_move);
+
+        parsing::move_to_lan(&move1)
+    }
+
+    pub fn apply_move(&mut self, move_lan: &str) {
+        let move1: Move = parsing::lan_to_move(move_lan);
+        self.engine.apply_move(move1);
+    }
+}
 
 #[pyfunction]
 pub fn perft_check(max_depth: usize, fen_str: &str, per_move: bool) {
@@ -178,6 +204,7 @@ fn engine(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<FenPy>()?;
     m.add_class::<DumbEnginePy>()?;
     m.add_class::<RandomEnginePy>()?;
+    m.add_class::<SimpleEnginePy>()?;
     m.add_function(wrap_pyfunction!(move_gen_perft_py, m)?)?;
     m.add_function(wrap_pyfunction!(perft_check, m)?)?;
     m.add_function(wrap_pyfunction!(moves_per_second_perft_py, m)?)?;

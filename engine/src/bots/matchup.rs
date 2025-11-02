@@ -1,4 +1,5 @@
 use std::time::Duration;
+use std::time::Instant;
 use rayon::prelude::*;
 
 use crate::utils::*;
@@ -29,12 +30,13 @@ impl GameResult {
         let lan_string: String = lan_vec.join(" ");
 
         println!(
-            "StartFen: {}\nEndFen: {}\nOutcome: {}\nWhiteIsEngine1: {}\nTime: {:?}\nMoves: {}\n----------",
+            "StartFen: {}\nEndFen: {}\nOutcome: {}\nWhiteIsEngine1: {}\nTime: {:?}\nNumberOfMoves: {}\nMoves: {}\n----------",
             self.start_fen,
             self.end_fen,
             self.outcome.to_string(),
             self.white_is_engine1,
             self.time_per_move,
+            lan_vec.len(),
             lan_string
         )
     }
@@ -47,23 +49,38 @@ pub struct MatchResult {
     pub engine2_wins: i32,
     pub draws: i32,
     pub other: i32,
+    pub time_taken: Duration,
 }
 
 impl MatchResult {
     pub fn print_match(&self, print_matches: bool) {
-        if print_matches {
-            for result in &self.game_results {
+        let mut moves_per_game: Vec<usize> = Vec::new();
+
+        for result in &self.game_results {
+            moves_per_game.push(result.moves.len());
+
+            if print_matches {
                 result.print_result();
             }
         }
+
+        let average_moves: f32 = moves_per_game.iter().sum::<usize>() as f32 / self.game_results.len() as f32;
+
+        moves_per_game.sort();
+        let middle: usize = self.game_results.len() / 2 as usize;
+
+        let median_moves: usize = moves_per_game[middle];
         
         let match_result: String = format!(
-            "Games: {}, Engine1 wins: {}, Engine2 wins: {}, Draws: {}, Others: {}",
+            "Total: {}, Engine1 wins: {}, Engine2 wins: {}, Draws: {}, Others: {}\nAverage moves: {}, Median moves: {}, Time taken: {:?}",
             self.game_count,
             self.engine1_wins,
             self.engine2_wins,
             self.draws,
             self.other,
+            average_moves,
+            median_moves,
+            self.time_taken,
         );
 
         println!("{}", match_result)
@@ -121,6 +138,8 @@ pub fn run_game<E1: Engine, E2: Engine>(fen_str: &str, time_per_move: Duration, 
 }
 
 pub fn run_games<E1: Engine, E2: Engine>(fen_strs: &[String], time_per_move: Duration, engine1: fn(&str) -> E1, engine2: fn(&str) -> E2) -> MatchResult {
+
+    let start_time: Instant = Instant::now();
     
     // Each bot plays each fen as both black and white, so we have twice as many games as fen_strs
     let mut all_games: Vec<(&str, bool)> = Vec::new();
@@ -158,5 +177,6 @@ pub fn run_games<E1: Engine, E2: Engine>(fen_strs: &[String], time_per_move: Dur
         engine2_wins,
         draws,
         other,
+        time_taken: start_time.elapsed(),
     }
 }

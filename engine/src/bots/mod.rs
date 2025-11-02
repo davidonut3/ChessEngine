@@ -10,10 +10,11 @@ use crate::games::get_random_games;
 
 use crate::bots::dumbengine::DumbEngine;
 use crate::bots::randomengine::RandomEngine;
+use crate::bots::simpleengine::SimpleEngine;
 
 pub fn run_matchup(print_matches: bool, time_per_move: Duration, number_of_games: usize) {
-    let engine1: fn(&str) -> DumbEngine = DumbEngine::new_game;
-    let engine2: fn(&str) -> RandomEngine = RandomEngine::new_game;
+    let engine1: fn(&str) -> SimpleEngine = SimpleEngine::new_game;
+    let engine2: fn(&str) -> SimpleEngine = SimpleEngine::new_game;
 
     let fen_strs: &[String] = &get_random_games()[0..number_of_games];
 

@@ -79,6 +79,7 @@ impl GameOutcome {
 // -------------------- Bot Constants --------------------
 
 pub const TIME_PER_MOVE_MILLI: u64 = 100;
+pub const INFINITY: i32 = i32::MAX;
 
 // -------------------- Array Index --------------------
 
