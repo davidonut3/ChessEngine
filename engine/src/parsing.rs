@@ -1,33 +1,9 @@
 use crate::utils::*;
 
-// These constants are not public to prevent confusion.
-// They are meant to do binary search on the location off a bit on the board.
-// Instead of 16 &'s and two for loops, it requires 6 &'s and 6 if statements.
-
-const RANK_A: u64 =         0xFFFFFFFF00000000;
-const RANK_AA: u64 =        0xFFFF000000000000;
-const RANK_BA: u64 =        0x00000000FFFF0000;
-const RANK_AAA: u64 =       0xFF00000000000000;
-const RANK_ABA: u64 =       0x0000FF0000000000;
-const RANK_BAA: u64 =       0x00000000FF000000;
-const RANK_BBA: u64 =       0x000000000000FF00;
-
-const FILE_A: u64 =         0xF0F0F0F0F0F0F0F0;
-const FILE_AA: u64 =        0xC0C0C0C0C0C0C0C0;
-const FILE_BA: u64 =        0x0C0C0C0C0C0C0C0C;
-const FILE_AAA: u64 =       0x8080808080808080;
-const FILE_ABA: u64 =       0x2020202020202020;
-const FILE_BAA: u64 =       0x0808080808080808;
-const FILE_BBA: u64 =       0x0202020202020202;
-
-const RANK_0_128: u128 =    0xFF000000000000000000000000000000;
-const RANK_1_128: u128 =    0x0000FF00000000000000000000000000;
-const RANK_2_128: u128 =    0x00000000FF0000000000000000000000;
-const RANK_3_128: u128 =    0x000000000000FF000000000000000000;
-const RANK_4_128: u128 =    0x0000000000000000FF00000000000000;
-const RANK_5_128: u128 =    0x00000000000000000000FF0000000000;
-const RANK_6_128: u128 =    0x000000000000000000000000FF000000;
-const RANK_7_128: u128 =    0x0000000000000000000000000000FF00;
+const COMPR_QUEEN_PROM: u16 = 0b0001000000000000;
+const COMPR_ROOK_PROM: u16 = 0b0010000000000000;
+const COMPR_BISHOP_PROM: u16 = 0b0100000000000000;
+const COMPR_KNIGHT_PROM: u16 = 0b1000000000000000;
 
 /// Converts a tile in algebraic notation (e.g., "e4") to a bitboard representation.
 pub fn tile_to_bit(tile: &str) -> u64 {
@@ -117,121 +93,20 @@ pub fn bit_to_tile(bit: u64) -> String {
 
 /// Converts single-bit bitboard to binary search bitboard
 pub fn bit_to_compr(bit: u64) -> u8 {
-    let rank: u8;
-    let file: u8;
-    let is_empty: u8;
-
     let ones: u32 = bit.count_ones();
-    if ones > 1 {
-        panic!("bit_to_compr: Found wrong format when attempting to parse bit")
-    } else if ones == 0 {
-        is_empty = 0
-    } else {
-        is_empty = 0b01000000
-    }
 
-    if bit & RANK_A != 0 {
-        if bit & RANK_AA != 0 {
-            if bit & RANK_AAA != 0 {
-                rank = 0b00000000;
-            } else {
-                rank = 0b00001000;
-            }
-        } else {
-            if bit & RANK_ABA != 0 {
-                rank = 0b00010000;
-            } else {
-                rank = 0b00011000;
-            }
-        }
-    } else {
-        if bit & RANK_BA != 0 {
-            if bit & RANK_BAA != 0 {
-                rank = 0b00100000;
-            } else {
-                rank = 0b00101000;
-            }
-        } else {
-            if bit & RANK_BBA != 0 {
-                rank = 0b00110000;
-            } else {
-                rank = 0b00111000;
-            }
-        }
-    }
+    if ones == 0 { return 0b01000000 }
 
-    if bit & FILE_A != 0 {
-        if bit & FILE_AA != 0 {
-            if bit & FILE_AAA != 0 {
-                file = 0b00000000;
-            } else {
-                file = 0b00000001;
-            }
-        } else {
-            if bit & FILE_ABA != 0 {
-                file = 0b00000010;
-            } else {
-                file = 0b00000011;
-            }
-        }
-    } else {
-        if bit & FILE_BA != 0 {
-            if bit & FILE_BAA != 0 {
-                file = 0b00000100;
-            } else {
-                file = 0b00000101;
-            }
-        } else {
-            if bit & FILE_BBA != 0 {
-                file = 0b00000110;
-            } else {
-                file = 0b00000111;
-            }
-        }
-    }
+    if ones == 1 { return bit.leading_zeros() as u8 }
 
-    rank | file | is_empty
+    panic!("bit_to_compr: Bitboard has to many 1's");
 }
 
 /// Converts binary search bitboard to single-bit bitboard
 pub fn compr_to_bit(bit: u8) -> u64 {
-    let rank: usize = ((bit >> 3) & 0b00000111) as usize;
-    let file: usize = (bit & 0b00000111) as usize;
-    let is_empty: bool = bit & 0b01000000 == 0;
+    if bit & 0b01000000 != 0 { return EMPTY }
 
-    if is_empty {
-        return EMPTY
-    }
-
-    RANKS[rank] & FILES[file]
-}
-
-/// Converts u64 bitboard to u128 bitboard
-pub fn bit_64_to_128(bit: u64) -> u128 {
-    let byte1: u128 = ((bit & RANK_7) as u128) << 8;
-    let byte2: u128 = ((bit & RANK_6) as u128) << 16;
-    let byte3: u128 = ((bit & RANK_5) as u128) << 24;
-    let byte4: u128 = ((bit & RANK_4) as u128) << 32;
-    let byte5: u128 = ((bit & RANK_3) as u128) << 40;
-    let byte6: u128 = ((bit & RANK_2) as u128) << 48;
-    let byte7: u128 = ((bit & RANK_1) as u128) << 56;
-    let byte8: u128 = ((bit & RANK_0) as u128) << 64;
-
-    byte1 | byte2 | byte3 | byte4 | byte5 | byte6 | byte7 | byte8
-}
-
-/// Converts u128 bitboard to u64 bitboard
-pub fn bit_128_to_64(bit: u128) -> u64 {
-    let byte1: u128 = ((bit & RANK_7_128)) >> 8;
-    let byte2: u128 = ((bit & RANK_6_128)) >> 16;
-    let byte3: u128 = ((bit & RANK_5_128)) >> 24;
-    let byte4: u128 = ((bit & RANK_4_128)) >> 32;
-    let byte5: u128 = ((bit & RANK_3_128)) >> 40;
-    let byte6: u128 = ((bit & RANK_2_128)) >> 48;
-    let byte7: u128 = ((bit & RANK_1_128)) >> 56;
-    let byte8: u128 = ((bit & RANK_0_128)) >> 64;
-
-    (byte1 | byte2 | byte3 | byte4 | byte5 | byte6 | byte7 | byte8) as u64
+    FIRST >> (bit & 0b00111111)
 }
 
 /// Converts board string into array of pieces
@@ -623,4 +498,35 @@ pub fn lan_to_move(lan: &str) -> Move {
 /// Converts a vector of moves in [start, end, promotion] bitboard format into a list of LAN strings.
 pub fn moves_to_lan_list(moves: &Vec<Move>) -> Vec<String> {
     moves.iter().map(|move1: &Move| move_to_lan(move1)).collect()
+}
+
+pub fn move_to_compact(move1: &Move) -> CompactMove {
+    // We don't use bit_to_compr since we can assume the bitboards have exactly one 1
+
+    let from: u16 = move1[0].leading_zeros() as u16;
+    let to: u16 = (move1[1].leading_zeros() as u16) << 6;
+    let promotion: u16 = match move1[2] {
+        QUEEN_PROMOTION => COMPR_QUEEN_PROM,
+        ROOK_PROMOTION => COMPR_ROOK_PROM,
+        BISHOP_PROMOTION => COMPR_BISHOP_PROM,
+        KNIGHT_PROMOTION => COMPR_KNIGHT_PROM,
+        _ => 0
+    };
+
+    from | to | promotion
+}
+
+pub fn compact_to_move(move1: &CompactMove) -> Move {
+    let from = move1 & 0b0000000000111111;
+    let to = (move1 & 0b0000111111000000) >> 6;
+    let flag = move1 & 0b1111000000000000;
+    let promotion = match flag {
+        COMPR_QUEEN_PROM => QUEEN_PROMOTION,
+        COMPR_ROOK_PROM => ROOK_PROMOTION,
+        COMPR_BISHOP_PROM => BISHOP_PROMOTION,
+        COMPR_KNIGHT_PROM => KNIGHT_PROMOTION,
+        _ => 0
+    };
+
+    [FIRST >> from, FIRST >> to, promotion]
 }

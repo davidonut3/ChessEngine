@@ -1,9 +1,3 @@
-/// First (left) board in u128 representation
-pub const BOARD1: u128 = 0xFF00FF00FF00FF00FF00FF00FF00FF00;
-
-/// Second (right) board in u128 representation
-pub const BOARD2: u128 = 0xFF00FF00FF00FF00FF00FF00FF00FF;
-
 /// Empty bitboard
 pub const EMPTY: u64 = 0x0;
 
@@ -120,8 +114,10 @@ pub type Array = [u64; ARRAY_SIZE];
 
 pub type PinArray = [u64; MAX_PINS];
 
+pub type CompactMove = u16;
+
 pub type Move = [u64; 3];
-pub type MoveArray = [[u64; 3]; MAX_MOVES];
+pub type MoveArray = [Move; MAX_MOVES];
 
 pub type OccupancyArray = [u64; 64];
 
@@ -194,11 +190,6 @@ pub const DEFAULT_FEN: [u64; ARRAY_SIZE] = [
     0b0000000000000000000000000000000100000000111110000000000000000000,
 ];
 
-// -------------------- u128 constants --------------------
-
-pub const FIRST_128: u128 = 0x80000000000000000000000000000000;
-pub const EMPTY_128: u128 = 0x0;
-
 // ==================== Helper Functions ====================
 
 pub fn get_white_pieces(pieces: &Array) -> u64 {
@@ -214,19 +205,6 @@ pub fn print_bitboard(bitboard: u64) {
     let mut result: String = "".to_string();
     for i in 0..64 {
         if (FIRST >> i) & bitboard != 0 {
-            result += "1";
-        } else {
-            result += "0";
-        }
-    }
-    println!("{}", result);
-}
-
-/// Helper function for printing u128 bitboards.
-pub fn print_bitboard_128(bitboard: u128) {
-    let mut result: String = "".to_string();
-    for i in 0..128 {
-        if (FIRST_128 >> i) & bitboard != 0 {
             result += "1";
         } else {
             result += "0";
