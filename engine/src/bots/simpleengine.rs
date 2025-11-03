@@ -64,6 +64,10 @@ impl Engine for SimpleEngine {
     fn apply_move(&mut self, move1: Move) {
         self.fen.move_to_fen(move1);
     }
+
+    fn name(&self) -> String {
+        "SimpleEngine".to_string()
+    }
 }
 
 impl SimpleEngine {

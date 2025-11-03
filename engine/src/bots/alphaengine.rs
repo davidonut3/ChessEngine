@@ -1,0 +1,165 @@
+use std::time::Duration;
+use std::time::Instant;
+
+use crate::bots::matchup::Engine;
+use crate::fenlib::fen::Fen;
+use crate::utils::*;
+
+const PAWN: usize = 0;
+const KNIGHT: usize = 1;
+const BISHOP: usize = 2;
+const ROOK: usize = 3;
+const QUEEN: usize = 4;
+const KING: usize = 5;
+
+// Mate/king value cannot be infinity, since that may result in integer overflows
+const MATE_VALUE: i32 = 20000;
+
+const MIDGAME_VALUES: [i32; 6] = [ 82, 337, 365, 477, 1025, MATE_VALUE ];
+const ENDGAME_VALUES: [i32; 6] = [ 94, 281, 297, 512, 936, MATE_VALUE ];
+const GAME_PHASE_VALUES: [i32; 5] = [0, 1, 1, 2, 4];
+
+#[derive(Debug, Clone)]
+pub struct AlphaEngine {
+    fen: Fen,
+}
+
+impl Engine for AlphaEngine {
+    fn new_game(fen_str: &str) -> Self {
+        AlphaEngine { fen: Fen::from_str(fen_str) }
+    }
+
+    fn select_move(&mut self, max_time: Duration) -> Move {
+        let start_time: Instant = Instant::now();
+
+        let (moves, move_count) = self.fen.get_legal_moves_array();
+
+        let mut best_move_overall: Move = moves[0];
+
+        let mut depth: i32 = 1;
+        while start_time.elapsed() < max_time {
+
+            let mut alpha: i32 = -INFINITY;
+            let beta: i32 = INFINITY;
+
+            let mut best_move: Move = moves[0];
+            let mut best_score: i32 = -INFINITY;
+
+            for i in 0..move_count {
+                let move1: Move = moves[i];
+                let mut new_fen = self.fen.clone();
+                new_fen.move_to_fen(move1);
+
+                let score: i32 = -self.negamax(&new_fen, depth, start_time, max_time, -beta, -alpha);
+
+                if score > best_score {
+                    best_score = score;
+                    best_move = move1;
+                }
+
+                if score > alpha { alpha = score }
+            }
+
+            best_move_overall = best_move;
+            depth += 1;
+        }
+
+        best_move_overall
+    }
+
+    fn apply_move(&mut self, move1: Move) {
+        self.fen.move_to_fen(move1);
+    }
+
+    fn name(&self) -> String {
+        "AlphaEngine".to_string()
+    }
+}
+
+impl AlphaEngine {
+    fn negamax(&self, fen: &Fen, depth: i32, start_time: Instant, max_time: Duration, mut alpha: i32, beta: i32) -> i32 {
+        
+        // We assume that the time of the eval function is negligible
+        if start_time.elapsed() >= max_time || depth == 0 {
+            return self.eval(fen)
+        }
+
+        let mut value: i32 = -INFINITY;
+
+        let (moves, move_count) = fen.get_legal_moves_array();
+
+        if move_count == 0 {
+            let in_check: bool = fen.player_in_check(fen.white_to_move());
+
+            // In case of checkmate we return the worst possible score, in case of stalemate we return 0
+            if in_check { return -MATE_VALUE; } else { return 0; }
+        };
+        
+        for i in 0..move_count {
+            let move1: Move = moves[i];
+            let mut new_fen = fen.clone();
+            new_fen.move_to_fen(move1);
+
+            let score: i32 = -self.negamax(&new_fen, depth - 1, start_time, max_time, -beta, -alpha);
+
+            if score > value { value = score }
+            if value > alpha { alpha = value }
+
+            if alpha >= beta { break }
+            if start_time.elapsed() >= max_time { break }
+        }
+
+        value
+    }
+
+    fn eval(&self, fen: &Fen) -> i32 {
+        let white_pawn_val: u32      = fen.array[PAWN_W].count_ones();
+        let black_pawn_val: u32      = fen.array[PAWN_B].count_ones();
+        let white_knight_val: u32    = fen.array[KNIGHT_W].count_ones();
+        let black_knight_val: u32    = fen.array[KNIGHT_B].count_ones();
+        let white_bishop_val: u32    = fen.array[BISHOP_W].count_ones();
+        let black_bishop_val: u32    = fen.array[BISHOP_B].count_ones();
+        let white_rook_val: u32      = fen.array[ROOK_W].count_ones();
+        let black_rook_val: u32      = fen.array[ROOK_B].count_ones();
+        let white_queen_val: u32     = fen.array[QUEEN_W].count_ones();
+        let black_queen_val: u32     = fen.array[QUEEN_B].count_ones();
+        let white_king_val: u32      = fen.array[KING_W].count_ones();
+        let black_king_val: u32      = fen.array[KING_B].count_ones();
+
+        let game_phase: i32 = 
+            GAME_PHASE_VALUES[KNIGHT]   * (white_knight_val + black_knight_val) as i32 +
+            GAME_PHASE_VALUES[BISHOP]   * (white_bishop_val + black_bishop_val) as i32 +
+            GAME_PHASE_VALUES[ROOK]     * (white_rook_val + black_rook_val) as i32 +
+            GAME_PHASE_VALUES[QUEEN]    * (white_queen_val + black_queen_val) as i32;
+
+        let pawn_diff: i32       = white_pawn_val as i32         - black_pawn_val as i32;
+        let knight_diff: i32     = white_knight_val as i32       - black_knight_val as i32;
+        let bishop_diff: i32     = white_bishop_val as i32       - black_bishop_val as i32;
+        let rook_diff: i32       = white_rook_val as i32         - black_rook_val as i32;
+        let queen_diff: i32      = white_queen_val as i32        - black_queen_val as i32;
+        let king_diff: i32       = white_king_val as i32         - black_king_val as i32;
+
+        let midgame_score: i32 = 
+            MIDGAME_VALUES[PAWN]        * pawn_diff +
+            MIDGAME_VALUES[KNIGHT]      * knight_diff +
+            MIDGAME_VALUES[BISHOP]      * bishop_diff +
+            MIDGAME_VALUES[ROOK]        * rook_diff +
+            MIDGAME_VALUES[QUEEN]       * queen_diff +
+            MIDGAME_VALUES[KING]        * king_diff;
+
+        let endgame_score: i32 = 
+            ENDGAME_VALUES[PAWN]        * pawn_diff +
+            ENDGAME_VALUES[KNIGHT]      * knight_diff +
+            ENDGAME_VALUES[BISHOP]      * bishop_diff +
+            ENDGAME_VALUES[ROOK]        * rook_diff +
+            ENDGAME_VALUES[QUEEN]       * queen_diff +
+            ENDGAME_VALUES[KING]        * king_diff;
+
+        let midgame_phase: i32 = game_phase.min(24);
+        let endgame_phase: i32 = 24 - midgame_phase;
+
+        let score: i32 = (midgame_score * midgame_phase + endgame_score * endgame_phase) / 24;
+
+        if fen.white_to_move() { score } else { -score }
+    }
+}

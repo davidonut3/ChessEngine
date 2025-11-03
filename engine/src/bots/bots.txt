@@ -10,25 +10,24 @@ bot 3: AlphaEngine:
 
 Search:             Previous + alpha-beta-pruning
 Eval:               Previous + mid/endgame specific values
-Other:              Previous + ???
 
-bot 4: TableEngine:
+bot 4: SystematicEngine:
+
+Search:             Previous + move ordering
+Eval:               Previous + pawn structure
+Other:              Previous + opening book
+
+bot 5: SneakyEngine:
+
+Search:             Previous + quiescence search
+Eval:               Previous + mobility and safety
+Other:              Previous + dynamic time management
+
+bot 6: TableEngine:
 
 Search:             Previous + transposition table
 Eval:               Previous + piece-square-table
 Other:              Previous + endgame tables
-
-bot 5: QuietEngine:
-
-Search:             Previous + quiescence search
-Eval:               Previous + pawn structure
-Other:              Previous + dynamic time management
-
-bot 6: SafeEngine:
-
-Search:             Previous + rough move ordering
-Eval:               Previous + mobility and safety scores
-Other:              Previous + opening book
 
 bot ?: KillerEngine:
 
@@ -36,6 +35,8 @@ Killer moves
 Aspiration windows
 Principle variation
 Late move reduction
+Null-move heuristic
+Fenlib optimalisations
 Etc
 
 bot ?: GreedyEngine:
@@ -58,27 +59,8 @@ Best bot possible with:
 - multi thread search
 - lots of memory
 
-Note: There are a lot of parameters that we choose somewhat arbitrarily, so we will use the following greedy algorithm to find the best parameters:
+Notes: There are a lot of parameters that we choose somewhat arbitrarily, so we will use the following greedy algorithm to find the best parameters:
 First, we make a guess for each parameter, and implement all the ideas above with those parameters. Then, when we have a strong bot,
 we check many values for each parameter to see which is the best. We then combine the best results in our chess bot.
 
-Search:
-transposition table
-quiescence search
-rough move ordering
-aspiration windows
-killer moves
-principle variation table
-late move reduction
-
-Eval:
-mid-endgame piece values
-mid-endgame piece square tables
-pawn structure
-piece mobility and safety
-
-Other:
-time management
-parallel search
-opening book
-endgame tables
+We also need to check if fen cloning is faster or slower than making a move then undoing that after.

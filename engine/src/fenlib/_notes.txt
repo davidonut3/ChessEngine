@@ -4,26 +4,12 @@ We can still optimise move generation:
  - precomputation (Magic bitboards)
  - Compiler optimalisations
 
-Optimising get_all_possible_moves:
+We can also optimise other functions:
 
-get_possible_moves stores the moves for a specific piece in a Vec, benching this gives:
+in_check: Currently, we check the opponent attack pattern against the king position.
+We are doing too much work here since we check the opponent king's attacks as well.
+Instead, for pawns and knights, we can take the king, compute its attacks as if it was a pawn or knight,
+then check that against the pawn/knight bitboard. This is better than checking the attack of each piece.
+For sliding pieces, we can do something similar.
 
-Min duration 8.1µs
-Max duration 21.7µs
-Average duration 11.008µs
-
-Switching to an array based approach gives:
-
-Min duration 6.5µs
-Max duration 19.6µs
-Average duration 9.006µs
-
-We see a slight improvement, which might stack up as many calls to get_all_possible_moves have to be made.
-
-Speed of in_check:
-
-Min duration 200ns
-Max duration 4.6µs
-Average duration 366ns
-
-We may be able to speed this up by precomputing values.
+is_legal_move, is_valid_board and get_zobrist can also be optimised.

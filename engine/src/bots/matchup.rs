@@ -45,6 +45,8 @@ impl GameResult {
 pub struct MatchResult {
     pub game_count: usize,
     pub game_results: Vec<GameResult>,
+    pub engine1: String,
+    pub engine2: String,
     pub engine1_wins: i32,
     pub engine2_wins: i32,
     pub draws: i32,
@@ -72,9 +74,11 @@ impl MatchResult {
         let median_moves: usize = moves_per_game[middle];
         
         let match_result: String = format!(
-            "Total: {}, Engine1 wins: {}, Engine2 wins: {}, Draws: {}, Others: {}\nAverage moves: {}, Median moves: {}, Time taken: {:?}",
+            "Total: {}, {} wins: {}, {} wins: {}, Draws: {}, Others: {}\nAverage moves: {}, Median moves: {}, Time taken: {:?}",
             self.game_count,
+            self.engine1,
             self.engine1_wins,
+            self.engine2,
             self.engine2_wins,
             self.draws,
             self.other,
@@ -93,6 +97,8 @@ pub trait Engine {
     fn select_move(&mut self, time_per_move: Duration) -> Move;
 
     fn apply_move(&mut self, move1: Move);
+
+    fn name(&self) -> String;
 }
 
 pub fn run_game<E1: Engine, E2: Engine>(fen_str: &str, time_per_move: Duration, engine1_constr: fn(&str) -> E1, engine2_constr: fn(&str) -> E2, white_is_engine1: bool) -> GameResult {
@@ -137,7 +143,7 @@ pub fn run_game<E1: Engine, E2: Engine>(fen_str: &str, time_per_move: Duration, 
     }
 }
 
-pub fn run_games<E1: Engine, E2: Engine>(fen_strs: &[String], time_per_move: Duration, engine1: fn(&str) -> E1, engine2: fn(&str) -> E2) -> MatchResult {
+pub fn run_games<E1: Engine, E2: Engine>(fen_strs: &[String], time_per_move: Duration, engine1_constr: fn(&str) -> E1, engine2_constr: fn(&str) -> E2) -> MatchResult {
 
     let start_time: Instant = Instant::now();
     
@@ -152,9 +158,12 @@ pub fn run_games<E1: Engine, E2: Engine>(fen_strs: &[String], time_per_move: Dur
     let game_results: Vec<GameResult> = all_games
         .par_iter()
         .map(|&(fen_str, white_is_engine1)| {
-            run_game(fen_str, time_per_move, engine1, engine2, white_is_engine1)
+            run_game(fen_str, time_per_move, engine1_constr, engine2_constr, white_is_engine1)
         })
         .collect();
+
+    let engine1: String = engine1_constr(DEFAULT).name();
+    let engine2: String = engine2_constr(DEFAULT).name();
     
     let mut engine1_wins: i32 = 0;
     let mut engine2_wins: i32 = 0;
@@ -173,6 +182,8 @@ pub fn run_games<E1: Engine, E2: Engine>(fen_strs: &[String], time_per_move: Dur
     MatchResult {
         game_count: game_results.len(),
         game_results,
+        engine1,
+        engine2,
         engine1_wins,
         engine2_wins,
         draws,
