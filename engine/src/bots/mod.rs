@@ -5,6 +5,7 @@ pub mod dumbengine;
 pub mod randomengine;
 pub mod simpleengine;
 pub mod alphaengine;
+pub mod sortedengine;
 
 pub mod opening_book;
 

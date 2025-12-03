@@ -37,6 +37,7 @@ Principle variation
 Late move reduction
 Null-move heuristic
 Fenlib optimalisations
+Force king movement
 Etc
 
 bot ?: GreedyEngine:

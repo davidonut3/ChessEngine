@@ -33,10 +33,10 @@ class PlayerVsPlayerMatch:
 
 
 class BotVsBotMatch:
-    def __init__(self, white, black, delay=0, fen=FenPy(), is_visual=True, perspective=WHITE):
+    def __init__(self, white, black, delay_seconds=0, fen=FenPy(), is_visual=True, perspective=WHITE):
         self.white = white
         self.black = black
-        self.delay = delay
+        self.delay_seconds = delay_seconds
         self.fen = fen
         self.is_visual = is_visual or self.white == USER or self.black == USER
         self.perspective = perspective
@@ -74,7 +74,7 @@ class BotVsBotMatch:
         return win
 
     def get_move(self):
-        time.sleep(self.delay)
+        time.sleep(self.delay_seconds)
         if self.fen.white_to_move():
             move = self.white.select_move(TIME_PER_MOVE_MILLI)
 
