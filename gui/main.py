@@ -20,8 +20,8 @@ def test():
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
     BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
-test()
+# test()
 
-# run_matchup_py(True, 100, 500)
+run_matchup_py(True, 100, 500)
 
 # rust_access()

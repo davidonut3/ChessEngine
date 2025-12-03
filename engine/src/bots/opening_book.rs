@@ -1,5 +1,7 @@
-use crate::{parsing, utils::*};
+use crate::utils::*;
 use rand::Rng;
+
+// use crate::parsing;
 
 const MAGIC_MAIN: u64 = 3134906545090246530;
 const SHIFT_MAIN: u64 = 58;
@@ -89,7 +91,7 @@ pub fn get_opening_move(partial_zobrist: u64) -> Option<CompactMove> {
 
         // If there is only one option, we take that option
         if moves.len() == 1 {
-			println!("OPENING BOOK {}", parsing::compact_to_lan(&moves[0].0));
+			// println!("OPENING BOOK {}", parsing::compact_to_lan(&moves[0].0));
 
             return Some(moves[0].0)
         }
@@ -103,7 +105,7 @@ pub fn get_opening_move(partial_zobrist: u64) -> Option<CompactMove> {
         for &(move1, count) in moves {
             cumulative += count;
             if random_number < cumulative {
-				println!("OPENING BOOK {}", parsing::compact_to_lan(&move1));
+				// println!("OPENING BOOK {}", parsing::compact_to_lan(&move1));
 
                 return Some(move1);
             }

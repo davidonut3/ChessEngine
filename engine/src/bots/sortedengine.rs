@@ -63,6 +63,11 @@ impl Engine for SortedEngine {
 
             for i in 0..move_count {
                 let move1: Move = moves[i];
+
+                if !self.fen.is_valid_board() {
+                    panic!("select_move: fen is not valid")
+                }
+
                 let mut new_fen = self.fen.clone();
                 new_fen.move_to_fen(move1);
 
@@ -113,6 +118,11 @@ impl SortedEngine {
         
         for i in 0..move_count {
             let move1: Move = moves[i];
+
+            if !fen.is_valid_board() {
+                panic!("negamax: fen is not valid")
+            }
+
             let mut new_fen = fen.clone();
             new_fen.move_to_fen(move1);
 

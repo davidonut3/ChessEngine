@@ -305,6 +305,16 @@ impl Fen {
         // I do not recommend using this function in a bot, since it is relatively slow
         // Note that we do not check for a threefold position repetition, as this is pretty much impossible to do
 
+        // https://www.chessprogramming.org/Draw_Evaluation
+        let white_king_count: u32 = self.array[KING_W].count_ones();
+        let black_king_count: u32 = self.array[KING_B].count_ones();
+
+        // In case any player has more or less than one king, the game is invalid
+        // We had some errors since this check was not at the start of the game
+        if white_king_count != 1 || black_king_count != 1 {
+            return GameOutcome::Error
+        }
+
         let move_count: usize = self.get_legal_moves_array().1;
         let white_to_move: bool = self.white_to_move();
         let in_check: bool = self.player_in_check(white_to_move);
@@ -332,15 +342,6 @@ impl Fen {
             if ply_count > max_plies {
                 return GameOutcome::MaxPliesReached
             }
-        }
-
-        // https://www.chessprogramming.org/Draw_Evaluation
-        let white_king_count: u32 = self.array[KING_W].count_ones();
-        let black_king_count: u32 = self.array[KING_B].count_ones();
-
-        // In case any player has more or less than one king, the game is invalid
-        if white_king_count != 1 || black_king_count != 1 {
-            return GameOutcome::Error
         }
 
         let white_piece_count: u32 = self.array[WHITE].count_ones();

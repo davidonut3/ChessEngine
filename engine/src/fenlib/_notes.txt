@@ -2,7 +2,7 @@ We can still optimise move generation:
 
  - Branchless programming
  - precomputation (Magic bitboards)
- - Compiler optimalisations
+ - Compiler optimizations
 
 We can also optimise other functions:
 
