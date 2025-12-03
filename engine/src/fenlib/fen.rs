@@ -310,7 +310,6 @@ impl Fen {
         let black_king_count: u32 = self.array[KING_B].count_ones();
 
         // In case any player has more or less than one king, the game is invalid
-        // We had some errors since this check was not at the start of the game
         if white_king_count != 1 || black_king_count != 1 {
             return GameOutcome::Error
         }

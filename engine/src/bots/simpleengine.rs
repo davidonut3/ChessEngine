@@ -95,6 +95,15 @@ impl SimpleEngine {
     }
 
     fn eval(&self, fen: &Fen) -> i32 {
+        match fen.game_outcome(None) {
+            GameOutcome::WhiteWins => return i32::MAX,
+            GameOutcome::BlackWins => return i32::MIN,
+            GameOutcome::Draw => return 0,
+            GameOutcome::MaxPliesReached => return 0,
+            GameOutcome::Error => panic!("eval: fen is not valid"),
+            GameOutcome::Ongoing => (),
+        };
+
         let score: i32 =    
             (   fen.array[PAWN_W].count_ones() as i32          - fen.array[PAWN_B].count_ones() as i32          ) * VALUES[PAWN]        + 
             (   fen.array[KNIGHT_W].count_ones() as i32        - fen.array[KNIGHT_B].count_ones() as i32        ) * VALUES[KNIGHT]      + 
