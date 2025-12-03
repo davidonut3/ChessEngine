@@ -11,7 +11,7 @@ bot 3: AlphaEngine:
 Search:             Previous + alpha-beta-pruning
 Eval:               Previous + mid/endgame specific values
 
-bot 4: SystematicEngine:
+bot 4: SortedEngine:
 
 Search:             Previous + move ordering
 Eval:               Previous + pawn structure

@@ -13,6 +13,10 @@ use crate::bots::matchup::Engine;
 use crate::utils::*;
 use crate::parsing;
 
+#[pyfunction]
+pub fn rust_access() {
+}
+
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct FenPy {
@@ -228,6 +232,8 @@ pub fn run_matchup_py(print_matches: bool, time_per_move_milli: u64, number_of_g
 /// The Python module entry point for the `engine` package.
 #[pymodule]
 fn engine(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(rust_access, m)?)?;
+
     m.add_class::<FenPy>()?;
     m.add_class::<DumbEnginePy>()?;
     m.add_class::<RandomEnginePy>()?;

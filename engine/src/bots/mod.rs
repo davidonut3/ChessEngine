@@ -6,6 +6,8 @@ pub mod randomengine;
 pub mod simpleengine;
 pub mod alphaengine;
 
+pub mod opening_book;
+
 use crate::bots::matchup::{Engine, run_games};
 use crate::games::get_random_games;
 

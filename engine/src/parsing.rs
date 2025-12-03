@@ -257,7 +257,7 @@ pub fn string_to_compr_enpassant(enpassant: &str) -> u64 {
 pub fn compr_to_string_enpassant(info: u64) -> String {
     let enpassant: u8 = ((info & ENPASSANT) >> 24) as u8;
 
-    if (enpassant & 0b01000000) == 0 {
+    if (enpassant & 0b01000000) != 0 {
         return "-".to_string()
     } else {
         return bit_to_tile(compr_to_bit(enpassant))
@@ -529,4 +529,12 @@ pub fn compact_to_move(move1: &CompactMove) -> Move {
     };
 
     [FIRST >> from, FIRST >> to, promotion]
+}
+
+pub fn compact_to_lan(move1: &CompactMove) -> String {
+    move_to_lan(&compact_to_move(move1))
+}
+
+pub fn lan_to_compact(lan: &str) -> CompactMove {
+    move_to_compact(&lan_to_move(lan))
 }

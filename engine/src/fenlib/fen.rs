@@ -236,16 +236,7 @@ impl Fen {
     }
 
     pub fn get_zobrist(&self) -> u64 {
-        let mut hash: u64 = 0;
-
-        for piece in 0..12 {
-            let mut squares: u64 = self.array[piece];
-            while squares != 0 {
-                let square: usize = squares.leading_zeros() as usize;
-                hash ^= ZOBRIST_PIECE_SQUARE_RANDOMS[piece][square];
-                squares &= !(1u64 << square);
-            }
-        }
+        let mut hash: u64 = self.get_partial_zobrist();
 
         if self.array[INFO] & WHITE_KINGSIDE_RIGHTS != 0 {
             hash ^= ZOBRIST_CASTLE_RANDOMS[0]
@@ -269,8 +260,23 @@ impl Fen {
             hash ^= ZOBRIST_ENPASSANT_RANDOMS[file]
         }
 
+        hash
+    }
+
+    pub fn get_partial_zobrist(&self) -> u64 {
+        let mut hash: u64 = 0;
+
         if self.array[INFO] & TURN != 0 {
             hash ^= ZOBRIST_TURN_RANDOM
+        }
+
+        for piece in 0..12 {
+            let mut squares: u64 = self.array[piece];
+            while squares != 0 {
+                let square: usize = squares.leading_zeros() as usize;
+                hash ^= ZOBRIST_PIECE_SQUARE_RANDOMS[piece][square];
+                squares &= !(FIRST >> square);
+            }
         }
 
         hash
