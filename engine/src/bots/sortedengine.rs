@@ -3,8 +3,6 @@ use std::time::Instant;
 
 use crate::bots::matchup::Engine;
 use crate::bots::opening_book::get_opening_move;
-use crate::fenlib::attacks::get_black_attacks;
-use crate::fenlib::attacks::get_white_attacks;
 use crate::fenlib::fen::Fen;
 use crate::fenlib::attacks;
 use crate::parsing;
@@ -103,21 +101,23 @@ impl SortedEngine {
             return self.eval(fen)
         }
 
-        let mut value: i32 = -INFINITY;
-
         let (moves, move_count) = fen.get_legal_moves_array();
 
         if move_count == 0 {
             let in_check: bool = fen.player_in_check(fen.white_to_move());
 
-            // In case of checkmate we return the worst possible score, in case of stalemate we return 0
+            // We break early if there is a stalemate or a checkmate
             if in_check { return -MATE_VALUE; } else { return 0; }
         };
+
+        let mut value: i32 = -INFINITY;
         
         for i in 0..move_count {
             let move1: Move = moves[i];
             let mut new_fen = fen.clone();
             new_fen.move_to_fen(move1);
+
+            if new_fen.game_outcome(None) == GameOutcome::Error { panic!("negamax: fen is not valid {:?} move {:?}", new_fen.to_string(), parsing::move_to_lan(&move1)) }
 
             let score: i32 = -self.negamax(&new_fen, depth - 1, start_time, max_time, -beta, -alpha);
 
@@ -137,7 +137,7 @@ impl SortedEngine {
             GameOutcome::BlackWins => return i32::MIN,
             GameOutcome::Draw => return 0,
             GameOutcome::MaxPliesReached => return 0,
-            GameOutcome::Error => panic!("eval: fen is not valid"),
+            GameOutcome::Error => panic!("eval: fen is not valid {:?}", fen.to_string()),
             GameOutcome::Ongoing => (),
         };
 
@@ -190,7 +190,7 @@ impl SortedEngine {
 
         // We reward minimizing the number of moves of the opponent king to encourage attacking in endgame
         let opp_king_attacks = if white_to_move { attacks::king_attack(fen.array[KING_B]) } else { attacks::king_attack(fen.array[KING_W]) };
-        let current_attacks = if white_to_move { get_white_attacks(&fen.array) } else { get_black_attacks(&fen.array) };
+        let current_attacks = if white_to_move { attacks::get_white_attacks(&fen.array) } else { attacks::get_black_attacks(&fen.array) };
         let opp_king_movement = (opp_king_attacks & !current_attacks).count_ones() as i32;
 
         let material_score: i32 = (midgame_score * midgame_phase + endgame_score * endgame_phase) / 24;

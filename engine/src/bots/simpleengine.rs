@@ -12,6 +12,9 @@ const ROOK: usize = 3;
 const QUEEN: usize = 4;
 const KING: usize = 5;
 
+// Mate/king value cannot be infinity, since that may result in integer overflows
+const MATE_VALUE: i32 = 20000;
+
 const VALUES: [i32; 6] = [ 100, 310, 320, 500, 900, 20000 ];
 
 #[derive(Debug, Clone)]
@@ -73,13 +76,21 @@ impl Engine for SimpleEngine {
 impl SimpleEngine {
     fn negamax(&self, fen: &Fen, depth: i32, start_time: Instant, max_time: Duration) -> i32 {
         
-        // We assume that the time of the eval function is negligible
+        // We assume that the time to evaluate all leaf nodes is negligible
         if start_time.elapsed() >= max_time || depth == 0 {
             return self.eval(fen)
         }
 
-        let mut max: i32 = -INFINITY;
         let (moves, move_count) = fen.get_legal_moves_array();
+
+        if move_count == 0 {
+            let in_check: bool = fen.player_in_check(fen.white_to_move());
+
+            // We break early if there is a stalemate or a checkmate
+            if in_check { return -MATE_VALUE; } else { return 0; }
+        };
+        
+        let mut max: i32 = -INFINITY;
         
         for i in 0..move_count {
             let move1: Move = moves[i];
@@ -95,15 +106,6 @@ impl SimpleEngine {
     }
 
     fn eval(&self, fen: &Fen) -> i32 {
-        match fen.game_outcome(None) {
-            GameOutcome::WhiteWins => return i32::MAX,
-            GameOutcome::BlackWins => return i32::MIN,
-            GameOutcome::Draw => return 0,
-            GameOutcome::MaxPliesReached => return 0,
-            GameOutcome::Error => panic!("eval: fen is not valid"),
-            GameOutcome::Ongoing => (),
-        };
-
         let score: i32 =    
             (   fen.array[PAWN_W].count_ones() as i32          - fen.array[PAWN_B].count_ones() as i32          ) * VALUES[PAWN]        + 
             (   fen.array[KNIGHT_W].count_ones() as i32        - fen.array[KNIGHT_B].count_ones() as i32        ) * VALUES[KNIGHT]      + 

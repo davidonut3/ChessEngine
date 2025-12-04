@@ -4,6 +4,7 @@ use std::time::Instant;
 use crate::bots::matchup::Engine;
 use crate::fenlib::fen::Fen;
 use crate::utils::*;
+use crate::parsing;
 
 const PAWN: usize = 0;
 const KNIGHT: usize = 1;
@@ -84,21 +85,23 @@ impl AlphaEngine {
             return self.eval(fen)
         }
 
-        let mut value: i32 = -INFINITY;
-
         let (moves, move_count) = fen.get_legal_moves_array();
 
         if move_count == 0 {
             let in_check: bool = fen.player_in_check(fen.white_to_move());
 
-            // In case of checkmate we return the worst possible score, in case of stalemate we return 0
+            // We break early if there is a stalemate or a checkmate
             if in_check { return -MATE_VALUE; } else { return 0; }
         };
+
+        let mut value: i32 = -INFINITY;
         
         for i in 0..move_count {
             let move1: Move = moves[i];
             let mut new_fen = fen.clone();
             new_fen.move_to_fen(move1);
+
+            if new_fen.game_outcome(None) == GameOutcome::Error { panic!("negamax: fen is not valid {:?} move {:?}", new_fen.to_string(), parsing::move_to_lan(&move1)) }
 
             let score: i32 = -self.negamax(&new_fen, depth - 1, start_time, max_time, -beta, -alpha);
 
@@ -118,7 +121,7 @@ impl AlphaEngine {
             GameOutcome::BlackWins => return i32::MIN,
             GameOutcome::Draw => return 0,
             GameOutcome::MaxPliesReached => return 0,
-            GameOutcome::Error => panic!("eval: fen is not valid"),
+            GameOutcome::Error => panic!("eval: fen is not valid {:?}", fen.to_string()),
             GameOutcome::Ongoing => (),
         };
 
