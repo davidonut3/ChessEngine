@@ -14,8 +14,11 @@ use crate::bots::matchup::Engine;
 use crate::utils::*;
 use crate::parsing;
 
+use crate::bots::run_error_detection;
+
 #[pyfunction]
 pub fn rust_access() {
+    run_error_detection();
 }
 
 #[pyclass]
