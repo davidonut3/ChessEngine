@@ -21,10 +21,10 @@ def test():
     bot4 = SortedEnginePy.new_game(game)
     # PlayerVsBotMatch(bot4, player_is_white=True, fen=fen, perspective=WHITE).run_match()
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
-    BotVsBotMatch(bot3, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
+    BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
 # test()
 
-# run_matchup_py(True, 100, 500)
+# run_matchup_py(True, 100, 1000)
 
 rust_access()

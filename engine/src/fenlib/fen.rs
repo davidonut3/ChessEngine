@@ -84,7 +84,7 @@ impl Fen {
             }
 
             // We set the enpassant flag to 0, since one can only do this move right after an opposing pawn is moved two squares forward
-            self.array[INFO] &= !ENPASSANT;
+            self.array[INFO] &= !PARTIAL_ENPASSANT;
 
             // In case a pawn has moved two squares forward, we update the enpassant flag accordingly
             if (to & RANK_4 != 0) && (from & self.array[PAWN_W] & RANK_6 != 0) {
@@ -117,7 +117,7 @@ impl Fen {
             }
 
             // We set the enpassant flag to 0, since one can only do this move right after an opposing pawn is moved two squares forward
-            self.array[INFO] &= !ENPASSANT;
+            self.array[INFO] &= !PARTIAL_ENPASSANT;
 
             // In case a pawn has moved two squares forward, we update the enpassant flag accordingly
             if (to & RANK_3 != 0) && (from & self.array[PAWN_B] & RANK_1 != 0) {
@@ -255,7 +255,7 @@ impl Fen {
         }
 
         let enpassant: u8 = ((self.array[INFO] & ENPASSANT) >> 24) as u8;
-        if enpassant & 0b01000000 != 0 {
+        if enpassant & 0b01000000 == 0 {
             let file: usize = (enpassant & 0b00000111) as usize;
             hash ^= ZOBRIST_ENPASSANT_RANDOMS[file]
         }

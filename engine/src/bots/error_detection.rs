@@ -15,7 +15,9 @@ pub fn debug_run_all_games<E1: Engine + std::panic::UnwindSafe,
     let mut failed = 0;
 
     for (i, fen) in fens.iter().enumerate() {
+        println!("\n------------------------------------------------");
         println!("Running {} / {}", i + 1, fens.len());
+        println!("------------------------------------------------\n");
 
         let result = panic::catch_unwind(|| {
             run_game(
@@ -43,9 +45,6 @@ pub fn debug_run_all_games<E1: Engine + std::panic::UnwindSafe,
                 } else if let Some(msg) = err.downcast_ref::<String>() {
                     println!("Panic message: {}", msg);
                 }
-
-                println!("Stopping after first crash.");
-                break;
             }
         }
     }
