@@ -8,7 +8,7 @@ def perft(fen_str, per_move):
         perft_check(i, fen_str, per_move)
 
 def test():
-    game = "r1b1k2r/pp2nppp/1qn1p3/3pP3/1b1P4/1P2BN2/P2N1PPP/R2QKB1R w KQkq - 3 10"
+    game = DEFAULT
 
     fen = FenPy()
     fen = fen.from_str(game)
@@ -25,6 +25,6 @@ def test():
 
 # test()
 
-# run_matchup_py(True, 100, 1000)
+run_matchup_py(True, 100, 500)
 
-rust_access()
+# rust_access()

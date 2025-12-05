@@ -16,9 +16,6 @@ use crate::parsing;
 
 #[pyfunction]
 pub fn rust_access() {
-    let fen_str = "K7/1P6/8/8/8/8/8/7k w - - 1 102";
-    let fen = Fen::from_str(fen_str);
-    println!("Fen: {:?}, moves {:?}", fen.to_string(), fen.get_legal_moves_lan());
 }
 
 #[pyclass]
