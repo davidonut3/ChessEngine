@@ -10,6 +10,8 @@ class PlayerVsPlayerMatch:
         self.visual = Visual(self.fen, self.perspective)
 
     def run_match(self):
+        print("Player vs player match")
+
         self.visual.setup()
             
         running = True
@@ -43,6 +45,8 @@ class BotVsBotMatch:
         self.visual = Visual(self.fen, self.perspective)
 
     def run_match(self):
+        print("Bot vs bot match")
+
         win = NOT_ENDED
 
         if self.is_visual:
@@ -106,6 +110,8 @@ class PlayerVsBotMatch:
         self.visual = Visual(self.fen, self.perspective)
 
     def run_match(self):
+        print("Player vs bot match")
+
         self.visual.setup()
             
         running = True

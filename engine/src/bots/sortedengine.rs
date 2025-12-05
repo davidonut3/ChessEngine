@@ -41,7 +41,7 @@ impl Engine for SortedEngine {
         if self.use_opening_book {
             let partial_zobrist = self.fen.get_partial_zobrist();
 
-            if let Some(opening_move) = get_opening_move(partial_zobrist) {
+            if let Some(opening_move) = get_opening_move(partial_zobrist, false) {
                 let move1 = parsing::compact_to_move(&opening_move);
 
                 // In the very rare case we get a hash collision with an opening position, we have to make sure the move we find is legal

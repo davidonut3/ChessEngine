@@ -8,17 +8,20 @@ def perft(fen_str, per_move):
         perft_check(i, fen_str, per_move)
 
 def test():
-    fen = FenPy()
-    botOther = SortedEnginePy.new_game(DEFAULT)
+    game = "r1b1k2r/pp2nppp/1qn1p3/3pP3/1b1P4/1P2BN2/P2N1PPP/R2QKB1R w KQkq - 3 10"
 
-    bot0 = DumbEnginePy.new_game(DEFAULT)
-    bot1 = RandomEnginePy.new_game(DEFAULT)
-    bot2 = SimpleEnginePy.new_game(DEFAULT)
-    bot3 = AlphaEnginePy.new_game(DEFAULT)
-    bot4 = SortedEnginePy.new_game(DEFAULT)
-    PlayerVsBotMatch(bot4, player_is_white=True, fen=fen, perspective=WHITE).run_match()
+    fen = FenPy()
+    fen = fen.from_str(game)
+    botOther = SortedEnginePy.new_game(game)
+
+    bot0 = DumbEnginePy.new_game(game)
+    bot1 = RandomEnginePy.new_game(game)
+    bot2 = SimpleEnginePy.new_game(game)
+    bot3 = AlphaEnginePy.new_game(game)
+    bot4 = SortedEnginePy.new_game(game)
+    # PlayerVsBotMatch(bot4, player_is_white=True, fen=fen, perspective=WHITE).run_match()
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
-    # BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
+    BotVsBotMatch(bot3, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
 # test()
 
