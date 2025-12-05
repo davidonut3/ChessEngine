@@ -11,11 +11,13 @@ use crate::fenlib::fen::*;
 use crate::fenlib::tests;
 use crate::bots::run_matchup;
 use crate::bots::matchup::Engine;
+use crate::fenlib::tests::check_function_perft;
 use crate::utils::*;
 use crate::parsing;
 
 #[pyfunction]
 pub fn rust_access() {
+    check_function_perft();
 }
 
 #[pyclass]
@@ -77,7 +79,7 @@ impl FenPy {
     ///
     /// This may mutate internal state during the computation.
     pub fn in_check(&mut self) -> bool {
-        self.fen.player_in_check(true)
+        self.fen.player_in_check(self.fen.white_to_move())
     }
 
     /// Makes a move (in LAN format) and updates the FEN state accordingly.

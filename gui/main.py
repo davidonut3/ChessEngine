@@ -25,6 +25,6 @@ def test():
 
 # test()
 
-run_matchup_py(True, 100, 500)
+# run_matchup_py(True, 100, 500)
 
-# rust_access()
+rust_access()

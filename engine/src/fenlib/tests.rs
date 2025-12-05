@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::fenlib::fen::Fen;
 use crate::parsing;
 use crate::games;
@@ -116,4 +118,24 @@ pub fn moves_per_second_perft() {
     let duration = time.elapsed();
 
     println!("Getting {:?} moves took {:?}", count, duration)
+}
+
+pub fn check_function_perft() {
+    println!("Starting performance test for check function");
+    let games: [Fen; 1000] = games::get_random_fens();
+    let count = 100000000;
+
+    let mut rng = rand::rng();
+
+    let time: Instant = Instant::now();
+
+    for _ in 0..count {
+        let index = rng.random_range(0..1000);
+        let game = &games[index];
+        game.player_in_check(game.white_to_move());
+    }
+
+    let duration = time.elapsed();
+
+    println!("Calling function on {:?} fens took {:?}", count, duration)
 }

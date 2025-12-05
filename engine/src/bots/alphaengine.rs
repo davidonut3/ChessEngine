@@ -4,7 +4,6 @@ use std::time::Instant;
 use crate::bots::matchup::Engine;
 use crate::fenlib::fen::Fen;
 use crate::utils::*;
-use crate::parsing;
 
 const PAWN: usize = 0;
 const KNIGHT: usize = 1;
@@ -100,8 +99,6 @@ impl AlphaEngine {
             let move1: Move = moves[i];
             let mut new_fen = fen.clone();
             new_fen.move_to_fen(move1);
-
-            if new_fen.game_outcome(None) == GameOutcome::Error { panic!("negamax: fen is not valid {:?} move {:?}\nprevious fen {:?} had legal moves {:?}", new_fen.to_string(), parsing::move_to_lan(&move1), fen.to_string(), fen.get_legal_moves_lan()) }
 
             let score: i32 = -self.negamax(&new_fen, depth - 1, start_time, max_time, -beta, -alpha);
 
