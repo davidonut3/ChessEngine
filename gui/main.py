@@ -8,23 +8,23 @@ def perft(fen_str, per_move):
         perft_check(i, fen_str, per_move)
 
 def test():
-    game = DEFAULT
+    game = "1k2r3/7R/8/7B/8/3R4/6K1/8 w - - 0 1"
 
     fen = FenPy()
     fen = fen.from_str(game)
-    botOther = SortedEnginePy.new_game(game)
+    botOther = AlphaEnginePy.new_game(game)
 
     bot0 = DumbEnginePy.new_game(game)
     bot1 = RandomEnginePy.new_game(game)
     bot2 = SimpleEnginePy.new_game(game)
     bot3 = AlphaEnginePy.new_game(game)
     bot4 = SortedEnginePy.new_game(game)
-    # PlayerVsBotMatch(bot4, player_is_white=True, fen=fen, perspective=WHITE).run_match()
+    PlayerVsBotMatch(bot4, player_is_white=False, fen=fen, perspective=WHITE).run_match()
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
-    BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
+    # BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
-# test()
+test()
 
 # run_matchup_py(True, 100, 500)
 
-rust_access()
+# rust_access()

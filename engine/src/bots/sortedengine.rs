@@ -4,7 +4,6 @@ use std::time::Instant;
 use crate::bots::matchup::Engine;
 use crate::bots::opening_book::get_opening_move;
 use crate::fenlib::fen::Fen;
-use crate::fenlib::attacks;
 use crate::parsing;
 use crate::utils::*;
 
@@ -38,6 +37,8 @@ impl Engine for SortedEngine {
 
         let (moves, move_count) = self.fen.get_legal_moves_array();
 
+        if move_count == 0 { panic!("select_move: No moves available") };
+
         if self.use_opening_book {
             let partial_zobrist = self.fen.get_partial_zobrist();
 
@@ -56,6 +57,8 @@ impl Engine for SortedEngine {
         let mut depth: i32 = 1;
         while start_time.elapsed() < max_time {
 
+            println!("\ndepth {:?}\n", depth);
+
             let mut alpha: i32 = -INFINITY;
             let beta: i32 = INFINITY;
 
@@ -68,6 +71,8 @@ impl Engine for SortedEngine {
                 new_fen.move_to_fen(move1);
 
                 let score: i32 = -self.negamax(&new_fen, depth, start_time, max_time, -beta, -alpha);
+
+                println!("Move {:?} score {:?}", parsing::move_to_lan(&move1), score);
 
                 if score > best_score {
                     best_score = score;
@@ -107,7 +112,7 @@ impl SortedEngine {
             let in_check: bool = fen.player_in_check(fen.white_to_move());
 
             // We break early if there is a stalemate or a checkmate
-            if in_check { return -MATE_VALUE; } else { return 0; }
+            if in_check { return -MATE_VALUE - depth; } else { return 0; }
         };
 
         let mut value: i32 = -INFINITY;
@@ -130,8 +135,6 @@ impl SortedEngine {
     }
 
     fn eval(&self, fen: &Fen) -> i32 {
-        let white_to_move = fen.white_to_move();
-
         let white_pawn_val: u32      = fen.array[PAWN_W].count_ones();
         let black_pawn_val: u32      = fen.array[PAWN_B].count_ones();
         let white_knight_val: u32    = fen.array[KNIGHT_W].count_ones();
@@ -177,14 +180,8 @@ impl SortedEngine {
         let midgame_phase: i32 = game_phase.min(24);
         let endgame_phase: i32 = 24 - midgame_phase;
 
-        // We reward minimizing the number of moves of the opponent king to encourage attacking in endgame
-        let opp_king_attacks = if white_to_move { attacks::king_attack(fen.array[KING_B]) } else { attacks::king_attack(fen.array[KING_W]) };
-        let current_attacks = if white_to_move { attacks::get_white_attacks(&fen.array) } else { attacks::get_black_attacks(&fen.array) };
-        let opp_king_movement = (opp_king_attacks & !current_attacks).count_ones() as i32;
+        let score: i32 = (midgame_score * midgame_phase + endgame_score * endgame_phase) / 24;
 
-        let material_score: i32 = (midgame_score * midgame_phase + endgame_score * endgame_phase) / 24;
-        let score = material_score - 5 * opp_king_movement;
-
-        if white_to_move { score } else { -score }
+        if fen.white_to_move() { score } else { -score }
     }
 }
