@@ -102,9 +102,10 @@ class BotVsBotMatch:
     
 
 class PlayerVsBotMatch:
-    def __init__(self, bot, player_is_white=True, fen=FenPy(), perspective=WHITE):
+    def __init__(self, bot, time_per_move_mili, player_is_white=True, fen=FenPy(), perspective=WHITE):
         self.player_is_white = player_is_white
         self.bot = bot
+        self.time_per_move_mili = time_per_move_mili
         self.fen = fen
         self.perspective = perspective
         self.visual = Visual(self.fen, self.perspective)
@@ -140,7 +141,7 @@ class PlayerVsBotMatch:
         pygame.quit()
     
     def get_move(self):
-        move = self.bot.select_move(TIME_PER_MOVE_MILLI)
+        move = self.bot.select_move(self.time_per_move_mili)
         self.bot.apply_move(move)
         self.fen.lan_to_fen(move)
         print(f"Fen to {self.fen.to_string()} by move {move}")

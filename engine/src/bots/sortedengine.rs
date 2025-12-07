@@ -36,57 +36,22 @@ impl Engine for SortedEngine {
         let start_time: Instant = Instant::now();
 
         let (moves, move_count) = self.fen.get_legal_moves_array();
-
         if move_count == 0 { panic!("select_move: No moves available") };
 
-        if self.use_opening_book {
-            let partial_zobrist = self.fen.get_partial_zobrist();
+        if let Some(move1) = self.opening_move(moves, true) { return move1 }
 
-            if let Some(opening_move) = get_opening_move(partial_zobrist, false) {
-                let move1 = parsing::compact_to_move(&opening_move);
-
-                // In the very rare case we get a hash collision with an opening position, we have to make sure the move we find is legal
-                if moves.contains(&move1) { return move1 }
-            } else {
-                self.use_opening_book = false;
-            }
-        }
-
-        let mut best_move_overall: Move = moves[0];
+        let mut best_move: Move;
 
         let mut depth: i32 = 1;
-        while start_time.elapsed() < max_time {
+        loop {
+            best_move = self.negamax_root(moves, move_count, depth);
 
-            println!("\ndepth {:?}\n", depth);
-
-            let mut alpha: i32 = -INFINITY;
-            let beta: i32 = INFINITY;
-
-            let mut best_move: Move = moves[0];
-            let mut best_score: i32 = -INFINITY;
-
-            for i in 0..move_count {
-                let move1: Move = moves[i];
-                let mut new_fen = self.fen.clone();
-                new_fen.move_to_fen(move1);
-
-                let score: i32 = -self.negamax(&new_fen, depth, start_time, max_time, -beta, -alpha);
-
-                println!("Move {:?} score {:?}", parsing::move_to_lan(&move1), score);
-
-                if score > best_score {
-                    best_score = score;
-                    best_move = move1;
-                }
-
-                if score > alpha { alpha = score }
-            }
-
-            best_move_overall = best_move;
             depth += 1;
+
+            if start_time.elapsed() > max_time { break; }
         }
 
-        best_move_overall
+        best_move
     }
 
     fn apply_move(&mut self, move1: Move) {
@@ -99,21 +64,35 @@ impl Engine for SortedEngine {
 }
 
 impl SortedEngine {
-    fn negamax(&self, fen: &Fen, depth: i32, start_time: Instant, max_time: Duration, mut alpha: i32, beta: i32) -> i32 {
-        
-        // We assume that the time of the eval function is negligible
-        if start_time.elapsed() >= max_time || depth == 0 {
-            return self.eval(fen)
+    fn opening_move(&mut self, moves: MoveArray, pick_random: bool) -> Option<Move> {
+        if self.use_opening_book {
+            let partial_zobrist: u64 = self.fen.get_partial_zobrist();
+
+            if let Some(opening_move) = get_opening_move(partial_zobrist, pick_random) {
+
+                let move1: Move = parsing::compact_to_move(&opening_move);
+
+                // In the very rare case we get a hash collision with an opening position, we have to make sure the move we find is legal
+                if moves.contains(&move1) { return Some(move1) }
+
+            } else {
+                self.use_opening_book = false;
+            }
         }
+
+        return None
+    }
+
+    fn negamax(&self, fen: &Fen, depth: i32, mut alpha: i32, beta: i32) -> i32 {
 
         let (moves, move_count) = fen.get_legal_moves_array();
 
+        // We break early if there is a stalemate or a checkmate
         if move_count == 0 {
-            let in_check: bool = fen.player_in_check(fen.white_to_move());
-
-            // We break early if there is a stalemate or a checkmate
-            if in_check { return -MATE_VALUE - depth; } else { return 0; }
+            if fen.player_in_check(fen.white_to_move()) { return -MATE_VALUE - depth; } else { return 0; }
         };
+
+        if depth == 0 { return self.eval(fen) }
 
         let mut value: i32 = -INFINITY;
         
@@ -122,16 +101,47 @@ impl SortedEngine {
             let mut new_fen = fen.clone();
             new_fen.move_to_fen(move1);
 
-            let score: i32 = -self.negamax(&new_fen, depth - 1, start_time, max_time, -beta, -alpha);
+            let score: i32 = -self.negamax(&new_fen, depth - 1, -beta, -alpha);
 
             if score > value { value = score }
             if value > alpha { alpha = value }
 
             if alpha >= beta { break }
-            if start_time.elapsed() >= max_time { break }
         }
 
         value
+    }
+
+    fn negamax_root(&self, moves: MoveArray, move_count: usize, depth: i32) -> Move {
+
+        println!("\n{:?}\n", depth);
+
+        let mut alpha: i32 = -INFINITY;
+        let beta: i32 = INFINITY;
+
+        let mut best_move: Move = moves[0];
+        let mut best_score: i32 = -INFINITY;
+
+        for i in 0..move_count {
+            let move1: Move = moves[i];
+            let mut new_fen = self.fen.clone();
+            new_fen.move_to_fen(move1);
+
+            let score: i32 = -self.negamax(&new_fen, depth, -beta, -alpha);
+
+            println!("Move {}, score {:?}", parsing::move_to_lan(&move1), score);
+
+            if score > best_score {
+                best_score = score;
+                best_move = move1;
+            }
+
+            if score > alpha { alpha = score }
+        }
+
+        println!("Best move {}", parsing::move_to_lan(&best_move));
+
+        best_move
     }
 
     fn eval(&self, fen: &Fen) -> i32 {
