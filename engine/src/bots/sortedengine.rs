@@ -44,12 +44,14 @@ impl Engine for SortedEngine {
 
         let mut depth: i32 = 1;
         loop {
-            best_move = self.negamax_root(moves, move_count, depth);
-
-            depth += 1;
+            best_move = self.negamax_root(moves, move_count, start_time, max_time, depth);
 
             if start_time.elapsed() > max_time { break; }
+
+            depth += 1;
         }
+
+        println!("{:?}", start_time.elapsed());
 
         best_move
     }
@@ -112,9 +114,9 @@ impl SortedEngine {
         value
     }
 
-    fn negamax_root(&self, moves: MoveArray, move_count: usize, depth: i32) -> Move {
+    fn negamax_root(&self, moves: MoveArray, move_count: usize, start_time: Instant, max_time: Duration, depth: i32) -> Move {
 
-        println!("\n{:?}\n", depth);
+        // println!("\n{:?}\n", depth);
 
         let mut alpha: i32 = -INFINITY;
         let beta: i32 = INFINITY;
@@ -123,13 +125,15 @@ impl SortedEngine {
         let mut best_score: i32 = -INFINITY;
 
         for i in 0..move_count {
+            if start_time.elapsed() > max_time { break; }
+
             let move1: Move = moves[i];
             let mut new_fen = self.fen.clone();
             new_fen.move_to_fen(move1);
 
             let score: i32 = -self.negamax(&new_fen, depth, -beta, -alpha);
 
-            println!("Move {}, score {:?}", parsing::move_to_lan(&move1), score);
+            // println!("Move {}, score {:?}", parsing::move_to_lan(&move1), score);
 
             if score > best_score {
                 best_score = score;
@@ -139,7 +143,7 @@ impl SortedEngine {
             if score > alpha { alpha = score }
         }
 
-        println!("Best move {}", parsing::move_to_lan(&best_move));
+        // println!("Best move {}", parsing::move_to_lan(&best_move));
 
         best_move
     }
