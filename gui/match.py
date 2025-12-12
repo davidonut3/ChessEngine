@@ -20,6 +20,10 @@ class PlayerVsPlayerMatch:
                 move = self.visual.get_move(WHITE)
             else:
                 move = self.visual.get_move(BLACK)
+
+            if self.visual.fen != self.fen:
+                self.fen = self.visual.fen
+                continue
             
             if not move:
                 running = False
@@ -126,6 +130,10 @@ class PlayerVsBotMatch:
                 move = self.visual.get_move(BLACK)
             elif not self.visual.run_static(self):
                 running = False
+
+            if self.visual.fen != self.fen:
+                self.fen = self.visual.fen
+                continue
 
             if not move:
                 running = False

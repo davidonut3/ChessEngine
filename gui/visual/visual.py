@@ -93,7 +93,8 @@ class Visual:
                     self.mouse_down = False
 
             self.update_save()
-            self.update_undo()
+            if self.update_undo():
+                return False
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -157,10 +158,13 @@ class Visual:
                             return move
 
             if self.current_tile_active:
-                self.current_tile.piece.center_image_at(self.screen_mouse)
+                mouse_pos = self.screen_mouse if self.perspective == WHITE else invert_pos(self.screen_mouse)
+
+                self.current_tile.piece.center_image_at(mouse_pos)
 
             self.update_save()
-            self.update_undo()
+            if self.update_undo():
+                return False
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -196,7 +200,8 @@ class Visual:
                     self.mouse_down = False
 
             self.update_save()
-            self.update_undo()
+            if self.update_undo():
+                return False
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -230,7 +235,8 @@ class Visual:
                     self.mouse_down = False
 
             self.update_save()
-            self.update_undo()
+            if self.update_undo():
+                return False
             queen_button = self.queen_button.update(self.mouse_pos, self.mouse_down)
             if queen_button:
                 return 'q'
@@ -321,6 +327,8 @@ class Visual:
             self.fen_list = self.fen_list[:-1]
             self.fen = self.fen.from_str(self.fen_list[-1])
             self.update_board()
+            return self.fen
+        return None
 
     def update_fen_list(self):
         self.fen_list.append(self.fen.to_string())
