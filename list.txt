@@ -7,6 +7,5 @@ Others:
 
 Bugs:
 - enpassant
-- perspective
 
-REWRITE GUI
+REWRITE GUI (WITH UNDO CAPABILITIES)

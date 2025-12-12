@@ -322,12 +322,12 @@ class Visual:
             print(f'The current fen is: {self.fen.to_string()}')
 
     def update_undo(self):
-        button_clicked = self.undo_button.update(self.mouse_pos, self.mouse_down)
-        if button_clicked and not len(self.fen_list) < 2:
-            self.fen_list = self.fen_list[:-1]
-            self.fen = self.fen.from_str(self.fen_list[-1])
-            self.update_board()
-            return self.fen
+        # button_clicked = self.undo_button.update(self.mouse_pos, self.mouse_down)
+        # if button_clicked and not len(self.fen_list) < 2:
+        #     self.fen_list = self.fen_list[:-1]
+        #     self.fen = self.fen.from_str(self.fen_list[-1])
+        #     self.update_board()
+        #     return self.fen
         return None
 
     def update_fen_list(self):

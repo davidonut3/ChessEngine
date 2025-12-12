@@ -84,11 +84,13 @@ impl Fen {
             }
 
             // We set the enpassant flag to 0, since one can only do this move right after an opposing pawn is moved two squares forward
-            self.array[INFO] &= !PARTIAL_ENPASSANT;
+            self.array[INFO] &= !ENPASSANT;
 
             // In case a pawn has moved two squares forward, we update the enpassant flag accordingly
             if (to & RANK_4 != 0) && (from & self.array[PAWN_W] & RANK_6 != 0) {
                 self.array[INFO] |= parsing::bin_to_compr_enpassant(from << 8);
+            } else {
+                self.array[INFO] |= ENPASSANT_EMPTY;
             }
 
         } else {
@@ -117,11 +119,13 @@ impl Fen {
             }
 
             // We set the enpassant flag to 0, since one can only do this move right after an opposing pawn is moved two squares forward
-            self.array[INFO] &= !PARTIAL_ENPASSANT;
+            self.array[INFO] &= !ENPASSANT;
 
             // In case a pawn has moved two squares forward, we update the enpassant flag accordingly
             if (to & RANK_3 != 0) && (from & self.array[PAWN_B] & RANK_1 != 0) {
                 self.array[INFO] |= parsing::bin_to_compr_enpassant(from >> 8);
+            } else {
+                self.array[INFO] |= ENPASSANT_EMPTY;
             }
 
         }
