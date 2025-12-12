@@ -25,6 +25,7 @@ class PlayerVsPlayerMatch:
                 running = False
             else:
                 self.fen.lan_to_fen(move)
+                self.visual.update_fen_list()
 
             game_ended = self.fen.game_ended()
             if game_ended == WHITE_WINS or game_ended == BLACK_WINS or game_ended == DRAW:
@@ -97,6 +98,7 @@ class BotVsBotMatch:
 
         if self.is_visual:
             self.visual.place_piece(*lan_to_move(move), True)
+            self.visual.update_fen_list()
         
         return True
     
@@ -146,5 +148,6 @@ class PlayerVsBotMatch:
         self.fen.lan_to_fen(move)
         print(f"Fen to {self.fen.to_string()} by move {move}")
         self.visual.place_piece(*lan_to_move(move), True)
+        self.visual.update_fen_list()
         
         return True

@@ -4,3 +4,9 @@ Others:
 - Load images before running, instead of reloading them during running
 - Switch eval system to bits instead of 'regular' computation
 - Remove promotion flag from move to save space and solve this how???
+
+Bugs:
+- enpassant
+- perspective
+
+REWRITE VISUAL ENGINE

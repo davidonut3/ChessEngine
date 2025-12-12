@@ -1,0 +1,12 @@
+We add +100000 for each of the following:
+
+Check
+Capture
+Promotion
+
+Whenever there is a capture, we add a score for MVV-LVA
+
+Also do something to move less valuable pieces first
+
+Sort high to low 
+

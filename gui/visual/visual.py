@@ -28,6 +28,9 @@ class Visual:
         self.rook_button = Button((96, 10), 22, 30, self.font, 'R')
         self.bishop_button = Button((122, 10), 22, 30, self.font, 'B')
         self.knight_button = Button((148, 10), 22, 30, self.font, 'N')
+        self.undo_button = Button((174, 10), 56, 30, self.font, 'Undo')
+
+        self.fen_list = [self.fen.to_string()]
 
         self.rank_index, self.file_index = load_index_text(self.font)
 
@@ -90,6 +93,7 @@ class Visual:
                     self.mouse_down = False
 
             self.update_save()
+            self.update_undo()
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -97,6 +101,7 @@ class Visual:
             self.rook_button.draw(self.screen)
             self.bishop_button.draw(self.screen)
             self.knight_button.draw(self.screen)
+            self.undo_button.draw(self.screen)
             self.board_screen.fill(Color.WHITE)
 
             self.draw_board(self.board_screen)
@@ -155,6 +160,7 @@ class Visual:
                 self.current_tile.piece.center_image_at(self.screen_mouse)
 
             self.update_save()
+            self.update_undo()
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -162,6 +168,7 @@ class Visual:
             self.rook_button.draw(self.screen)
             self.bishop_button.draw(self.screen)
             self.knight_button.draw(self.screen)
+            self.undo_button.draw(self.screen)
             self.board_screen.fill(Color.WHITE)
 
             self.draw_board(self.board_screen)
@@ -189,6 +196,7 @@ class Visual:
                     self.mouse_down = False
 
             self.update_save()
+            self.update_undo()
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -196,6 +204,7 @@ class Visual:
             self.rook_button.draw(self.screen)
             self.bishop_button.draw(self.screen)
             self.knight_button.draw(self.screen)
+            self.undo_button.draw(self.screen)
             self.board_screen.fill(Color.WHITE)
 
             self.draw_board(self.board_screen)
@@ -221,6 +230,7 @@ class Visual:
                     self.mouse_down = False
 
             self.update_save()
+            self.update_undo()
             queen_button = self.queen_button.update(self.mouse_pos, self.mouse_down)
             if queen_button:
                 return 'q'
@@ -240,6 +250,7 @@ class Visual:
             self.rook_button.draw(self.screen)
             self.bishop_button.draw(self.screen)
             self.knight_button.draw(self.screen)
+            self.undo_button.draw(self.screen)
             self.board_screen.fill(Color.WHITE)
 
             self.draw_board(self.board_screen)
@@ -303,3 +314,13 @@ class Visual:
         button_clicked = self.save_button.update(self.mouse_pos, self.mouse_down)
         if button_clicked:
             print(f'The current fen is: {self.fen.to_string()}')
+
+    def update_undo(self):
+        button_clicked = self.undo_button.update(self.mouse_pos, self.mouse_down)
+        if button_clicked and not len(self.fen_list) < 2:
+            self.fen_list = self.fen_list[:-1]
+            self.fen = self.fen.from_str(self.fen_list[-1])
+            self.update_board()
+
+    def update_fen_list(self):
+        self.fen_list.append(self.fen.to_string())
