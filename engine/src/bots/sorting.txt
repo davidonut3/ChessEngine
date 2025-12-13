@@ -1,12 +1,24 @@
-We add +100000 for each of the following:
+We add +100_000 for each of the following:
 
 Check
 Capture
 Promotion
 
 Whenever there is a capture, we add a score for MVV-LVA
-
-Also do something to move less valuable pieces first
+Whenever there is not a capture, we subtract attacker value so that pawns go first, king goes last
 
 Sort high to low 
 
+queen = 5, pawn = 1
+
+Victim queen, attacking pawn, should appear first, 10v-a = 49
+
+Victim pawn, attacking queen, should appear last, 10v-a = 5
+
+a v p   n   b   r   q   k   
+p   9   19  29  39  49  59
+n   8   18  28  38  48  58
+b   7   17  27  37  47  57
+r   6   16  26  36  46  56
+q   5   15  25  35  45  55
+k   4   14  24  34  44  54

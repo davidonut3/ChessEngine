@@ -19,12 +19,14 @@ def test():
     bot2 = SimpleEnginePy.new_game(game)
     bot3 = AlphaEnginePy.new_game(game)
     bot4 = SortedEnginePy.new_game(game)
-    # PlayerVsBotMatch(bot4, 1000, player_is_white=False, fen=fen, perspective=WHITE).run_match()
-    PlayerVsPlayerMatch(fen, WHITE).run_match()
+    PlayerVsBotMatch(bot4, 1000, player_is_white=False, fen=fen, perspective=WHITE).run_match()
+    # PlayerVsPlayerMatch(fen, WHITE).run_match()
     # BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
-# test()
+test()
 
 # run_matchup_py(True, 100, 500)
 
 # rust_access()
+
+# move_gen_perft_py()

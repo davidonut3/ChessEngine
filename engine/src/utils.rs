@@ -75,6 +75,13 @@ impl GameOutcome {
 pub const TIME_PER_MOVE_MILLI: u64 = 100;
 pub const INFINITY: i32 = i32::MAX;
 
+pub const PAWN: usize       = 0;
+pub const KNIGHT: usize     = 1;
+pub const BISHOP: usize     = 2;
+pub const ROOK: usize       = 3;
+pub const QUEEN: usize      = 4;
+pub const KING: usize       = 5;
+
 // -------------------- Array Index --------------------
 
 pub const UP: usize = 0;

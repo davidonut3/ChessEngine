@@ -7,19 +7,14 @@ use crate::fenlib::fen::Fen;
 use crate::parsing;
 use crate::utils::*;
 
-const PAWN: usize = 0;
-const KNIGHT: usize = 1;
-const BISHOP: usize = 2;
-const ROOK: usize = 3;
-const QUEEN: usize = 4;
-const KING: usize = 5;
-
 // Mate/king value cannot be infinity, since that may result in integer overflows
 const MATE_VALUE: i32 = 20000;
 
 const MIDGAME_VALUES: [i32; 6] = [ 82, 337, 365, 477, 1025, MATE_VALUE ];
 const ENDGAME_VALUES: [i32; 6] = [ 94, 281, 297, 512, 936, MATE_VALUE ];
 const GAME_PHASE_VALUES: [i32; 5] = [0, 1, 1, 2, 4];
+
+const SCORING_NUMBER: i32 = 100_000;
 
 #[derive(Debug, Clone)]
 pub struct SortedEngine {
@@ -89,6 +84,51 @@ impl SortedEngine {
 
         let (moves, move_count) = fen.get_legal_moves_array();
 
+        let mut scored_moves: Vec<(Move, i32, Fen)> = Vec::with_capacity(move_count);
+
+        for i in 0..move_count {
+
+            let move1: Move = moves[i];
+            let mut score: i32 = 0;
+
+            let attacker: i32;
+            if move1[2] != 0 {
+                // In case of promotion, we add 100_000 to score and set attacker to 0 since it must be a pawn
+                score += SCORING_NUMBER;
+                attacker = 0;
+            } else {
+                // This only panics if there is no piece that moves, in which case we want a panic
+                attacker = fen.piece_on_square_no_color(move1[0]).unwrap() as i32;
+            }
+
+            // We subtract the score of the attacker to prevent king shuffling among other things
+            score -= attacker + 1;
+
+            if let Some(victim) = fen.piece_on_square_no_color(move1[1]) {
+                // In case of a capture, we add 100_000 + 10 times the value of the victim to the score
+                score += SCORING_NUMBER + (victim + 1) as i32 * 10;
+            }
+
+            let mut new_fen = fen.clone();
+            new_fen.move_to_fen(move1);
+
+            // In case the move we will do results in a check, we add 100_000 to the score
+            if new_fen.player_in_check(new_fen.white_to_move()) {
+                score += SCORING_NUMBER;
+            }
+
+            scored_moves.push((move1, score, new_fen));
+
+        }
+
+        scored_moves.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+
+        // WE CAN REMOVE MOVE FROM SCORED_MOVES
+        println!();
+        for i in 0..move_count {
+            println!("{:?} {:?}", parsing::move_to_lan(&scored_moves[i].0), scored_moves[i].1)
+        }
+
         // We break early if there is a stalemate or a checkmate
         if move_count == 0 {
             if fen.player_in_check(fen.white_to_move()) { return -MATE_VALUE - depth; } else { return 0; }
@@ -99,11 +139,7 @@ impl SortedEngine {
         let mut value: i32 = -INFINITY;
         
         for i in 0..move_count {
-            let move1: Move = moves[i];
-            let mut new_fen = fen.clone();
-            new_fen.move_to_fen(move1);
-
-            let score: i32 = -self.negamax(&new_fen, depth - 1, -beta, -alpha);
+            let score: i32 = -self.negamax(&scored_moves[i].2, depth - 1, -beta, -alpha);
 
             if score > value { value = score }
             if value > alpha { alpha = value }
@@ -197,5 +233,71 @@ impl SortedEngine {
         let score: i32 = (midgame_score * midgame_phase + endgame_score * endgame_phase) / 24;
 
         if fen.white_to_move() { score } else { -score }
+    }
+
+    fn _sort_moves(&self, fen: Fen, moves: MoveArray, move_count: usize) -> MoveArray {
+        /* How we score moves:
+
+        We add +100_000 for each of the following:
+
+        Check
+        Capture
+        Promotion
+
+        Whenever there is a capture, we add a score for MVV-LVA
+        Whenever there is not a capture, we subtract attacker value so that pawns go first, king goes last
+
+        Sort high to low 
+
+        queen = 5, pawn = 1
+
+        Victim queen, attacking pawn, should appear first, 10v-a = 49
+
+        Victim pawn, attacking queen, should appear last, 10v-a = 5
+
+        a v p   n   b   r   q   k   
+        p   9   19  29  39  49  59
+        n   8   18  28  38  48  58
+        b   7   17  27  37  47  57
+        r   6   16  26  36  46  56
+        q   5   15  25  35  45  55
+        k   4   14  24  34  44  54 
+        */
+
+        // We assume the moves are legal
+
+        let sorted: MoveArray = [[0; 3]; MAX_MOVES];
+        let mut scored_moves: Vec<(Move, i32)> = Vec::with_capacity(move_count);
+
+        for i in 0..move_count {
+
+            let move1: Move = moves[i];
+            let mut score: i32 = 0;
+
+            let attacker: i32;
+            if move1[2] != 0 {
+                // In case of promotion, we add 100_000 to score and set attacker to 0 since it must be a pawn
+                score += SCORING_NUMBER;
+                attacker = 0;
+            } else {
+                // This only panics if there is no piece that moves, in which case we want a panic
+                attacker = fen.piece_on_square_no_color(move1[0]).unwrap() as i32;
+            }
+
+            // We subtract the score of the attacker to prevent king shuffling among other things
+            score -= attacker + 1;
+
+            if let Some(victim) = fen.piece_on_square_no_color(move1[1]) {
+                // In case of a capture, we add 100_000 + 10 times the value of the victim to the score
+                score += SCORING_NUMBER + (victim + 1) as i32 * 10;
+            }
+
+            // Something to check whether the move puts opponent in check
+
+            scored_moves.push((move1, score));
+
+        }
+
+        sorted
     }
 }

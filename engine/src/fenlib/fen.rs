@@ -3,7 +3,6 @@ use crate::parsing;
 use crate::utils::*;
 use crate::fenlib::zobrist::*;
 
-
 #[derive(Debug, Clone)]
 pub struct Fen {
     pub array: Array,
@@ -976,5 +975,33 @@ impl Fen {
         // print!("\n");
 
         (result, index)
+    }
+
+    pub fn piece_on_square_with_color(&self, bit: u64) -> Option<usize> {
+        if          bit & self.array[PAWN_W]        != 0 { return Some(PAWN_W)      }
+        else if     bit & self.array[PAWN_B]        != 0 { return Some(PAWN_B)      }
+        else if     bit & self.array[KNIGHT_W]      != 0 { return Some(KNIGHT_W)    }
+        else if     bit & self.array[KNIGHT_B]      != 0 { return Some(KNIGHT_B)    }
+        else if     bit & self.array[BISHOP_W]      != 0 { return Some(BISHOP_W)    }
+        else if     bit & self.array[BISHOP_B]      != 0 { return Some(BISHOP_B)    }
+        else if     bit & self.array[ROOK_W]        != 0 { return Some(ROOK_W)      }
+        else if     bit & self.array[ROOK_B]        != 0 { return Some(ROOK_B)      }
+        else if     bit & self.array[KING_W]        != 0 { return Some(KING_W)      }
+        else if     bit & self.array[KING_B]        != 0 { return Some(KING_B)      }
+        else if     bit & self.array[QUEEN_W]       != 0 { return Some(QUEEN_W)     }
+        else if     bit & self.array[QUEEN_B]       != 0 { return Some(QUEEN_B)     }
+
+        return None
+    }
+
+    pub fn piece_on_square_no_color(&self, bit: u64) -> Option<usize> {
+        if          bit & (self.array[PAWN_W]           | self.array[PAWN_B])       != 0 { return Some(PAWN)        }
+        else if     bit & (self.array[KNIGHT_W]         | self.array[KNIGHT_B])     != 0 { return Some(KNIGHT)      }
+        else if     bit & (self.array[BISHOP_W]         | self.array[BISHOP_B])     != 0 { return Some(BISHOP)      }
+        else if     bit & (self.array[ROOK_W]           | self.array[ROOK_B])       != 0 { return Some(ROOK)        }
+        else if     bit & (self.array[KING_W]           | self.array[KING_B])       != 0 { return Some(KING)        }
+        else if     bit & (self.array[QUEEN_W]          | self.array[QUEEN_B])      != 0 { return Some(QUEEN)       }
+
+        return None
     }
 }

@@ -5,7 +5,8 @@ Others:
 - Switch eval system to bits instead of 'regular' computation
 - Remove promotion flag from move to save space and solve this how???
 
-Bugs:
-- enpassant
+Turn types in rust (Move, MoveArray) into structs
 
 REWRITE GUI (WITH UNDO CAPABILITIES)
+
+!!! DOCUMENTATION

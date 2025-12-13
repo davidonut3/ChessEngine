@@ -5,13 +5,6 @@ use crate::bots::matchup::Engine;
 use crate::fenlib::fen::Fen;
 use crate::utils::*;
 
-const PAWN: usize = 0;
-const KNIGHT: usize = 1;
-const BISHOP: usize = 2;
-const ROOK: usize = 3;
-const QUEEN: usize = 4;
-const KING: usize = 5;
-
 // Mate/king value cannot be infinity, since that may result in integer overflows
 const MATE_VALUE: i32 = 20000;
 
