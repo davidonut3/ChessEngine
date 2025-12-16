@@ -84,62 +84,23 @@ impl SortedEngine {
 
         let (moves, move_count) = fen.get_legal_moves_array();
 
-        let mut scored_moves: Vec<(Move, i32, Fen)> = Vec::with_capacity(move_count);
-
-        for i in 0..move_count {
-
-            let move1: Move = moves[i];
-            let mut score: i32 = 0;
-
-            let attacker: i32;
-            if move1[2] != 0 {
-                // In case of promotion, we add 100_000 to score and set attacker to 0 since it must be a pawn
-                score += SCORING_NUMBER;
-                attacker = 0;
-            } else {
-                // This only panics if there is no piece that moves, in which case we want a panic
-                attacker = fen.piece_on_square_no_color(move1[0]).unwrap() as i32;
-            }
-
-            // We subtract the score of the attacker to prevent king shuffling among other things
-            score -= attacker + 1;
-
-            if let Some(victim) = fen.piece_on_square_no_color(move1[1]) {
-                // In case of a capture, we add 100_000 + 10 times the value of the victim to the score
-                score += SCORING_NUMBER + (victim + 1) as i32 * 10;
-            }
-
-            let mut new_fen = fen.clone();
-            new_fen.move_to_fen(move1);
-
-            // In case the move we will do results in a check, we add 100_000 to the score
-            if new_fen.player_in_check(new_fen.white_to_move()) {
-                score += SCORING_NUMBER;
-            }
-
-            scored_moves.push((move1, score, new_fen));
-
-        }
-
-        scored_moves.sort_unstable_by(|a, b| b.1.cmp(&a.1));
-
-        // WE CAN REMOVE MOVE FROM SCORED_MOVES
-        println!();
-        for i in 0..move_count {
-            println!("{:?} {:?}", parsing::move_to_lan(&scored_moves[i].0), scored_moves[i].1)
-        }
-
         // We break early if there is a stalemate or a checkmate
         if move_count == 0 {
             if fen.player_in_check(fen.white_to_move()) { return -MATE_VALUE - depth; } else { return 0; }
         };
 
+        // We statically evaluate leaf nodes
         if depth == 0 { return self.eval(fen) }
+
+        // We sort the moves, for details see sorting.txt
+        let sorted_moves: Vec<(Move, i32, Fen)> = self.sort_moves(fen, moves, move_count);
 
         let mut value: i32 = -INFINITY;
         
         for i in 0..move_count {
-            let score: i32 = -self.negamax(&scored_moves[i].2, depth - 1, -beta, -alpha);
+            let new_fen: &Fen = &sorted_moves[i].2;
+
+            let score: i32 = -self.negamax(new_fen, depth - 1, -beta, -alpha);
 
             if score > value { value = score }
             if value > alpha { alpha = value }
@@ -152,6 +113,8 @@ impl SortedEngine {
 
     fn negamax_root(&self, moves: MoveArray, move_count: usize, start_time: Instant, max_time: Duration, depth: i32) -> Move {
 
+        let sorted_moves: Vec<(Move, i32, Fen)> = self.sort_moves(&self.fen, moves, move_count);
+
         // println!("\n{:?}\n", depth);
 
         let mut alpha: i32 = -INFINITY;
@@ -163,11 +126,10 @@ impl SortedEngine {
         for i in 0..move_count {
             if start_time.elapsed() > max_time { break; }
 
-            let move1: Move = moves[i];
-            let mut new_fen = self.fen.clone();
-            new_fen.move_to_fen(move1);
+            let move1: Move = sorted_moves[i].0;
+            let new_fen: &Fen = &sorted_moves[i].2;
 
-            let score: i32 = -self.negamax(&new_fen, depth, -beta, -alpha);
+            let score: i32 = -self.negamax(new_fen, depth, -beta, -alpha);
 
             // println!("Move {}, score {:?}", parsing::move_to_lan(&move1), score);
 
@@ -235,39 +197,10 @@ impl SortedEngine {
         if fen.white_to_move() { score } else { -score }
     }
 
-    fn _sort_moves(&self, fen: Fen, moves: MoveArray, move_count: usize) -> MoveArray {
-        /* How we score moves:
-
-        We add +100_000 for each of the following:
-
-        Check
-        Capture
-        Promotion
-
-        Whenever there is a capture, we add a score for MVV-LVA
-        Whenever there is not a capture, we subtract attacker value so that pawns go first, king goes last
-
-        Sort high to low 
-
-        queen = 5, pawn = 1
-
-        Victim queen, attacking pawn, should appear first, 10v-a = 49
-
-        Victim pawn, attacking queen, should appear last, 10v-a = 5
-
-        a v p   n   b   r   q   k   
-        p   9   19  29  39  49  59
-        n   8   18  28  38  48  58
-        b   7   17  27  37  47  57
-        r   6   16  26  36  46  56
-        q   5   15  25  35  45  55
-        k   4   14  24  34  44  54 
-        */
+    fn sort_moves(&self, fen: &Fen, moves: MoveArray, move_count: usize) -> Vec<(Move, i32, Fen)> {
 
         // We assume the moves are legal
-
-        let sorted: MoveArray = [[0; 3]; MAX_MOVES];
-        let mut scored_moves: Vec<(Move, i32)> = Vec::with_capacity(move_count);
+        let mut scored_moves: Vec<(Move, i32, Fen)> = Vec::with_capacity(move_count);
 
         for i in 0..move_count {
 
@@ -292,12 +225,20 @@ impl SortedEngine {
                 score += SCORING_NUMBER + (victim + 1) as i32 * 10;
             }
 
-            // Something to check whether the move puts opponent in check
+            let mut new_fen = fen.clone();
+            new_fen.move_to_fen(move1);
 
-            scored_moves.push((move1, score));
+            // In case the move we will do results in a check, we add 100_000 to the score
+            if new_fen.player_in_check(new_fen.white_to_move()) {
+                score += SCORING_NUMBER;
+            }
+
+            scored_moves.push((move1, score, new_fen));
 
         }
 
-        sorted
+        scored_moves.sort_unstable_by(|a, b| b.1.cmp(&a.1));
+
+        scored_moves
     }
 }
