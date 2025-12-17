@@ -8,6 +8,7 @@ class PlayerVsPlayerMatch:
         self.fen = fen
         self.perspective = perspective
         self.visual = Visual(self.fen, self.perspective)
+        self.fen_list = [self.fen.to_string()]
 
     def run_match(self):
         print("Player vs player match")
@@ -20,16 +21,18 @@ class PlayerVsPlayerMatch:
                 move = self.visual.get_move(WHITE)
             else:
                 move = self.visual.get_move(BLACK)
-
-            if self.visual.fen != self.fen:
-                self.fen = self.visual.fen
-                continue
             
             if not move:
                 running = False
+            elif move == UNDO:
+                if len(self.fen_list) >= 2:
+                    self.fen_list = self.fen_list[:-1]
+                    self.fen = self.fen.from_str(self.fen_list[-1])
+                    self.visual.set_fen(self.fen_list[-1], True)
             else:
                 self.fen.lan_to_fen(move)
-                self.visual.update_fen_list()
+                self.fen_list.append(self.fen.to_string())
+                self.visual.set_fen(self.fen.to_string(), False)
 
             game_ended = self.fen.game_ended()
             if game_ended == WHITE_WINS or game_ended == BLACK_WINS or game_ended == DRAW:
@@ -102,7 +105,6 @@ class BotVsBotMatch:
 
         if self.is_visual:
             self.visual.place_piece(*lan_to_move(move), True)
-            self.visual.update_fen_list()
         
         return True
     
@@ -115,6 +117,7 @@ class PlayerVsBotMatch:
         self.fen = fen
         self.perspective = perspective
         self.visual = Visual(self.fen, self.perspective)
+        self.fen_list = [self.fen.to_string()]
 
     def run_match(self):
         print("Player vs bot match")
@@ -131,16 +134,21 @@ class PlayerVsBotMatch:
             elif not self.visual.run_static(self):
                 running = False
 
-            if self.visual.fen != self.fen:
-                self.fen = self.visual.fen
-                continue
-
             if not move:
                 running = False
+            elif move == UNDO:
+                if len(self.fen_list) >= 3:
+                    self.fen_list = self.fen_list[:-2]
+                    self.fen = self.fen.from_str(self.fen_list[-1])
+                    self.bot = self.bot.new_game(self.fen.to_string())
+                    self.visual.set_fen(self.fen_list[-1], True)
             elif move != 1:
                 print(f"Fen to {self.fen.to_string()} by move {move}")
                 self.fen.lan_to_fen(move)
                 self.bot.apply_move(move)
+
+                self.fen_list.append(self.fen.to_string())
+                self.visual.set_fen(self.fen.to_string(), False)
 
             game_ended = self.fen.game_ended()
             if game_ended == WHITE_WINS or game_ended == BLACK_WINS or game_ended == DRAW:
@@ -156,6 +164,7 @@ class PlayerVsBotMatch:
         self.fen.lan_to_fen(move)
         print(f"Fen to {self.fen.to_string()} by move {move}")
         self.visual.place_piece(*lan_to_move(move), True)
-        self.visual.update_fen_list()
+        self.fen_list.append(self.fen.to_string())
+        self.visual.set_fen(self.fen.to_string(), False)
         
         return True

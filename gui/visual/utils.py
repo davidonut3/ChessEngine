@@ -25,6 +25,8 @@ BOARD_SIZE = TILE_SIZE * 8
 BOARD_X, BOARD_Y = 60, 60
 SCREEN_WIDTH, SCREEN_HEIGHT = BOARD_SIZE + BOARD_X * 2, BOARD_SIZE + BOARD_Y * 2
 
+UNDO = 'UNDO'
+
 piece_to_letter = {
     WHITE: {
         'ROOK': 'R',

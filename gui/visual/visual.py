@@ -30,8 +30,6 @@ class Visual:
         self.knight_button = Button((148, 10), 22, 30, self.font, 'N')
         self.undo_button = Button((174, 10), 56, 30, self.font, 'Undo')
 
-        self.fen_list = [self.fen.to_string()]
-
         self.rank_index, self.file_index = load_index_text(self.font)
 
         self.current_tile = self.board[(0, 0)]
@@ -94,7 +92,7 @@ class Visual:
 
             self.update_save()
             if self.update_undo():
-                return False
+                return UNDO
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -164,7 +162,7 @@ class Visual:
 
             self.update_save()
             if self.update_undo():
-                return False
+                return UNDO
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -201,7 +199,7 @@ class Visual:
 
             self.update_save()
             if self.update_undo():
-                return False
+                return UNDO
 
             self.screen.fill(Color.BG)
             self.save_button.draw(self.screen)
@@ -236,7 +234,7 @@ class Visual:
 
             self.update_save()
             if self.update_undo():
-                return False
+                return UNDO
             queen_button = self.queen_button.update(self.mouse_pos, self.mouse_down)
             if queen_button:
                 return 'q'
@@ -322,13 +320,19 @@ class Visual:
             print(f'The current fen is: {self.fen.to_string()}')
 
     def update_undo(self):
-        # button_clicked = self.undo_button.update(self.mouse_pos, self.mouse_down)
-        # if button_clicked and not len(self.fen_list) < 2:
-        #     self.fen_list = self.fen_list[:-1]
-        #     self.fen = self.fen.from_str(self.fen_list[-1])
-        #     self.update_board()
-        #     return self.fen
-        return None
+        button_clicked = self.undo_button.update(self.mouse_pos, self.mouse_down)
+        return button_clicked
+    
+    def set_fen(self, fen_str, reset):
+        self.fen = self.fen.from_str(fen_str)
+        self.update_board()
 
-    def update_fen_list(self):
-        self.fen_list.append(self.fen.to_string())
+        if reset:
+            self.show_previous_move = False
+            
+            for rank in range(8):
+                for file in range(8):
+                    tile = self.board[(rank, file)]
+                    if tile.has_piece:
+                        tile.piece.pos = tile.draw_pos
+                    tile.reset()

@@ -46,7 +46,7 @@ impl Engine for SortedEngine {
             depth += 1;
         }
 
-        println!("{:?}", start_time.elapsed());
+        // println!("{:?}", start_time.elapsed());
 
         best_move
     }
