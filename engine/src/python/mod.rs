@@ -237,9 +237,8 @@ impl SortedEnginePy {
 }
 
 #[pyfunction]
-pub fn perft_check(max_depth: usize, fen_str: &str, per_move: bool) {
-    let count: usize = tests::perft(max_depth, fen_str, per_move);
-    println!("Checked a total of {:?} moves", count);
+pub fn validate_move_gen_py() {
+    tests::validate_move_gen();
 }
 
 #[pyfunction]
@@ -270,7 +269,7 @@ fn engine(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<AlphaEnginePy>()?;
     m.add_class::<SortedEnginePy>()?;
     m.add_function(wrap_pyfunction!(move_gen_perft_py, m)?)?;
-    m.add_function(wrap_pyfunction!(perft_check, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_move_gen_py, m)?)?;
     m.add_function(wrap_pyfunction!(moves_per_second_perft_py, m)?)?;
     m.add_function(wrap_pyfunction!(run_matchup_py, m)?)?;
     Ok(())

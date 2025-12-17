@@ -3,10 +3,6 @@ from match import PlayerVsBotMatch, PlayerVsPlayerMatch, BotVsBotMatch
 from testbot import TestBot
 from visual.visual import Visual
 
-def perft(fen_str, per_move):
-    for i in range(1,7):
-        perft_check(i, fen_str, per_move)
-
 def test():
     game = DEFAULT
 
@@ -23,10 +19,8 @@ def test():
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
     # BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
-test()
-
 # run_matchup_py(True, 100, 500)
 
 # rust_access()
 
-# move_gen_perft_py()
+validate_move_gen_py()
