@@ -8,7 +8,7 @@ def test():
 
     fen = FenPy()
     fen = fen.from_str(game)
-    botOther = AlphaEnginePy.new_game(game)
+    botOther = SimpleEnginePy.new_game(game)
 
     bot0 = DumbEnginePy.new_game(game)
     bot1 = RandomEnginePy.new_game(game)
@@ -18,7 +18,7 @@ def test():
 
     # PlayerVsBotMatch(bot4, 100, player_is_white=True, fen=fen, perspective=WHITE).run_match()
     # PlayerVsPlayerMatch(fen, WHITE).run_match()
-    # BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
+    BotVsBotMatch(bot4, botOther, delay_seconds=0, fen=fen, is_visual=True, perspective=WHITE).run_match()
 
 # test()
 

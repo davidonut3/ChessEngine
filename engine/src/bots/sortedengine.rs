@@ -35,20 +35,23 @@ impl Engine for SortedEngine {
 
         if let Some(move1) = self.opening_move(moves, true) { return move1 }
 
-        let mut best_move: Move;
+        let mut best_move: Move = self.negamax_root(moves, move_count, start_time, max_time, 1);
+        let mut best_move_prev_iter: Move = best_move;
 
-        let mut depth: i32 = 1;
+        let mut depth: i32 = 2;
         loop {
             best_move = self.negamax_root(moves, move_count, start_time, max_time, depth);
 
             if start_time.elapsed() > max_time { break; }
+
+            best_move_prev_iter = best_move;
 
             depth += 1;
         }
 
         // println!("{:?}", start_time.elapsed());
 
-        best_move
+        best_move_prev_iter
     }
 
     fn apply_move(&mut self, move1: Move) {
