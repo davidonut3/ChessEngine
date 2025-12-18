@@ -10,11 +10,6 @@ use crate::fenlib::fen::Fen;
 // so that each game takes only MAX_NUMBER_OF_PLIES * time_per_move time.
 const MAX_NUMBER_OF_PLIES: i32 = 500;
 
-pub enum Side {
-    White,
-    Black,
-}
-
 pub struct GameResult {
     pub white_is_engine1: bool,
     pub start_fen: String,
@@ -108,12 +103,11 @@ pub fn run_game<E1: Engine, E2: Engine>(fen_str: &str, time_per_move: Duration, 
     let mut fen: Fen = Fen::from_str(fen_str);
     let mut moves: Vec<Move> = Vec::new();
     let mut outcome: GameOutcome = GameOutcome::Ongoing;
-    let mut side: Side = Side::White;
 
     for _ply in 0..MAX_NUMBER_OF_PLIES {
-        let move1: Move = match side {
-            Side::White => { if white_is_engine1 { engine1.select_move(time_per_move) } else { engine2.select_move(time_per_move) } }
-            Side::Black => { if white_is_engine1 { engine2.select_move(time_per_move) } else { engine1.select_move(time_per_move) } }
+        let move1: Move = match fen.white_to_move() {
+            true    => { if white_is_engine1 { engine1.select_move(time_per_move) } else { engine2.select_move(time_per_move) } }
+            false   => { if white_is_engine1 { engine2.select_move(time_per_move) } else { engine1.select_move(time_per_move) } }
         };
 
         engine1.apply_move(move1);
@@ -129,8 +123,6 @@ pub fn run_game<E1: Engine, E2: Engine>(fen_str: &str, time_per_move: Duration, 
 
         // We break the loop if the game is over
         if outcome != GameOutcome::Ongoing { break }
-
-        side = match side { Side::White => Side::Black, Side::Black => Side::White };
     }
 
     GameResult {

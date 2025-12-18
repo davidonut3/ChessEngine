@@ -22,8 +22,8 @@ def test():
 
 # test()
 
-run_matchup_py(True, 100, 500)
+# run_matchup_py(True, 100, 500)
 
 # rust_access()
 
-# validate_move_gen_py()
+move_gen_perft_py()
