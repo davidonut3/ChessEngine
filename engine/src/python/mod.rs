@@ -242,8 +242,8 @@ pub fn validate_move_gen_py() {
 }
 
 #[pyfunction]
-pub fn move_gen_perft_py() {
-    tests::move_gen_perft();
+pub fn move_gen_perft_py(count: i32, print_each: bool) {
+    tests::move_gen_perft(count as usize, print_each);
 }
 
 #[pyfunction]

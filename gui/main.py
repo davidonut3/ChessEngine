@@ -26,4 +26,4 @@ def test():
 
 # rust_access()
 
-move_gen_perft_py()
+move_gen_perft_py(1000000, False)

@@ -64,20 +64,24 @@ pub fn recursive_perft_check(fen: &Fen, depth: usize) -> usize {
     }
 }
 
-pub fn move_gen_perft() {
-    let global_time: Instant = Instant::now();
-    println!("Starting performance test for move generation");
-    let games: [Fen; 1000] = games::get_random_fens();
-    println!("Creating Fens took {:?}", global_time.elapsed());
+pub fn move_gen_perft(count: usize, print_each: bool) {
+    let game_array: [Fen; 1000] = games::get_random_fens();
+    let mut games: Vec<&Fen> = Vec::with_capacity(count);
+
+    for i in 0..count {
+        let index = i % 1000;
+        games.push(&game_array[index]);
+    }
 
     // We call the function once before testing since the first one is always significantly slower than the rest
     games[0].get_legal_moves_array();
 
-    let mut durations: [Duration; 1000] = [Duration::from_nanos(0); 1000];
-    for i in 0..1000 {
+    let mut durations: Vec<Duration> = Vec::with_capacity(count);
+
+    for i in 0..count {
         let time: Instant = Instant::now();
         games[i].get_legal_moves_array();
-        durations[i] = time.elapsed();
+        durations.push(time.elapsed());
     }
 
     let mut total_nanos: u128 = 0;
@@ -87,9 +91,13 @@ pub fn move_gen_perft() {
     let mut worst_fen: String = games[0].to_string();
     let mut best_fen: String = games[0].to_string();
 
-    for i in 0..1000 {
+    for i in 0..count {
         let duration: Duration = durations[i];
-        println!("{:?} at {}", duration, games[i].to_string());
+
+        if print_each {
+            println!("{:?} at {}", duration, games[i].to_string());
+        }
+        
         total_nanos += duration.as_nanos();
 
         if duration < min {
@@ -103,11 +111,26 @@ pub fn move_gen_perft() {
         }
     }
 
-    let avg: Duration = Duration::from_nanos((total_nanos / durations.len() as u128) as u64);
+    durations.sort_unstable();
+
+    // For the smart average, we ignore the 15 % best and the 15 % worst times
+    let ignore: usize = (count as f32 * 0.2) as usize;
+    let smart_durations: &[Duration] = &durations[0..count-ignore];
+    let smart_count: usize = smart_durations.len();
+
+    let mut smart_total_nanos: u128 = 0;
+    for i in 0..smart_count {
+        let duration: Duration = smart_durations[i];
+        smart_total_nanos += duration.as_nanos();
+    }
+
+    let avg: Duration = Duration::from_nanos((total_nanos / count as u128) as u64);
+    let smart_avg: Duration = Duration::from_nanos((smart_total_nanos / smart_count as u128) as u64);
 
     println!("Min duration {:?} at {}", min, best_fen);
     println!("Max duration {:?} at {}", max, worst_fen);
     println!("Average duration {:?}", avg);
+    println!("Best 80 % average {:?}", smart_avg);
 }
 
 pub fn moves_per_second_perft() {
