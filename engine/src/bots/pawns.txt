@@ -1,0 +1,18 @@
+We can divide this list into two categories: Individual and global, which we rank separately.
+Should we rank differently based on game phase?
+
+Individual:
+
+Passed              https://www.chess.com/terms/passed-pawn
+Protected
+Isolated            https://www.chess.com/terms/isolated-pawn-chess
+Backward            https://www.chess.com/terms/backward-pawn-chess
+Advanced 
+
+Global:
+
+Pawn islands: -10 for any island (separated by empty files) more than 1 island 
+Pawn majority: +10 for pawn majority on each half of the board
+Doubled pawns: -15 for any file with >1 pawn, -10 for any with >2, -5 for any with >3
+
+See pawns.xlsx

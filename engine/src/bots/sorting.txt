@@ -4,6 +4,18 @@ Check
 Capture
 Promotion
 
+!!! Is this correct? Should it not be
+
++300_000 for check 
+
+if no check:
+
++200_000 for capture 
+
+if no check and no capture:
+
++100_000 for promotion
+
 Whenever there is a capture, we add a score for MVV-LVA
 Whenever there is not a capture, we subtract attacker value so that pawns go first, king goes last
 
