@@ -15,4 +15,4 @@ Pawn islands: -10 for any island (separated by empty files) more than 1 island
 Pawn majority: +10 for pawn majority on each half of the board
 Doubled pawns: -15 for any file with >1 pawn, -10 for any with >2, -5 for any with >3
 
-See pawns.xlsx
+See pawns.png
